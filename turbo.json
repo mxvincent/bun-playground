@@ -1,0 +1,30 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"ui": "tui",
+	"tasks": {
+		"lint:check": {
+			"dependsOn": ["^lint:check"],
+			"inputs": ["src/**", "eslint.config.*", ".eslintrc*", ".eslintignore", "package.json"],
+			"outputs": []
+		},
+		"tsc:check": {
+			"dependsOn": ["^tsc:check"],
+			"inputs": ["src/**", "tsconfig.json", "tsconfig.*.json", "package.json"],
+			"outputs": []
+		},
+		"tsc:check:watch": {
+			"dependsOn": ["^tsc:check:watch"],
+			"inputs": ["src/**", "tsconfig.json", "tsconfig.*.json", "package.json"],
+			"outputs": []
+		},
+		"test": {
+			"dependsOn": ["^test"],
+			"inputs": ["src/**", "test/**", "**/*.test.*", "**/*.spec.*", "package.json", "tsconfig.json", "tsconfig.*.json"],
+			"outputs": ["coverage/**", ".nyc_output/**", "reports/**"]
+		},
+		"modules:clean": {
+			"cache": false,
+			"outputs": []
+		}
+	}
+}

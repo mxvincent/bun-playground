@@ -1,0 +1,11 @@
+name: 'docker-build-dispatch'
+description: 'Dispatch docker build workflow'
+inputs:
+  applications-directory:
+    description: GitHub workspace directory
+    default: applications
+  published-packages:
+    description: Changeset published packages
+runs:
+  using: 'node20'
+  main: 'index.js'

@@ -1,0 +1,21 @@
+name: 'setup-bun'
+description: 'Setup bun'
+inputs:
+  github-token:
+    description: Token used to access GitHub dependencies
+    required: false
+  bun-version:
+    description: Version of bun to install
+    default: latest
+runs:
+  using: composite
+  steps:
+    - name: 'Setup bun'
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: ${{ inputs.bun-version }}
+    - name: 'Install dependencies'
+      shell: bash
+      run: bun install --frozen-lockfile
+    - name: 'Configure turbo cache'
+      uses: rharkor/caching-for-turbo@v1.8

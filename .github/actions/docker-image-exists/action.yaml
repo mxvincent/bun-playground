@@ -1,0 +1,23 @@
+name: 'docker-image-exists'
+description: 'Check if docker image already exist'
+inputs:
+  image:
+    description: Docker image name
+    required: true
+  tag:
+    description: Docker image tag
+    required: true
+outputs:
+  exists:
+    description: 'Is docker image existing (can be undefined)'
+    value: ${{ steps.get-manifest.outputs.exists }}
+runs:
+  using: 'composite'
+  steps:
+    - name: 'Check if docker image already exist'
+      id: get-manifest
+      shell: bash
+      run: ./.github/actions/docker-image-exists/action.sh
+      env:
+        IMAGE: '${{ inputs.image }}'
+        TAG: '${{ inputs.tag }}'

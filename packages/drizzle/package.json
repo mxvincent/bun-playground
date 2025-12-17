@@ -1,0 +1,22 @@
+{
+	"name": "@package/drizzle",
+	"main": "./src/index.ts",
+	"scripts": {
+		"lint:check": "biome lint .",
+		"modules:clean": "rm -rf node_modules",
+		"test": "bun test --pass-with-no-tests",
+		"test:watch": "bun test --watch",
+		"tsc:check": "tsc --noEmit",
+		"tsc:check:watch": "tsc --noEmit --watch"
+	},
+	"dependencies": {
+		"@package/core": "workspace:*",
+		"@package/query-params-serializer": "workspace:*",
+		"@package/query-params": "workspace:*",
+		"@package/telemetry": "workspace:*"
+	},
+	"peerDependencies": {
+		"pg": "^8.11.0",
+		"drizzle-orm": "^0.45.0"
+	}
+}

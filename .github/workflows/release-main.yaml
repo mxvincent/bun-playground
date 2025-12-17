@@ -1,0 +1,47 @@
+name: 'release-main'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+on:
+  push:
+    branches:
+      - main
+env:
+  HUSKY: 0
+  KUBECONFIG: /tmp/kube-config
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.action.outputs.published }}
+      build-matrix: ${{ steps.plan.outputs.build-matrix }}
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 'Setup Bun'
+        uses: ./.github/actions/setup-bun
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Get release metadata'
+        id: metadata
+        uses: ./.github/actions/release-metadata
+      - name: 'Run changeset action'
+        id: changeset
+        uses: changesets/action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: scripts/changeset-version.sh
+          commit: ${{ steps.metadata.outputs.release-commit-title }}
+          title: ${{ steps.metadata.outputs.release-commit-title }}
+      - name: Dispatch docker-build workflow
+        id: docker-build-dispatch
+        if: steps.changeset.outputs.published == 'true'
+        uses: ./.github/actions/docker-build-dispatch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          applications-directory: ${{ github.workspace }}/applications
+          published-packages: ${{ steps.changeset.outputs.publishedPackages }}

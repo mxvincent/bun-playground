@@ -1,0 +1,32 @@
+{
+	"name": "@package/core",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		}
+	},
+	"scripts": {
+		"lint:check": "biome lint .",
+		"modules:clean": "rm -rf node_modules",
+		"test": "bun test",
+		"test:watch": "bun test --watch",
+		"tsc:check": "tsc --noEmit",
+		"tsc:check:watch": "tsc --noEmit --watch"
+	},
+	"dependencies": {
+		"@package/errors": "workspace:*",
+		"@sinclair/typebox": "^0.34.41",
+		"jsonwebtoken": "^9.0.2",
+		"jwks-rsa": "^3.2.0",
+		"uuid": "^11.1.0"
+	},
+	"devDependencies": {
+		"@types/jsonwebtoken": "^9.0.10",
+		"@types/node-jose": "^1.1.13",
+		"@types/uuid": "^10.0.0",
+		"@types/bun": "^1.3.2",
+		"msw": "^2.10.4",
+		"node-forge": "^1.3.1"
+	}
+}

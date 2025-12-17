@@ -1,0 +1,60 @@
+# Logs
+logs
+*.log
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# NodeJS
+node_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# TypeScript build (transpiled code)
+build/
+dist/
+out/
+
+# Optional eslint cache
+.eslintcache
+
+# dotenv environment variables file
+.env
+*.env
+
+# macOS Stuff
+.DS_Store
+
+# Docker
+.docker
+
+# IDE
+.idea
+.fleet
+.vscode-test
+.vscode
+
+# Turborepo
+.turbo
+
+# Application config
+config.json
+config.*.json
+!config.example.json
+!.changeset/config.json
+/templates/**
+
+# Local data
+/tmp/**
+/incubator/**
+
+/sdk
+/**/node_modules/**
+/**/.pnpm-store/**

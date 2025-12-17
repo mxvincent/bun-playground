@@ -1,0 +1,47 @@
+name: mxvincent
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: mxvincent
+      POSTGRES_PASSWORD: mxvincent
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/18/docker
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: mxvincent
+      RABBITMQ_DEFAULT_PASS: mxvincent
+      RABBITMQ_DEFAULT_VHOST: mxvincent
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+  prometheus:
+    image: gke.gcr.io/prometheus-engine/frontend:v0.17.0-gke.8
+    container_name: gmp-query-frontend
+    ports:
+      - "9090:9090"
+    environment:
+      - GMP_PROJECT=production-433808
+      - GOOGLE_APPLICATION_CREDENTIALS=/etc/gcp/service-account-key.json
+    volumes:
+      - ./secrets/service-account-key.json:/etc/gcp/service-account-key.json:ro
+    command:
+      - "--web.listen-address=:9090"
+      - "--query.project-id=production-433808"
+    restart: unless-stopped
+volumes:
+  rabbitmq-data:
+  postgres-data:
+  grafana-data:
+

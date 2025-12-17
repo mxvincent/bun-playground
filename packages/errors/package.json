@@ -1,0 +1,17 @@
+{
+	"name": "@package/errors",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		}
+	},
+	"scripts": {
+		"lint:check": "biome lint .",
+		"test": "bun test --pass-with-no-tests",
+		"test:watch": "bun test --watch",
+		"tsc:check": "tsc --noEmit",
+		"tsc:check:watch": "tsc --noEmit --watch",
+		"modules:clean": "rm -rf node_modules"
+	}
+}

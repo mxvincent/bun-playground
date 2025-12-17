@@ -1,0 +1,26 @@
+{
+	"name": "@application/aria",
+	"scripts": {
+		"clean": "find  ! -path '*/node_modules/*' -name 'dist' -d -prune -exec rm -rf '{}' +; find . -name '*.tsbuildinfo' -prune -exec rm -rf '{}' +; find . -path '*/.turbo' -type d -prune -exec rm -rf '{}' +",
+		"check:eslint": "eslint src",
+		"start:playground": "bun --env-file=.env src/commands/playground.ts",
+		"script:generate-database-types": "bun run script -- scripts/generate-database-types.ts"
+	},
+	"dependencies": {
+		"@package/core": "workspace:*",
+		"@package/json-schema": "workspace:*",
+		"@package/query-params": "workspace:^",
+		"@package/query-params-serializer": "workspace:^",
+		"@package/rabbitmq": "workspace:*",
+		"@package/telemetry": "workspace:*",
+		"@package/typeorm": "workspace:*",
+		"es-toolkit": "^1.40.0",
+		"kysely": "^0.28.8",
+		"kysely-codegen": "^0.18.5",
+		"pg": "^8.16.3",
+		"typeorm": "^0.3.27"
+	},
+	"devDependencies": {
+		"@types/pg": "^8.15.6"
+	}
+}

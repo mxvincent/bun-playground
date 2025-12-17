@@ -1,0 +1,25 @@
+name: 'release-metadata'
+description: 'Initialize state and configure pre-release mode'
+inputs:
+  changeset-path:
+    description: Changeset directory
+    default: .changeset
+outputs:
+  has-changesets:
+    description: 'Has not released changesets'
+    value: ${{ steps.status.outputs.has-changesets }}
+  is-pre-release:
+    description: 'Changeset is in pre-release mode'
+    value: ${{ steps.status.outputs.is-pre-release }}
+  release-commit-title:
+    description: 'Release commit title'
+    value: ${{ steps.status.outputs.release-commit-title }}
+runs:
+  using: 'composite'
+  steps:
+    - name: 'Release metadata'
+      id: status
+      shell: bash
+      run: ./.github/actions/release-metadata/action.sh
+      env:
+        CHANGESET_PATH: '${{ inputs.changeset-path }}'

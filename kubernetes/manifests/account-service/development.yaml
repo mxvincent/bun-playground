@@ -1,0 +1,166 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    secret.reloader.stakater.com/reload: account-service-app-server-config
+  labels:
+    app.kubernetes.io/component: app-server
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: account-service
+    app.kubernetes.io/version: 0.0.0
+  name: account-service-app-server
+spec:
+  minReadySeconds: 0
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      cdk8s.io/metadata.addr: development-account-service-app-server-deployment-c896b293
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: app-server
+        app.kubernetes.io/instance: development
+        app.kubernetes.io/name: account-service
+        app.kubernetes.io/version: 0.0.0
+        cdk8s.io/metadata.addr: development-account-service-app-server-deployment-c896b293
+      name: account-service-app-server
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - command:
+            - /nodejs/bin/node
+            - /app/dist/app-server.js
+          env:
+            - name: AUTH_CLIENT_ID
+              value: account-service
+          image: ghcr.io/mxvincent/account-service:0.0.0
+          imagePullPolicy: Always
+          name: app-server
+          ports:
+            - containerPort: 4000
+              name: http
+          resources:
+            limits:
+              memory: 250Mi
+            requests:
+              cpu: 50m
+              memory: 100Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          volumeMounts:
+            - mountPath: /app/config/config.json
+              name: config
+              subPath: config.json
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      restartPolicy: Always
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: Always
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      setHostnameAsFQDN: false
+      shareProcessNamespace: false
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: config
+          secret:
+            secretName: account-service-app-server-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: account-service
+    app.kubernetes.io/version: 0.0.0
+  name: account-service-app-server
+spec:
+  externalIPs: []
+  ports:
+    - name: http
+      port: 4000
+      targetPort: 4000
+  selector:
+    cdk8s.io/metadata.addr: development-account-service-app-server-deployment-c896b293
+  type: ClusterIP
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  labels:
+    app.kubernetes.io/component: app-server
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: account-service
+    app.kubernetes.io/version: 0.0.0
+  name: account-service-app-server-config
+spec:
+  data:
+    - remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: name:development-account-service
+        metadataPolicy: None
+        property: POSTGRES_HOST
+        version: latest
+      secretKey: DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_HOST
+    - remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: name:development-account-service
+        metadataPolicy: None
+        property: POSTGRES_PORT
+        version: latest
+      secretKey: DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_PORT
+    - remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: name:development-account-service
+        metadataPolicy: None
+        property: POSTGRES_DATABASE
+        version: latest
+      secretKey: DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_DATABASE
+    - remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: name:development-account-service
+        metadataPolicy: None
+        property: POSTGRES_USERNAME
+        version: latest
+      secretKey: DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_USERNAME
+    - remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: name:development-account-service
+        metadataPolicy: None
+        property: POSTGRES_PASSWORD
+        version: latest
+      secretKey: DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_PASSWORD
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: gcp
+  target:
+    creationPolicy: Owner
+    name: account-service-app-server-config
+    template:
+      data:
+        config.json: '{"app":{"logLevel":"info","timeZone":"UTC"},"database":{"type":"postgres","host":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_HOST | toString }}","port":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_PORT | toString }}","database":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_DATABASE | toString }}","username":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_USERNAME | toString }}","password":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_PASSWORD | toString }}"}}'
+      engineVersion: v2
+      metadata:
+        labels:
+          app.kubernetes.io/component: app-server
+          app.kubernetes.io/instance: development
+          app.kubernetes.io/name: account-service
+          app.kubernetes.io/version: 0.0.0

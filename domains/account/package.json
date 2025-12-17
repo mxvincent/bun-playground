@@ -1,0 +1,23 @@
+{
+	"name": "@domain/account",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		}
+	},
+	"scripts": {
+		"lint:check": "biome lint .",
+		"modules:clean": "rm -rf node_modules",
+		"test": "bun test --pass-with-no-tests",
+		"test:watch": "bun test --watch",
+		"tsc:check": "tsc --noEmit",
+		"tsc:check:watch": "tsc --noEmit --watch"
+	},
+	"dependencies": {
+		"@package/core": "workspace:",
+		"@package/errors": "workspace:",
+		"@package/database": "workspace:",
+		"@package/query-params": "workspace:"
+	}
+}

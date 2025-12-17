@@ -1,0 +1,5 @@
+app: bun src/main.ts
+language: typescript
+imports:
+  - k8s
+  - crd.yaml

@@ -1,0 +1,48 @@
+name: 'code-quality'
+on:
+  workflow_call:
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v6
+      - name: 'Setup Bun'
+        uses: ./.github/actions/setup-bun
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Perform typescript type checking'
+        run: bun run turbo:typecheck
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v6
+      - name: 'Setup Bun'
+        uses: ./.github/actions/setup-bun
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Lint sources'
+        run: bun run turbo:lint
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v6
+      - name: 'Setup Bun'
+        uses: ./.github/actions/setup-bun
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Run docker-compose services'
+        uses: hoverkraft-tech/compose-action@248470ecc5ed40d8ed3d4480d8260d77179ef579
+        with:
+          compose-file: './docker-compose.yaml'
+      - name: 'Run all tests'
+        env:
+          NODE_ENV: test
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USERNAME: mxvincent
+          POSTGRES_PASSWORD: mxvincent
+          POSTGRES_DATABASE: mxvincent
+        run: bun run turbo:test

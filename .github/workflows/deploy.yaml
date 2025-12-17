@@ -1,0 +1,36 @@
+name: 'deploy'
+on:
+  workflow_call:
+    inputs:
+      release-upstream:
+        description: Release upstream
+        type: string
+        required: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v6
+      - name: 'Configure git'
+        run: |
+          git config --global user.name "gha-bot"
+          git config --global user.email "bot@mxvincent.tech"
+      - name: 'Update tag deploy/development'
+        if: ${{ inputs.release-upstream == 'next' }}
+        run: |
+          timestamp=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
+          git push --delete origin deploy/development --no-verify
+          git tag -f deploy/development-$timestamp
+          git tag -f deploy/development
+          git push -f origin deploy/development-$timestamp
+          git push -f origin deploy/development
+      - name: 'Update tag deploy/staging'
+        if: ${{ inputs.release-upstream == 'main' }}
+        run: |
+          timestamp=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
+          git push --delete origin deploy/staging --no-verify
+          git tag -f deploy/staging-$timestamp
+          git tag -f deploy/staging
+          git push -f origin deploy/staging-$timestamp
+          git push -f origin deploy/staging

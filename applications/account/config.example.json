@@ -1,0 +1,20 @@
+{
+	"app": {
+		"logLevel": "info",
+		"timeZone": "UTC",
+		"environment": "development"
+	},
+	"database": {
+		"type": "postgres",
+		"host": "127.0.0.1",
+		"port": 5432,
+		"database": "test",
+		"username": "node-packages",
+		"password": "node-packages"
+	},
+	"server": {
+		"keepAliveTimeoutInMilliseconds": 5000,
+		"host": "127.0.0.1",
+		"port": 4000
+	}
+}
