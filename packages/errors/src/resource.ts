@@ -1,19 +1,24 @@
 import { NotFoundError } from './http'
 
-export class ResourceNotFoundError<TWhere = string> extends NotFoundError {
+export type ResourceId = string | object
+
+export class ResourceNotFoundError extends NotFoundError {
 	override code = 'RESOURCE_NOT_FOUND'
 	resourceType: string
-	resourceWhere: TWhere
+	resourceId: ResourceId
 
-	constructor(resourceType: string, resourceWhere: TWhere) {
+	constructor(resourceType: string, resourceId: ResourceId) {
 		super()
 		this.resourceType = resourceType
-		this.resourceWhere = resourceWhere
+		this.resourceId = resourceId
 		this.message = `Resource not found`
 	}
 
 	override toString() {
-		return this.message
+		const parameters = typeof this.resourceId === 'string' ? this.resourceId : Object.entries(this.resourceId)
+			.map(([key, value]) => `${key}=${value}`)
+			.join(',')
+		return this.message + ':' + parameters
 	}
 
 	override toJSON() {
@@ -21,7 +26,7 @@ export class ResourceNotFoundError<TWhere = string> extends NotFoundError {
 			...super.toJSON(),
 			resource: {
 				type: this.resourceType,
-				match: this.resourceWhere
+				id: this.resourceId
 			}
 		}
 	}

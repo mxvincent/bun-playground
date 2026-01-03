@@ -1,71 +1,28 @@
 import { isString, type TeardownFunction, withTimeout } from '@package/core'
-import { type Logger, logger } from '@package/telemetry'
-import { DataSource } from 'typeorm'
-import type { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions.js'
+import { logger } from '@package/telemetry'
 import { PinoLoggerAdapter } from '../adapters/logger'
+import { type CreatePostgresDataSourceOptions, PostgresDataSource } from '../types/postgres-data-source'
 import { runMigrations } from './migrations'
 import { setPrimaryKeyColumns } from './primary-key'
 
-export class PostgresDatabaseSource extends DataSource {
-	declare options: PostgresConnectionOptions
-}
-
-export class PostgresConnectionPoolOptions {
-	/**
-	 * Number of milliseconds to wait before timing out when connecting a new client
-	 * Set to 0 to disable timeout
-	 * @default 0 (no timeout)
-	 */
-	connectionTimeoutMillis: number = 0
-
-	/**
-	 * Number of milliseconds a client must sit idle in the pool and not be checked out before it is disconnected from the backend and discarded
-	 * Set to 0 to disable auto-disconnection of idle clients
-	 * 	@default 10000 (10 seconds)
-	 */
-	idleTimeoutMillis?: number = 10_000
-
-	/**
-	 * Maximum number of clients the pool should contain
-	 * @default 10
-	 */
-	max: number = 10
-
-	/**
-	 * Default behavior is the pool will keep clients open & connected to the backend
-	 * until idleTimeoutMillis expire for each client and node will maintain a ref
-	 * to the socket on the client, keeping the event loop alive until all clients are closed
-	 * after being idle or the pool is manually shutdown with `pool.end()`.
-	 * Setting `allowExitOnIdle: true` in the config will allow the node event loop to exit
-	 * as soon as all clients in the pool are idle, even if their socket is still open
-	 * to the postgres server.  This can be handy in scripts & tests
-	 * where you don't want to wait for your clients to go idle before your process exits.
-	 * @default false
-	 */
-	releaseConnections: boolean = true
-
-	constructor(options: Partial<PostgresConnectionPoolOptions>) {
-		Object.assign<PostgresConnectionPoolOptions, Partial<PostgresConnectionPoolOptions>>(this, options)
-	}
-}
-
-export type CreatePostgresDataSourceOptions = {
-	host?: string
-	port?: number
-	database: string
+export type PostgresConnectionUriOptions = {
 	username: string
 	password: string
-	schema?: string
-	slowQueryThresholdInMs?: number
-	entities?: string[]
-	migrations?: string[]
-	subscribers?: string[]
-	pool?: PostgresConnectionPoolOptions
-	logger?: Logger
+	host?: string
+	port?: number
+	database?: string
+
+}
+
+export function getPostgresConnectionUri(options: PostgresConnectionUriOptions) {
+	const credentials = `${options.username}:${options.password}`
+	const host = `${options.host ?? 'localhost'}:${options.port ?? 5432}`
+	const database = options.database ?? options.username
+	return `postgres://${credentials}@${host}/${database}`
 }
 
 export const createPostgresDataSource = (options: CreatePostgresDataSourceOptions) => {
-	return new PostgresDatabaseSource({
+	return new PostgresDataSource({
 		schema: options.schema ?? 'public',
 		type: 'postgres',
 		host: options.host ?? '127.0.0.1',
@@ -86,7 +43,7 @@ export const createPostgresDataSource = (options: CreatePostgresDataSourceOption
 	})
 }
 
-const pickDataSourceProperties = (dataSource: PostgresDatabaseSource) => {
+const pickDataSourceProperties = (dataSource: PostgresDataSource) => {
 	return {
 		database: dataSource.options.database,
 		username: dataSource.options.username,
@@ -100,10 +57,9 @@ const pickDataSourceProperties = (dataSource: PostgresDatabaseSource) => {
  * Initialize DataSource
  */
 export const initializeDataSource = async (
-	dataSource: PostgresDatabaseSource,
+	dataSource: PostgresDataSource,
 	options?: {
 		runMigrations?: boolean
-		createDatabase?: boolean
 		createSchema?: boolean
 	}
 ): Promise<TeardownFunction> => {
@@ -132,19 +88,6 @@ export const initializeDataSource = async (
 		)
 	}
 
-	if (options?.createDatabase) {
-		const isDatabaseExists = await dataSource.query(
-			`select 1
-			 from pg_database
-			 where datname = '${dataSource.options.database}';`
-		)
-
-		if (isDatabaseExists.length === 0) {
-			await dataSource.query(`create database "${dataSource.options.database}";`)
-			logger.info({ context: { database: dataSource.options.database } }, `Database created.`)
-		}
-	}
-
 	if (options?.createSchema) {
 		await dataSource.query(`create schema if not exists "${dataSource.options.schema}";`)
 	}
@@ -167,7 +110,7 @@ export const initializeDataSource = async (
 /**
  * Tear down the given DataSource instance
  */
-export const teardownDataSource = async (dataSource: PostgresDatabaseSource, timeoutInMs = 5000): Promise<void> => {
+export const teardownDataSource = async (dataSource: PostgresDataSource, timeoutInMs = 5000): Promise<void> => {
 	if (dataSource.isInitialized) {
 		await withTimeout(() => dataSource.destroy(), timeoutInMs, 'closeAllDatabaseConnections')
 	}
@@ -182,7 +125,7 @@ export const teardownDataSource = async (dataSource: PostgresDatabaseSource, tim
 /**
  * Throw and error when DataSource is not initialized
  */
-export const dataSourceShouldBeInitialized = (dataSource: PostgresDatabaseSource): void => {
+export const dataSourceShouldBeInitialized = (dataSource: PostgresDataSource): void => {
 	if (!dataSource.isInitialized) {
 		throw new Error(`DataSource should be initialized`)
 	}

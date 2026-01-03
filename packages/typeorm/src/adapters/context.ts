@@ -1,17 +1,15 @@
-import type { Resource } from '@package/database'
 import { logger } from '@package/telemetry'
-import type { EntityManager, ObjectType, QueryRunner } from 'typeorm'
-import type { PostgresDatabaseSource } from '../helpers/data-source'
-import { TypeormRepository } from './repository'
+import type { EntityManager, QueryRunner } from 'typeorm'
+import type { PostgresDataSource } from '../types/postgres-data-source'
 
 export type IsolationLevel = 'READ UNCOMMITTED' | 'READ COMMITTED' | 'REPEATABLE READ' | 'SERIALIZABLE'
 
 export class TypeormDatabaseContext {
-	readonly dataSource: PostgresDatabaseSource
+	readonly dataSource: PostgresDataSource
 	readonly useInheritedQueryRunner: boolean
 	private queryRunner?: QueryRunner
 
-	constructor(dataSource: PostgresDatabaseSource, options?: { queryRunner?: QueryRunner }) {
+	constructor(dataSource: PostgresDataSource, options?: { queryRunner?: QueryRunner }) {
 		this.dataSource = dataSource
 		if (options?.queryRunner) {
 			this.useInheritedQueryRunner = true
@@ -24,7 +22,15 @@ export class TypeormDatabaseContext {
 
 	get manager(): EntityManager {
 		const manager = this.queryRunner?.manager ?? this.dataSource.manager
-		manager.transaction = this.transaction.bind(this)
+		manager.transaction = (<T>(
+			isolationLevelOrCallback: IsolationLevel | ((manager: EntityManager) => Promise<T>),
+			maybeCallback?: (manager: EntityManager) => Promise<T>
+		): Promise<T> => {
+			if (typeof isolationLevelOrCallback === 'function') {
+				return this.transaction(isolationLevelOrCallback)
+			}
+			return this.transaction(maybeCallback!, isolationLevelOrCallback)
+		}) as typeof manager.transaction
 		return manager
 	}
 
@@ -68,18 +74,9 @@ export class TypeormDatabaseContext {
 		return this.dataSource.query(query, parameters, this.queryRunner)
 	}
 
-	async transaction<TResult>(
-		isolationLevel: IsolationLevel,
-		runInTransaction: (manager: EntityManager) => Promise<TResult>
-	): Promise<TResult>
 	async transaction<TResult>(runInTransaction: (manager: EntityManager) => Promise<TResult>): Promise<TResult>
-	async transaction<TResult>(
-		...args:
-			| [IsolationLevel, (manager: EntityManager) => Promise<TResult>]
-			| [(manager: EntityManager) => Promise<TResult>]
-	): Promise<TResult> {
-		const isolationLevel = args.length === 2 ? args[0] : undefined
-		const runInTransaction = args.length === 2 ? args[1] : args[0]
+	async transaction<TResult>(runInTransaction: (manager: EntityManager) => Promise<TResult>, isolationLevel: IsolationLevel): Promise<TResult>
+	async transaction<TResult>(runInTransaction: (manager: EntityManager) => Promise<TResult>, isolationLevel?: IsolationLevel): Promise<TResult> {
 		await this.startTransaction(isolationLevel)
 		try {
 			const result = await runInTransaction(this.manager)
@@ -89,10 +86,6 @@ export class TypeormDatabaseContext {
 			await this.rollbackTransaction()
 			throw error
 		}
-	}
-
-	repository<TEntity extends Resource>(entity: ObjectType<TEntity>): TypeormRepository<TEntity> {
-		return new TypeormRepository(this, entity)
 	}
 
 	private async releaseQueryRunner(): Promise<void> {

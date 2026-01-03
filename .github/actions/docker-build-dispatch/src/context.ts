@@ -1,5 +1,5 @@
-import { getInput } from '@actions/core'
 import * as fs from 'node:fs'
+import { getInput } from '@actions/core'
 
 export const listApplications = (): string[] => {
 	const applicationsDir = getInput('applications-directory', { required: true })

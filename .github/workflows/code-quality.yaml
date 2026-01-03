@@ -26,6 +26,28 @@ jobs:
         run: bun run turbo:lint
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        options: >- # postgres container does not provide a health check
+          --health-cmd pg_isready
+          --health-interval 1s
+          --health-timeout 1s
+          --health-retries 30
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+        ports:
+          - 5432:5432
+      rabbitmq:
+        image: rabbitmq:4-management-alpine
+        env:
+          RABBITMQ_DEFAULT_USER: ci
+          RABBITMQ_DEFAULT_PASS: ci
+          RABBITMQ_DEFAULT_VHOST: ci
+        ports:
+          - "5672:5672"
+          - "15672:15672"
     steps:
       - name: 'Checkout repository'
         uses: actions/checkout@v6
@@ -33,16 +55,17 @@ jobs:
         uses: ./.github/actions/setup-bun
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: 'Run docker-compose services'
-        uses: hoverkraft-tech/compose-action@248470ecc5ed40d8ed3d4480d8260d77179ef579
-        with:
-          compose-file: './docker-compose.yaml'
       - name: 'Run all tests'
         env:
           NODE_ENV: test
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-          POSTGRES_USERNAME: mxvincent
-          POSTGRES_PASSWORD: mxvincent
-          POSTGRES_DATABASE: mxvincent
+          POSTGRES_USERNAME: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DATABASE: ci
+          RABBITMQ_HOST: localhost
+          RABBITMQ_PORT: 5672
+          RABBITMQ_VHOST: ci
+          RABBITMQ_USERNAME: ci
+          RABBITMQ_PASSWORD: ci
         run: bun run turbo:test

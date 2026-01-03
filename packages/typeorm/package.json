@@ -1,5 +1,7 @@
 {
 	"name": "@package/typeorm",
+	"version": "0.0.0",
+	"private": true,
 	"main": "./src/index.ts",
 	"scripts": {
 		"lint:check": "biome lint .",
@@ -20,7 +22,7 @@
 		"@faker-js/faker": "^9.9.0"
 	},
 	"peerDependencies": {
-		"pg": "^8.11.0",
-		"typeorm": "^0.3.25"
+		"pg": "^8.18.0",
+		"typeorm": "^0.3.28"
 	}
 }

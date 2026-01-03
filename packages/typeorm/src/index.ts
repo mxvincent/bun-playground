@@ -3,17 +3,19 @@
  */
 
 export * from 'typeorm'
-export * from './adapters/context'
+
 /**
  * Adapters
  */
 export * from './adapters/logger'
-export * from './adapters/repository'
+export * from './adapters/context'
+
 /**
  * Errors
  */
 export * from './errors/resource-not-found'
 export { applyFilters } from './filters/applyFilters'
+
 /**
  * Filter
  */
@@ -23,6 +25,7 @@ export * from './helpers/defaults'
 export * from './helpers/entities'
 export * from './helpers/factories'
 export * from './helpers/migrations'
+
 /**
  * Helpers
  */
@@ -32,10 +35,12 @@ export {
 } from './helpers/primary-key'
 export { getDefaultSort, setDefaultSort } from './helpers/sortPath'
 export { transformers } from './helpers/transformers'
+
 /**
  * Pagination
  */
 export * from './pagination'
+
 /**
  * Sort
  */
