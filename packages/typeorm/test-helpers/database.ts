@@ -1,30 +1,25 @@
-import { afterAll, afterEach, beforeAll, beforeEach } from "bun:test";
-import {
-	initializeDataSource,
-	TypeormDatabaseContext,
-	teardownDataSource,
-} from "../src";
-import { testDatasource } from "./data-source";
+import { afterAll, afterEach, beforeAll, beforeEach } from 'bun:test'
+import { TypeormDatabaseContext } from '../src/adapters/context'
+import { initializeDataSource, teardownDataSource } from '../src/helpers/data-source'
+import type { PostgresDataSource } from '../src/types/postgres-data-source'
+import { testDataSource } from './data-source'
 
 export const useDatabaseContext = (options?: {
 	isolationLevel?: "group" | "test";
+	dataSource?: PostgresDataSource
 }): TypeormDatabaseContext => {
-	const database = new TypeormDatabaseContext(testDatasource);
+	const dataSource = options?.dataSource ?? testDataSource
+	const database = new TypeormDatabaseContext(dataSource);
 
 	beforeAll(async () => {
-		await initializeDataSource(testDatasource, {
-			createDatabase: true,
-			createSchema: true,
-			runMigrations: true,
-		});
-		await initializeDataSource(testDatasource);
-		await testDatasource.synchronize();
+		await initializeDataSource(dataSource);
+		await dataSource.synchronize();
 	});
 
 	useDatabaseTransaction(database, options?.isolationLevel ?? "group");
 
 	afterAll(async () => {
-		await teardownDataSource(testDatasource, 500);
+		await teardownDataSource(dataSource, 500);
 	});
 
 	return database;

@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test'
+import { config } from '#test-helpers/config'
 import { AmqpConnectionManagerClass } from 'amqp-connection-manager'
 import amqplib from 'amqplib'
-import { config } from '#test-helpers/config'
+import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test'
+import { getAmqpConnectionUrl } from '../config'
 import { AmqpClient } from './client'
 
 const mockAmqpConnect = spyOn(amqplib, 'connect').mockImplementation(() => Promise.resolve({} as never))
@@ -14,7 +15,7 @@ describe.skip('RabbiMQClient.initialize()', () => {
 	test.skip('should call amqplib connect', async () => {
 		const client = new AmqpClient(config)
 		await client.initialize()
-		expect(mockAmqpConnect).toHaveBeenCalledWith(`amqp://mxvincent:mxvincent@rabbitmq.tld:5672/mxvincent?heartbeat=5`, {
+		expect(mockAmqpConnect).toHaveBeenCalledWith(getAmqpConnectionUrl(config), {
 			timeout: 60000
 		})
 	})

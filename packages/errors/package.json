@@ -1,5 +1,7 @@
 {
 	"name": "@package/errors",
+	"version": "0.0.0",
+	"private": true,
 	"exports": {
 		".": {
 			"types": "./src/index.ts",

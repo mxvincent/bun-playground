@@ -1,4 +1,4 @@
-import { logger } from '@package/telemetry'
+import { logger, syncLogger } from '@package/telemetry'
 import { initializeAppServer } from '#/core/api-server'
 import { config } from '#/core/config'
 
@@ -13,6 +13,6 @@ const startAppServer = async () => {
 }
 
 startAppServer().catch((error) => {
-	logger.fatal(error)
+	syncLogger.fatal(error)
 	process.exit(1)
 })

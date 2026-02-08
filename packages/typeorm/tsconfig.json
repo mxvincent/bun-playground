@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-			"#test-helpers/*": ["./test-helpers/*"]
+			"#test-helpers/*": ["./test-helpers/*"],
 		}
 	}
 }

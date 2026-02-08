@@ -58,3 +58,6 @@ config.*.json
 /sdk
 /**/node_modules/**
 /**/.pnpm-store/**
+
+# IA
+claude.md

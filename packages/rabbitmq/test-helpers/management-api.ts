@@ -1,10 +1,7 @@
-import { http } from "msw";
-import { setupServer } from "msw/node";
-import type {
-	ManagementApiQueue,
-	ManagementApiQueueBinding,
-} from "../src/management/types";
-import { config } from "./config";
+import { http } from 'msw'
+import { setupServer } from 'msw/node'
+import type { ManagementApiQueue, ManagementApiQueueBinding } from '../src/management/types'
+import { config } from './config'
 
 export const fakeBindings: Record<string, ManagementApiQueueBinding[]> = {
 	["test-queue"]: [
@@ -61,7 +58,7 @@ export const fakeQueues: Record<string, ManagementApiQueue> = {
 };
 
 export const managementApiServer = setupServer(
-	http.get(`https://rabbitmq.tld/api/queues/:vhost/:queue/bindings`, (info) => {
+	http.get(`https://localhost/api/queues/:vhost/:queue/bindings`, (info) => {
 		if (info.params.vhost !== config.connection.vhost) {
 			return new Response(null, { status: 404 });
 		}
@@ -70,7 +67,7 @@ export const managementApiServer = setupServer(
 			{ status: 200 },
 		);
 	}),
-	http.get(`https://rabbitmq.tld/api/queues/:vhost/:queue`, (info) => {
+	http.get(`https://localhost/api/queues/:vhost/:queue`, (info) => {
 		if (info.params.vhost !== config.connection.vhost) {
 			return new Response(null, { status: 404 });
 		}

@@ -1,12 +1,16 @@
 import { type DeriveJsonType, EnvValue, TimeZone } from '@package/core'
 import { type Static, Type } from '@package/json-schema'
 import { LogLevel } from '@package/telemetry'
-import { Environment } from 'kubernetes/src/interfaces/environment'
+
+enum Environment {
+	DEVELOPMENT = 'development',
+	PRODUCTION = 'production',
+}
 
 export const schema = Type.Object({
 	logLevel: Type.Enum(LogLevel, { default: 'info' }),
 	timeZone: Type.Enum(TimeZone, { default: TimeZone.UTC }),
-	environment: Type.Enum(Environment, { default: 'development' })
+	environment: Type.Enum(Environment, { default: Environment.DEVELOPMENT })
 })
 
 export const environment: DeriveJsonType<Static<typeof schema>> = {
