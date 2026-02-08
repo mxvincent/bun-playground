@@ -1,7 +1,7 @@
-import { expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { pino } from 'pino'
-import type { AmqpConfig } from './types'
 import { getAmqpConnectionUrl, getManagementApiAuthorizationHeader, getManagementApiConfigUrl } from './config'
+import type { AmqpConfig } from './schemas/config'
 
 const config: AmqpConfig = {
 	connection: {
@@ -20,15 +20,16 @@ const config: AmqpConfig = {
 		messageProcessingRetry: false
 	}
 }
+describe('RabbitMQ config', () => {
+	test('should return amqp connection URL', () => {
+		expect(getAmqpConnectionUrl(config)).toEqual('amqp://test-user:test-pass@rabbitmq.local:5672/test-vhost')
+	})
 
-test('should return amqp connection URL', () => {
-	expect(getAmqpConnectionUrl(config)).toEqual('amqp://test-user:test-pass@rabbitmq.local:5672/test-vhost')
-})
+	test('should return management API URL', () => {
+		expect(getManagementApiConfigUrl(config)).toBe('https://rabbitmq-management.local')
+	})
 
-test('should return management API URL', () => {
-	expect(getManagementApiConfigUrl(config)).toBe('https://rabbitmq-management.local')
-})
-
-test('should return management API authorization header', async () => {
-	expect(getManagementApiAuthorizationHeader(config)).toBe('Basic dGVzdC11c2VyOnRlc3QtcGFzcw==')
+	test('should return management API authorization header', async () => {
+		expect(getManagementApiAuthorizationHeader(config)).toBe('Basic dGVzdC11c2VyOnRlc3QtcGFzcw==')
+	})
 })
