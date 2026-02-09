@@ -1,6 +1,6 @@
 {
 	"name": "@application/account",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"private": true,
 	"scripts": {
 		"dev:app-server": "bun run --env-file-if-exists=.env --watch -- src/commands/start-api-server.ts",
