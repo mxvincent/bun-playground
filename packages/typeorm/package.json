@@ -6,7 +6,7 @@
 	"scripts": {
 		"lint:check": "biome lint .",
 		"modules:clean": "rm -rf node_modules",
-		"test": "bun test",
+		"test": "bun test --preload ./test-helpers/setup.ts",
 		"test:watch": "bun test --watch",
 		"tsc:check": "tsc --noEmit",
 		"tsc:check:watch": "tsc --noEmit --watch"

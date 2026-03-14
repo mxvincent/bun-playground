@@ -1,10 +1,11 @@
+import type { DatabaseContext } from '@package/database'
 import { logger } from '@package/telemetry'
 import type { EntityManager, QueryRunner } from 'typeorm'
 import type { PostgresDataSource } from '../types/postgres-data-source'
 
 export type IsolationLevel = 'READ UNCOMMITTED' | 'READ COMMITTED' | 'REPEATABLE READ' | 'SERIALIZABLE'
 
-export class TypeormDatabaseContext {
+export class TypeormDatabaseContext implements DatabaseContext {
 	readonly dataSource: PostgresDataSource
 	readonly useInheritedQueryRunner: boolean
 	private queryRunner?: QueryRunner
@@ -18,6 +19,10 @@ export class TypeormDatabaseContext {
 		} else {
 			this.useInheritedQueryRunner = false
 		}
+	}
+
+	get isTransactionActive() {
+		return this.queryRunner?.isTransactionActive ?? false
 	}
 
 	get manager(): EntityManager {
@@ -75,8 +80,14 @@ export class TypeormDatabaseContext {
 	}
 
 	async transaction<TResult>(runInTransaction: (manager: EntityManager) => Promise<TResult>): Promise<TResult>
-	async transaction<TResult>(runInTransaction: (manager: EntityManager) => Promise<TResult>, isolationLevel: IsolationLevel): Promise<TResult>
-	async transaction<TResult>(runInTransaction: (manager: EntityManager) => Promise<TResult>, isolationLevel?: IsolationLevel): Promise<TResult> {
+	async transaction<TResult>(
+		runInTransaction: (manager: EntityManager) => Promise<TResult>,
+		isolationLevel: IsolationLevel
+	): Promise<TResult>
+	async transaction<TResult>(
+		runInTransaction: (manager: EntityManager) => Promise<TResult>,
+		isolationLevel?: IsolationLevel
+	): Promise<TResult> {
 		await this.startTransaction(isolationLevel)
 		try {
 			const result = await runInTransaction(this.manager)

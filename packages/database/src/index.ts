@@ -4,6 +4,7 @@ export * from './in-memory-database/filter'
 export * from './in-memory-database/pagination'
 export * from './in-memory-database/sort'
 
+export * from './interfaces/database-context'
 export * from './interfaces/errors'
 export * from './interfaces/factory'
 export * from './interfaces/repository'

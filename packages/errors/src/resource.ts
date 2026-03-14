@@ -15,9 +15,12 @@ export class ResourceNotFoundError extends NotFoundError {
 	}
 
 	override toString() {
-		const parameters = typeof this.resourceId === 'string' ? this.resourceId : Object.entries(this.resourceId)
-			.map(([key, value]) => `${key}=${value}`)
-			.join(',')
+		const parameters =
+			typeof this.resourceId === 'string'
+				? this.resourceId
+				: Object.entries(this.resourceId)
+						.map(([key, value]) => `${key}=${value}`)
+						.join(',')
 		return this.message + ':' + parameters
 	}
 

@@ -127,12 +127,14 @@ export class DrizzleCursorPager<
 			const comparison = currentSort.direction === SortDirection.ASC ? gt(column, cursorValue) : lt(column, cursorValue)
 
 			if (equalityConditions.length > 0) {
+				// biome-ignore lint/style/noNonNullAssertion: in this statement the conditions are always non-null
 				conditions.push(and(...equalityConditions, comparison)!)
 			} else {
 				conditions.push(comparison)
 			}
 		}
 
+		// biome-ignore lint/style/noNonNullAssertion: safe in this case
 		return or(...conditions)!
 	}
 

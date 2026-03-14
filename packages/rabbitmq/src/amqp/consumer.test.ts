@@ -18,7 +18,7 @@ afterAll(() => {
 // 	jsonToBuffer: mockJsonToBuffer
 // }))
 
-const mockGetRetryAttemptQueueName = mock((queue: string, attempt: number) => `${queue}-retry-${attempt}`)
+const mockGetRetryAttemptQueueName = mock((queue: string, attempt: number) => `${queue}.retry-${attempt}`)
 const mockGetRetryFailureQueueName = mock((queue: string) => `${queue}.retry-failure`)
 mock.module('./retry', () => ({
 	getRetryAttemptQueueName: mockGetRetryAttemptQueueName,

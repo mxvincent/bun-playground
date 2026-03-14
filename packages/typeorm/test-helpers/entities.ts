@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { timestampWithTimeZone } from '../src/helpers/entities'
 
-export type Gender = 'female' | 'male' | 'unknown';
+export type Gender = 'female' | 'male' | 'unknown'
 
 @Entity({ name: 'Author' })
 export class Author {

@@ -1,51 +1,73 @@
 {
-	"$schema": "https://turbo.build/schema.json",
-	"ui": "tui",
-	"tasks": {
-		"lint:check": {
-			"dependsOn": ["^lint:check"],
-			"inputs": ["src/**", "biome.json", "package.json"],
-			"outputs": []
-		},
-		"tsc:check": {
-			"dependsOn": ["^tsc:check"],
-			"inputs": ["src/**", "tsconfig.json", "tsconfig.*.json", "package.json"],
-			"outputs": []
-		},
-		"tsc:check:watch": {
-			"persistent": true,
-			"inputs": ["src/**", "tsconfig.json", "tsconfig.*.json", "package.json"],
-			"outputs": []
-		},
-		"test": {
-			"dependsOn": ["^test"],
-			"inputs": [
-				"src/**",
-				"test/**",
-				"test-helpers/**",
-				"package.json",
-				"tsconfig.json",
-				"tsconfig.*.json"
-			],
-			"outputs": [],
-			"env": [
-				"NODE_ENV",
-				"POSTGRES_HOST",
-				"POSTGRES_PORT",
-				"POSTGRES_USERNAME",
-				"POSTGRES_PASSWORD",
-				"POSTGRES_DATABASE",
-				"POSTGRES_SCHEMA",
-				"RABBITMQ_HOST",
-				"RABBITMQ_PORT",
-				"RABBITMQ_VHOST",
-				"RABBITMQ_USERNAME",
-				"RABBITMQ_PASSWORD"
-			]
-		},
-		"modules:clean": {
-			"cache": false,
-			"outputs": []
-		}
-	}
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "lint:check": {
+      "dependsOn": [
+        "^lint:check"
+      ],
+      "inputs": [
+        "src/**",
+        "biome.json",
+        "package.json"
+      ],
+      "outputs": []
+    },
+    "tsc:check": {
+      "dependsOn": [
+        "^tsc:check"
+      ],
+      "inputs": [
+        "src/**",
+        "tsconfig.json",
+        "tsconfig.*.json",
+        "package.json"
+      ],
+      "outputs": []
+    },
+    "tsc:check:watch": {
+      "persistent": true,
+      "inputs": [
+        "src/**",
+        "tsconfig.json",
+        "tsconfig.*.json",
+        "package.json"
+      ],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": [
+        "^test"
+      ],
+      "inputs": [
+        "src/**",
+        "test/**",
+        "test-helpers/**",
+        "bunfig.toml",
+        "package.json",
+        "tsconfig.json",
+        "tsconfig.*.json"
+      ],
+      "outputs": [],
+      "env": [
+        "NODE_ENV",
+        "POSTGRES_HOST",
+        "POSTGRES_PORT",
+        "POSTGRES_USERNAME",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_DATABASE",
+        "POSTGRES_SCHEMA",
+        "POSTGRES_SCHEMA",
+        "RABBITMQ_HOST",
+        "RABBITMQ_PORT",
+        "RABBITMQ_VHOST",
+        "RABBITMQ_USERNAME",
+        "RABBITMQ_PASSWORD"
+      ]
+    },
+    "modules:clean": {
+      "cache": false,
+      "outputs": []
+    }
+  }
 }

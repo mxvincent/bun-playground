@@ -4,7 +4,7 @@ import { LogLevel } from '@package/telemetry'
 
 enum Environment {
 	DEVELOPMENT = 'development',
-	PRODUCTION = 'production',
+	PRODUCTION = 'production'
 }
 
 export const schema = Type.Object({
