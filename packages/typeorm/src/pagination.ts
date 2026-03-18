@@ -7,9 +7,8 @@ import {
 	type Sort,
 	SortDirection
 } from '@package/query-params'
-import { windowed } from 'es-toolkit'
 import invariant from 'tiny-invariant'
-import { Brackets, type ObjectType, type SelectQueryBuilder, type WhereExpressionBuilder } from 'typeorm'
+import { Brackets, type ObjectType, type SelectQueryBuilder } from 'typeorm'
 import { getAliasedPath } from './helpers/sortPath'
 import { type CollectionSorterOptions, Sorter } from './sort'
 
@@ -74,49 +73,44 @@ export class Pager<T extends ObjectLiteral> extends Sorter<T> {
 	/**
 	 * Apply cursor related constraint on query builder
 	 *
-	 * With multiple parameters we need to apply many where conditions
+	 * With multiple sort params we build a compound OR condition
+	 * that accumulates equality on all previous columns.
 	 *
-	 * example for 4 sort params (a,b,c,d) in ascending order
+	 * Example for sorts (a, b, c) in ascending order:
 	 *
-	 * cursor contains this value
-	 * pva = a previous value from cursor
-	 * pvb = b previous value from cursor
-	 * pvc = c previous value from cursor
-	 * pvd = d previous value from cursor
-	 *
-	 * select a, b, c, d
-	 *   where a > pva
-	 *   or a = pva and b > pvb
-	 *   or b = pvb and c > pvc
-	 *   or c = pvc and c > pvd
-	 *   order by a, b, c, d
+	 *   WHERE a > pva
+	 *      OR (a = pva AND b > pvb)
+	 *      OR (a = pva AND b = pvb AND c > pvc)
 	 */
 	private applyCursorConstraint(query: SelectQueryBuilder<T>, cursor: string) {
-		const [firstSort] = this.sorts
-		invariant(firstSort, 'Sort options must contain at least one element.')
-		const whereEqual = (sort: Sort) => {
-			return `${getAliasedPath(sort.path, query.alias)} = :${sha1(sort.path)}`
-		}
-		const whereGreaterOrLower = (sort: Sort) => {
-			const operator = sort.direction === SortDirection.ASC ? '>' : '<'
-			return `${getAliasedPath(sort.path, query.alias)} ${operator} :${sha1(sort.path)}`
-		}
-		const applyNextPairConstraint = (parentQueryBuilder: WhereExpressionBuilder, sorts: [Sort, Sort]) => {
-			return parentQueryBuilder.orWhere(
-				new Brackets((qb) => {
-					qb.where(whereEqual(sorts[0])).andWhere(whereGreaterOrLower(sorts[1]))
-				})
-			)
-		}
+		invariant(this.sorts.length > 0, 'Sort options must contain at least one element.')
+
+		const aliasedPath = (sort: Sort) => getAliasedPath(sort.path, query.alias)
+		const paramName = (sort: Sort) => sha1(sort.path)
+
 		query.andWhere(
 			new Brackets((qb) => {
-				qb.where(whereGreaterOrLower(firstSort))
-				const sortPairs = windowed(this.sorts, 2) as [Sort<KeyOf<T>>, Sort<KeyOf<T>>][]
-				if (sortPairs.length) {
-					sortPairs.reduce(applyNextPairConstraint, qb)
+				for (let i = 0; i < this.sorts.length; i++) {
+					const currentSort = this.sorts[i]!
+					const operator = currentSort.direction === SortDirection.ASC ? '>' : '<'
+
+					if (i === 0) {
+						qb.where(`${aliasedPath(currentSort)} ${operator} :${paramName(currentSort)}`)
+					} else {
+						qb.orWhere(
+							new Brackets((nested) => {
+								for (let j = 0; j < i; j++) {
+									const prevSort = this.sorts[j]!
+									nested.andWhere(`${aliasedPath(prevSort)} = :${paramName(prevSort)}`)
+								}
+								nested.andWhere(`${aliasedPath(currentSort)} ${operator} :${paramName(currentSort)}`)
+							})
+						)
+					}
 				}
 			})
 		)
+
 		query.setParameters(
 			Object.fromEntries(Object.entries(this.cursorTransformer.decode(cursor)).map(([k, v]) => [sha1(k), v]))
 		)

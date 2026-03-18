@@ -79,6 +79,14 @@ describe('Pager.getPage()', () => {
 			{
 				description: 'desc(createdAt) + asc(id)',
 				sorts: [Sort.desc('createdAt'), Sort.asc('id')]
+			},
+			{
+				description: 'asc(gender) + asc(createdAt) + asc(id)',
+				sorts: [Sort.asc('gender'), Sort.asc('createdAt'), Sort.asc('id')]
+			},
+			{
+				description: 'desc(gender) + desc(createdAt) + desc(id)',
+				sorts: [Sort.desc('gender'), Sort.desc('createdAt'), Sort.desc('id')]
 			}
 		])('[SORT] $description', ({ sorts }) => {
 			const dataset = sortArrayWith(rawDataset, sorts)
