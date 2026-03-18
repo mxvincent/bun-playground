@@ -1,19 +1,20 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { invariant } from '@package/core'
 import { slice, sortArrayWith } from '@package/database'
-import { Pagination, Sort } from '@package/query-params'
+import { Pagination, PaginationCursorTransformer, Sort } from '@package/query-params'
 import { useDatabaseContext, useDatabaseTransaction } from '#test-helpers/database'
 import { Author, DateContainer } from '#test-helpers/entities'
 import { factories } from '#test-helpers/factories'
+import { mergePrimaryKeySorts } from './helpers/sortPath'
 import { Pager } from './pagination'
 
 const database = useDatabaseContext()
 
 const collectionSize = 25
 
-const createAuthorPager = (sorts: Sort<keyof Author>[]) => {
+const createAuthorPager = () => {
 	const query = database.manager.createQueryBuilder(Author, 'author')
-	return new Pager(Author, { query, sorts })
+	return new Pager(Author, { query })
 }
 
 describe('Pager.getPage()', () => {
@@ -90,13 +91,14 @@ describe('Pager.getPage()', () => {
 			}
 		])('[SORT] $description', ({ sorts }) => {
 			const dataset = sortArrayWith(rawDataset, sorts)
+			const resolvedSorts = mergePrimaryKeySorts(sorts, ['id'])
+			const cursorTransformer = new PaginationCursorTransformer<Author>(resolvedSorts.map(({ path }) => path))
 
 			it('take first page', async () => {
-				const pager = createAuthorPager(sorts)
-				const { cursorTransformer } = pager
+				const pager = createAuthorPager()
 				const expected = slice(dataset, { take: 10, cursorTransformer })
 
-				const result = await pager.getPage(Pagination.take(10))
+				const result = await pager.getPage({ pagination: Pagination.take(10), sorts })
 
 				expect(result).toStrictEqual({
 					edges: expected,
@@ -106,15 +108,17 @@ describe('Pager.getPage()', () => {
 			})
 
 			it('take second page', async () => {
-				const pager = createAuthorPager(sorts)
-				const { cursorTransformer } = pager
+				const pager = createAuthorPager()
 				const expected = slice(dataset, {
 					take: 10,
 					skip: 10,
 					cursorTransformer
 				})
 
-				const result = await pager.getPage(Pagination.take(10, cursorTransformer.encode(invariant(dataset[9]))))
+				const result = await pager.getPage({
+					pagination: Pagination.take(10, cursorTransformer.encode(invariant(dataset[9]))),
+					sorts
+				})
 
 				expect(result).toStrictEqual({
 					edges: expected,
@@ -124,15 +128,17 @@ describe('Pager.getPage()', () => {
 			})
 
 			it('take last page', async () => {
-				const pager = createAuthorPager(sorts)
-				const { cursorTransformer } = pager
+				const pager = createAuthorPager()
 				const expected = slice(dataset, {
 					take: 10,
 					skip: 20,
 					cursorTransformer
 				})
 
-				const result = await pager.getPage(Pagination.take(10, cursorTransformer.encode(invariant(dataset[19]))))
+				const result = await pager.getPage({
+					pagination: Pagination.take(10, cursorTransformer.encode(invariant(dataset[19]))),
+					sorts
+				})
 
 				expect(result).toStrictEqual({
 					edges: expected,
@@ -148,9 +154,9 @@ describe('should allow pagination when sort is done with a field that contain nu
 	useDatabaseTransaction(database, 'group')
 
 	const rawDataset = factories.createDateContainers(collectionSize)
-	const createDateContainerPager = (sorts: Sort<keyof DateContainer>[]) => {
+	const createDateContainerPager = () => {
 		const query = database.manager.createQueryBuilder(DateContainer, 'container')
-		return new Pager(DateContainer, { query, sorts })
+		return new Pager(DateContainer, { query })
 	}
 
 	beforeAll(async () => database.manager.insert(DateContainer, rawDataset))
@@ -162,15 +168,17 @@ describe('should allow pagination when sort is done with a field that contain nu
 		{ description: 'desc(b) + desc(a)', sorts: [Sort.desc('b'), Sort.desc('a')] }
 	])('[SORT] $description', ({ sorts }) => {
 		const dataset = sortArrayWith(rawDataset, sorts)
+		const resolvedSorts = mergePrimaryKeySorts(sorts, ['id'])
+		const cursorTransformer = new PaginationCursorTransformer<DateContainer>(resolvedSorts.map(({ path }) => path))
 
 		it('take first page', async () => {
-			const pager = createDateContainerPager(sorts)
+			const pager = createDateContainerPager()
 			const expected = slice(dataset, {
 				take: 10,
-				cursorTransformer: pager.cursorTransformer
+				cursorTransformer
 			})
 
-			const result = await pager.getPage(Pagination.take(10))
+			const result = await pager.getPage({ pagination: Pagination.take(10), sorts })
 
 			expect(result).toStrictEqual({
 				edges: expected,
@@ -180,15 +188,17 @@ describe('should allow pagination when sort is done with a field that contain nu
 		})
 
 		it('take second page (cursor crosses null values)', async () => {
-			const pager = createDateContainerPager(sorts)
-			const { cursorTransformer } = pager
+			const pager = createDateContainerPager()
 			const expected = slice(dataset, {
 				take: 10,
 				skip: 10,
 				cursorTransformer
 			})
 
-			const result = await pager.getPage(Pagination.take(10, cursorTransformer.encode(invariant(dataset[9]))))
+			const result = await pager.getPage({
+				pagination: Pagination.take(10, cursorTransformer.encode(invariant(dataset[9]))),
+				sorts
+			})
 
 			expect(result).toStrictEqual({
 				edges: expected,
@@ -198,15 +208,17 @@ describe('should allow pagination when sort is done with a field that contain nu
 		})
 
 		it('take last page', async () => {
-			const pager = createDateContainerPager(sorts)
-			const { cursorTransformer } = pager
+			const pager = createDateContainerPager()
 			const expected = slice(dataset, {
 				take: 10,
 				skip: 20,
 				cursorTransformer
 			})
 
-			const result = await pager.getPage(Pagination.take(10, cursorTransformer.encode(invariant(dataset[19]))))
+			const result = await pager.getPage({
+				pagination: Pagination.take(10, cursorTransformer.encode(invariant(dataset[19]))),
+				sorts
+			})
 
 			expect(result).toStrictEqual({
 				edges: expected,
@@ -225,34 +237,35 @@ describe('Performance: allow query without `totalCount` for better performance o
 		dateStep: 1,
 		useSequentialIds: false
 	})
-	let pager: Pager<Author>
 
 	beforeAll(async () => {
 		await database.manager.insert(Author, dataset)
-		pager = createAuthorPager([])
 	})
 
 	describe('Pager.getPage()', () => {
 		it('should include `totalCount` as default behaviour', async () => {
-			const connection = await pager.getPage(Pagination.take(5))
+			const pager = createAuthorPager()
+			const connection = await pager.getPage({ pagination: Pagination.take(5) })
 
 			expect(connection).toMatchObject({ totalCount: collectionSize })
 		})
 
 		it('should include `totalCount`', async () => {
+			const pager = createAuthorPager()
 			const pagination = Pagination.take(5)
 			pagination.isCountRequested = true
 
-			const connection = await pager.getPage(pagination)
+			const connection = await pager.getPage({ pagination })
 
 			expect(connection).toMatchObject({ totalCount: collectionSize })
 		})
 
 		it('should not include `totalCount`', async () => {
+			const pager = createAuthorPager()
 			const pagination = Pagination.take(5)
 			pagination.isCountRequested = false
 
-			const connection = await pager.getPage(pagination)
+			const connection = await pager.getPage({ pagination })
 
 			expect(connection).toMatchObject({ totalCount: null })
 		})
