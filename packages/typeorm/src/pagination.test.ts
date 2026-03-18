@@ -155,38 +155,64 @@ describe('should allow pagination when sort is done with a field that contain nu
 
 	beforeAll(async () => database.manager.insert(DateContainer, rawDataset))
 
-	it('[SORT] asc(a) + asc (b)', async () => {
-		const sorts: Sort<keyof DateContainer>[] = [Sort.asc('a'), Sort.asc('b')]
+	describe.each<{ sorts: Sort<keyof DateContainer>[]; description: string }>([
+		{ description: 'asc(a) + asc(b)', sorts: [Sort.asc('a'), Sort.asc('b')] },
+		{ description: 'desc(a) + desc(b)', sorts: [Sort.desc('a'), Sort.desc('b')] },
+		{ description: 'asc(b) + asc(a)', sorts: [Sort.asc('b'), Sort.asc('a')] },
+		{ description: 'desc(b) + desc(a)', sorts: [Sort.desc('b'), Sort.desc('a')] }
+	])('[SORT] $description', ({ sorts }) => {
 		const dataset = sortArrayWith(rawDataset, sorts)
-		const pager = createDateContainerPager(sorts)
-		const expected = slice(dataset, {
-			take: 10,
-			cursorTransformer: pager.cursorTransformer
+
+		it('take first page', async () => {
+			const pager = createDateContainerPager(sorts)
+			const expected = slice(dataset, {
+				take: 10,
+				cursorTransformer: pager.cursorTransformer
+			})
+
+			const result = await pager.getPage(Pagination.take(10))
+
+			expect(result).toStrictEqual({
+				edges: expected,
+				hasNextPage: true,
+				totalCount: collectionSize
+			})
 		})
 
-		const result = await pager.getPage(Pagination.take(10))
+		it('take second page (cursor crosses null values)', async () => {
+			const pager = createDateContainerPager(sorts)
+			const { cursorTransformer } = pager
+			const expected = slice(dataset, {
+				take: 10,
+				skip: 10,
+				cursorTransformer
+			})
 
-		expect(result).toStrictEqual({
-			edges: expected,
-			hasNextPage: true,
-			totalCount: collectionSize
+			const result = await pager.getPage(Pagination.take(10, cursorTransformer.encode(invariant(dataset[9]))))
+
+			expect(result).toStrictEqual({
+				edges: expected,
+				hasNextPage: true,
+				totalCount: collectionSize
+			})
 		})
-	})
-	it('[SORT] desc(a) + desc(b)', async () => {
-		const sorts: Sort<keyof DateContainer>[] = [Sort.desc('a'), Sort.desc('b')]
-		const dataset = sortArrayWith(rawDataset, sorts)
-		const pager = createDateContainerPager(sorts)
-		const expected = slice(dataset, {
-			take: 10,
-			cursorTransformer: pager.cursorTransformer
-		})
 
-		const result = await pager.getPage(Pagination.take(10))
+		it('take last page', async () => {
+			const pager = createDateContainerPager(sorts)
+			const { cursorTransformer } = pager
+			const expected = slice(dataset, {
+				take: 10,
+				skip: 20,
+				cursorTransformer
+			})
 
-		expect(result).toStrictEqual({
-			edges: expected,
-			hasNextPage: true,
-			totalCount: collectionSize
+			const result = await pager.getPage(Pagination.take(10, cursorTransformer.encode(invariant(dataset[19]))))
+
+			expect(result).toStrictEqual({
+				edges: expected,
+				hasNextPage: false,
+				totalCount: collectionSize
+			})
 		})
 	})
 })

@@ -85,25 +85,58 @@ export class Pager<T extends ObjectLiteral> extends Sorter<T> {
 	private applyCursorConstraint(query: SelectQueryBuilder<T>, cursor: string) {
 		invariant(this.sorts.length > 0, 'Sort options must contain at least one element.')
 
+		const cursorValues = this.cursorTransformer.decode(cursor)
 		const aliasedPath = (sort: Sort) => getAliasedPath(sort.path, query.alias)
 		const paramName = (sort: Sort) => sha1(sort.path)
+		const isNullValue = (sort: Sort) => cursorValues[sort.path as KeyOf<T>] == null
+
+		/**
+		 * Equality check: `col = :val` or `col IS NULL` when cursor value is null
+		 */
+		const whereEqual = (sort: Sort) => {
+			if (isNullValue(sort)) {
+				return `${aliasedPath(sort)} IS NULL`
+			}
+			return `${aliasedPath(sort)} = :${paramName(sort)}`
+		}
+
+		/**
+		 * "After cursor" check, respecting NULL ordering:
+		 * - ASC  NULLS LAST:  order is [values..., NULL]
+		 * - DESC NULLS FIRST: order is [NULL, values...]
+		 */
+		const whereAfter = (sort: Sort) => {
+			const column = aliasedPath(sort)
+			const isAsc = sort.direction === SortDirection.ASC
+
+			if (isNullValue(sort)) {
+				// ASC NULLS LAST: NULL is last, nothing comes after → impossible
+				// DESC NULLS FIRST: NULL is first, all non-null values come after
+				return isAsc ? 'FALSE' : `${column} IS NOT NULL`
+			}
+
+			const operator = isAsc ? '>' : '<'
+			// ASC NULLS LAST: after a non-null value means greater OR NULL
+			if (isAsc) {
+				return `(${column} ${operator} :${paramName(sort)} OR ${column} IS NULL)`
+			}
+			// DESC NULLS FIRST: NULLs are before non-null values, already passed
+			return `${column} ${operator} :${paramName(sort)}`
+		}
 
 		query.andWhere(
 			new Brackets((qb) => {
 				for (let i = 0; i < this.sorts.length; i++) {
 					const currentSort = this.sorts[i]!
-					const operator = currentSort.direction === SortDirection.ASC ? '>' : '<'
-
 					if (i === 0) {
-						qb.where(`${aliasedPath(currentSort)} ${operator} :${paramName(currentSort)}`)
+						qb.where(whereAfter(currentSort))
 					} else {
 						qb.orWhere(
 							new Brackets((nested) => {
 								for (let j = 0; j < i; j++) {
-									const prevSort = this.sorts[j]!
-									nested.andWhere(`${aliasedPath(prevSort)} = :${paramName(prevSort)}`)
+									nested.andWhere(whereEqual(this.sorts[j]!))
 								}
-								nested.andWhere(`${aliasedPath(currentSort)} ${operator} :${paramName(currentSort)}`)
+								nested.andWhere(whereAfter(currentSort))
 							})
 						)
 					}
@@ -111,8 +144,8 @@ export class Pager<T extends ObjectLiteral> extends Sorter<T> {
 			})
 		)
 
-		query.setParameters(
-			Object.fromEntries(Object.entries(this.cursorTransformer.decode(cursor)).map(([k, v]) => [sha1(k), v]))
-		)
+		// Only set parameters for non-null cursor values
+		const nonNullEntries = Object.entries(cursorValues).filter(([, v]) => v != null)
+		query.setParameters(Object.fromEntries(nonNullEntries.map(([k, v]) => [sha1(k), v])))
 	}
 }
