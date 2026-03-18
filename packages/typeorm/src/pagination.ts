@@ -50,21 +50,17 @@ export class Pager<T extends ObjectLiteral> extends Sorter<T> {
 		// Optionally count items matching filters
 		const totalCount = pagination.isCountRequested ? await query.getCount() : null
 
-		// Get page nodes from the database
-		const getNodes = async (pageSize: number, cursor?: string) => {
-			const getPageQuery = query.clone()
-			if (cursor) {
-				this.applyCursorConstraint(getPageQuery, cursor)
-			}
-			getPageQuery.limit(pageSize)
-			return getPageQuery.getMany()
+		// Fetch size + 1 to determine if there are more results
+		const pageQuery = query.clone()
+		if (pagination.cursor) {
+			this.applyCursorConstraint(pageQuery, pagination.cursor)
 		}
+		pageQuery.limit(pagination.size + 1)
+		const results = await pageQuery.getMany()
 
-		const nodes = await getNodes(pagination.size, pagination.cursor)
-
+		const hasNextPage = results.length > pagination.size
+		const nodes = hasNextPage ? results.slice(0, pagination.size) : results
 		const edges = nodes.map((node) => this.generateEdge(node))
-		const lastEdge = edges.at(pagination.size - 1)
-		const hasNextPage = lastEdge ? await getNodes(1, lastEdge.cursor).then((items) => items.length > 0) : false
 
 		// Return pagination result
 		return { edges, hasNextPage, totalCount }
