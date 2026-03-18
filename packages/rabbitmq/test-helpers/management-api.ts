@@ -4,41 +4,41 @@ import type { ManagementApiQueue, ManagementApiQueueBinding } from '../src/manag
 import { config } from './config'
 
 export const fakeBindings: Record<string, ManagementApiQueueBinding[]> = {
-	["test-queue"]: [
+	['test-queue']: [
 		{
-			source: "",
+			source: '',
 			vhost: config.connection.vhost,
-			destination: "test-queue",
-			destination_type: "queue",
-			routing_key: "test-queue",
+			destination: 'test-queue',
+			destination_type: 'queue',
+			routing_key: 'test-queue',
 			arguments: {},
-			properties_key: "test-queue",
+			properties_key: 'test-queue'
 		},
 		{
-			source: "loan",
-			vhost: "aria",
-			destination: "test-queue",
-			destination_type: "queue",
-			routing_key: "loan.created",
+			source: 'loan',
+			vhost: 'aria',
+			destination: 'test-queue',
+			destination_type: 'queue',
+			routing_key: 'loan.created',
 			arguments: {},
-			properties_key: "loan.created",
+			properties_key: 'loan.created'
 		},
 		{
-			source: "loan",
-			vhost: "aria",
-			destination: "test-queue",
-			destination_type: "queue",
-			routing_key: "loan.updated",
+			source: 'loan',
+			vhost: 'aria',
+			destination: 'test-queue',
+			destination_type: 'queue',
+			routing_key: 'loan.updated',
 			arguments: {},
-			properties_key: "loan.updated",
-		},
-	],
-};
+			properties_key: 'loan.updated'
+		}
+	]
+}
 
 export const fakeQueues: Record<string, ManagementApiQueue> = {
-	["test-queue"]: {
-		type: "quorum",
-		name: "test-queue",
+	['test-queue']: {
+		type: 'quorum',
+		name: 'test-queue',
 		arguments: {},
 		durable: true,
 		exclusive: false,
@@ -52,28 +52,22 @@ export const fakeQueues: Record<string, ManagementApiQueue> = {
 			get: 0,
 			get_empty: 0,
 			get_no_ack: 0,
-			redeliver: 0,
-		},
-	},
-};
+			redeliver: 0
+		}
+	}
+}
 
 export const managementApiServer = setupServer(
 	http.get(`https://localhost/api/queues/:vhost/:queue/bindings`, (info) => {
 		if (info.params.vhost !== config.connection.vhost) {
-			return new Response(null, { status: 404 });
+			return new Response(null, { status: 404 })
 		}
-		return new Response(
-			JSON.stringify(fakeBindings[info.params.queue as string]),
-			{ status: 200 },
-		);
+		return new Response(JSON.stringify(fakeBindings[info.params.queue as string]), { status: 200 })
 	}),
 	http.get(`https://localhost/api/queues/:vhost/:queue`, (info) => {
 		if (info.params.vhost !== config.connection.vhost) {
-			return new Response(null, { status: 404 });
+			return new Response(null, { status: 404 })
 		}
-		return new Response(
-			JSON.stringify(fakeQueues[info.params.queue as string]),
-			{ status: 200 },
-		);
-	}),
-);
+		return new Response(JSON.stringify(fakeQueues[info.params.queue as string]), { status: 200 })
+	})
+)

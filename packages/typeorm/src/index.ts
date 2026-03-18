@@ -1,14 +1,10 @@
-/**
- * Types
- */
-
 export * from 'typeorm'
 
 /**
  * Adapters
  */
+export * from './adapters/database-context'
 export * from './adapters/logger'
-export * from './adapters/context'
 
 /**
  * Errors

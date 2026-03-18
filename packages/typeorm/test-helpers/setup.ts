@@ -14,21 +14,22 @@ beforeAll(async () => {
 	})
 	const sql = new SQL(connectionUri)
 
-	const [{ exists }] = await sql`select exists(select datname from pg_catalog.pg_database where datname = ${TEST_DATABASE})`
+	const [{ exists }] =
+		await sql`select exists(select datname from pg_catalog.pg_database where datname = ${TEST_DATABASE})`
 
 	if (!exists) {
-		 await sql`create database ${sql(TEST_DATABASE)}`
+		await sql`create database ${sql(TEST_DATABASE)}`
 	}
 
 	await Promise.all([
 		sql.close({ timeout: 500 }),
 		initializeDataSource(testDataSource, {
-			runMigrations: true,
+			runMigrations: false,
 			createSchema: true
 		})
 	])
 
+	await testDataSource.synchronize()
+
 	await teardownDataSource(testDataSource)
 })
-
-

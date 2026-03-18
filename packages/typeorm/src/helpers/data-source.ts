@@ -11,7 +11,6 @@ export type PostgresConnectionUriOptions = {
 	host?: string
 	port?: number
 	database?: string
-
 }
 
 export function getPostgresConnectionUri(options: PostgresConnectionUriOptions) {
