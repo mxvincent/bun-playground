@@ -9,7 +9,9 @@ export type StringTransformer = (val: string) => string
  * Serialize a single entity value for JSON cursor storage
  */
 const toCursorValue = (value: unknown): CursorValue => {
-	if (isNil(value)) return null
+	if (isNil(value)) {
+		return null
+	}
 	switch (typeof value) {
 		case 'string':
 			return value
@@ -17,7 +19,9 @@ const toCursorValue = (value: unknown): CursorValue => {
 		case 'bigint':
 			return Number(value)
 		case 'object':
-			if (value instanceof Date) return value.toISOString()
+			if (value instanceof Date) {
+				return value.toISOString()
+			}
 			break
 	}
 	throw new TypeError(`unserializable value given as cursor part: ${value}`)
