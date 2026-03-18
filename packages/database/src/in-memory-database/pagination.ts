@@ -1,4 +1,3 @@
-import * as assert from 'node:assert'
 import { invariant, type KeyOf, type ObjectLiteral } from '@package/core'
 import {
 	ComparisonFilter,
@@ -10,7 +9,6 @@ import {
 	type Sort,
 	SortDirection
 } from '@package/query-params'
-import { windowed } from 'es-toolkit'
 import type { Resource } from '../interfaces/resource'
 import { filterArrayWith } from './filter'
 import { sortArrayWith } from './sort'
@@ -83,24 +81,56 @@ export class ArrayPager<T extends ObjectLiteral> {
 
 	private getCursorFilters(cursor: string): Filter<KeyOf<T>>[] {
 		const cursorValues = this.cursorTransformer.decode(cursor)
-		const sortToFilter = ({ direction, path }: Sort<KeyOf<T>>) => {
-			if (direction === SortDirection.ASC) {
-				return ComparisonFilter.greaterThan(path, cursorValues[path])
+
+		/**
+		 * Equality: `col = val` or `col IS NULL` when cursor value is null
+		 */
+		const whereEqual = (path: KeyOf<T>): Filter<KeyOf<T>> => {
+			const value = cursorValues[path]
+			return value == null ? ComparisonFilter.null(path) : ComparisonFilter.equal(path, value)
+		}
+
+		/**
+		 * "After cursor" filter, respecting NULL ordering:
+		 * - ASC  NULLS LAST:  order is [values..., NULL]
+		 * - DESC NULLS FIRST: order is [NULL, values...]
+		 */
+		const whereAfter = ({ direction, path }: Sort<KeyOf<T>>): Filter<KeyOf<T>> => {
+			const value = cursorValues[path]
+			const isAsc = direction === SortDirection.ASC
+
+			if (value == null) {
+				// ASC NULLS LAST: NULL is last, nothing comes after → always false
+				// DESC NULLS FIRST: NULL is first, all non-null come after
+				return isAsc
+					? LogicalFilter.and([ComparisonFilter.null(path), ComparisonFilter.notNull(path)])
+					: ComparisonFilter.notNull(path)
+			}
+
+			if (isAsc) {
+				// ASC NULLS LAST: after a non-null value = greater OR NULL
+				return LogicalFilter.or([ComparisonFilter.greaterThan(path, value), ComparisonFilter.null(path)])
+			}
+			// DESC NULLS FIRST: NULLs already passed
+			return ComparisonFilter.lessThan(path, value)
+		}
+
+		const conditions: Filter<KeyOf<T>>[] = []
+		for (let i = 0; i < this.sorts.length; i++) {
+			const currentSort = invariant(this.sorts[i])
+			if (i === 0) {
+				conditions.push(whereAfter(currentSort))
 			} else {
-				return ComparisonFilter.lessThan(path, cursorValues[path])
+				const equalities: Filter<KeyOf<T>>[] = []
+				for (let j = 0; j < i; j++) {
+					equalities.push(whereEqual(invariant(this.sorts[j]).path))
+				}
+				equalities.push(whereAfter(currentSort))
+				conditions.push(LogicalFilter.and(equalities))
 			}
 		}
-		const firstSort = invariant(this.sorts[0], 'No sort defined')
-		const filters: Filter<KeyOf<T>>[] = [sortToFilter(firstSort)]
-		for (const [a, b] of windowed(this.sorts, 2)) {
-			assert.ok(a)
-			assert.ok(b)
-			filters.push(LogicalFilter.and([ComparisonFilter.equal(a.path, cursorValues[a.path]), sortToFilter(b)]))
-		}
-		if (filters.length > 1) {
-			return [LogicalFilter.or(filters)]
-		}
-		return filters
+
+		return conditions.length > 1 ? [LogicalFilter.or(conditions)] : conditions
 	}
 }
 
