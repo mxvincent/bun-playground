@@ -1,39 +1,27 @@
-import { base64Decode, base64Encode, invariant, type KeyOf, type ObjectLiteral } from '@package/core'
+import { base64Decode, base64Encode, type KeyOf, type ObjectLiteral } from '@package/core'
 import { isNil } from 'es-toolkit'
 
-export const CURSOR_SEPARATOR = ','
+type CursorValue = string | number | null
+
+export type StringTransformer = (val: string) => string
 
 /**
- * Serialize cursor part
+ * Serialize a single entity value for JSON cursor storage
  */
-export const serializeCursorValue = (value: unknown): string => {
-	if (isNil(value)) {
-		return '\0'
-	}
+const toCursorValue = (value: unknown): CursorValue => {
+	if (isNil(value)) return null
 	switch (typeof value) {
 		case 'string':
 			return value
 		case 'number':
 		case 'bigint':
-			return String(value)
+			return Number(value)
 		case 'object':
-			if (value instanceof Date) {
-				return value.toISOString()
-			}
+			if (value instanceof Date) return value.toISOString()
 			break
 	}
 	throw new TypeError(`unserializable value given as cursor part: ${value}`)
 }
-
-/**
- * Parse cursor part from string
- * @param value
- */
-export const parseCursorValue = (value: string): string | null => {
-	return value === '\0' ? null : value
-}
-
-export type StringTransformer = (val: string) => string
 
 export class PaginationCursorTransformer<T extends ObjectLiteral> {
 	decoder: StringTransformer
@@ -49,26 +37,27 @@ export class PaginationCursorTransformer<T extends ObjectLiteral> {
 	/**
 	 * Decode cursor and return values as record
 	 */
-	decode(cursor: string): Record<KeyOf<T>, string> {
-		const parameters = this.decoder(cursor).split(CURSOR_SEPARATOR)
+	decode(cursor: string): Record<KeyOf<T>, string | null> {
+		const json = JSON.parse(this.decoder(cursor)) as Record<string, CursorValue>
 		return this.keys.reduce(
-			(decoded, key, index) => {
+			(decoded, key) => {
+				const value = json[key]
 				return Object.assign(decoded, {
-					[key]: parseCursorValue(invariant(parameters[index]))
+					[key]: isNil(value) ? null : String(value)
 				})
 			},
-			{} as Record<KeyOf<T>, string>
+			{} as Record<KeyOf<T>, string | null>
 		)
 	}
 
 	/**
-	 * Create a cursor from sort options
+	 * Create a cursor from sort keys
 	 */
 	encode(entity: T): string {
-		const cursor = this.keys
-			.map((key) => entity[key])
-			.map(serializeCursorValue)
-			.join(CURSOR_SEPARATOR)
-		return this.encoder(cursor)
+		const json: Record<string, CursorValue> = {}
+		for (const key of this.keys) {
+			json[key] = toCursorValue(entity[key])
+		}
+		return this.encoder(JSON.stringify(json))
 	}
 }
