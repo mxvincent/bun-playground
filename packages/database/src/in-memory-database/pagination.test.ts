@@ -139,37 +139,69 @@ describe('Pager.getPage()', () => {
 describe('should allow pagination when sort is done with a field that contain null values', () => {
 	const resources = createDateContainers(DATASET_SIZE)
 
-	it('[SORT] asc(a) + asc (b)', async () => {
-		const sorts: Sort<keyof DateContainer>[] = [Sort.asc('a'), Sort.asc('b')]
-		const pager = new ArrayPager(resources, { filters: [], sorts })
-		const expected = slice(sortArrayWith(resources, sorts), {
-			take: PAGE_SIZE,
-			cursorTransformer: pager.cursorTransformer
+	describe.each<{ sorts: Sort<keyof DateContainer>[]; description: string }>([
+		{ description: 'asc(a) + asc(b)', sorts: [Sort.asc('a'), Sort.asc('b')] },
+		{ description: 'desc(a) + desc(b)', sorts: [Sort.desc('a'), Sort.desc('b')] },
+		{ description: 'asc(b) + asc(a)', sorts: [Sort.asc('b'), Sort.asc('a')] },
+		{ description: 'desc(b) + desc(a)', sorts: [Sort.desc('b'), Sort.desc('a')] }
+	])('[SORT] $description', ({ sorts }) => {
+		const dataset = sortArrayWith(resources, sorts)
+
+		it('take first page', async () => {
+			const pager = new ArrayPager(resources, { filters: [], sorts })
+			const expected = slice(dataset, {
+				take: PAGE_SIZE,
+				cursorTransformer: pager.cursorTransformer
+			})
+
+			const result = await pager.getPage(Pagination.take(PAGE_SIZE))
+
+			expect(result).toStrictEqual({
+				edges: expected,
+				hasNextPage: true,
+				totalCount: DATASET_SIZE
+			})
 		})
 
-		const result = await pager.getPage(Pagination.take(PAGE_SIZE))
+		it('take second page (cursor crosses null values)', async () => {
+			const pager = new ArrayPager(resources, { filters: [], sorts })
+			const { cursorTransformer } = pager
+			const expected = slice(dataset, {
+				take: PAGE_SIZE,
+				skip: PAGE_SIZE,
+				cursorTransformer
+			})
 
-		expect(result).toStrictEqual({
-			edges: expected,
-			hasNextPage: true,
-			totalCount: DATASET_SIZE
+			const result = await pager.getPage(
+				Pagination.take(PAGE_SIZE, cursorTransformer.encode(invariant(dataset[PAGE_SIZE - 1])))
+			)
+
+			expect(result).toStrictEqual({
+				edges: expected,
+				hasNextPage: true,
+				totalCount: DATASET_SIZE
+			})
 		})
-	})
 
-	it('[SORT] desc(a) + desc(b)', async () => {
-		const sorts: Sort<keyof DateContainer>[] = [Sort.desc('a'), Sort.desc('b')]
-		const pager = new ArrayPager(resources, { filters: [], sorts })
-		const expected = slice(sortArrayWith(resources, sorts), {
-			take: PAGE_SIZE,
-			cursorTransformer: pager.cursorTransformer
-		})
+		it('take last page', async () => {
+			const pager = new ArrayPager(resources, { filters: [], sorts })
+			const { cursorTransformer } = pager
+			const skipCount = DATASET_SIZE - PAGE_SIZE
+			const expected = slice(dataset, {
+				take: PAGE_SIZE,
+				skip: skipCount,
+				cursorTransformer
+			})
 
-		const result = await pager.getPage(Pagination.take(PAGE_SIZE))
+			const result = await pager.getPage(
+				Pagination.take(PAGE_SIZE, cursorTransformer.encode(invariant(dataset[skipCount - 1])))
+			)
 
-		expect(result).toStrictEqual({
-			edges: expected,
-			hasNextPage: true,
-			totalCount: DATASET_SIZE
+			expect(result).toStrictEqual({
+				edges: expected,
+				hasNextPage: false,
+				totalCount: DATASET_SIZE
+			})
 		})
 	})
 })
