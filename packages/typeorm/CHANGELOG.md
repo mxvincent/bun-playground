@@ -1,5 +1,11 @@
 # @package/typeorm
 
+## 0.3.0
+
+### Minor Changes
+
+- [#13](https://github.com/mxvincent/bun-playground/pull/13) [`3ba0c2c`](https://github.com/mxvincent/bun-playground/commit/3ba0c2cef1e279059cddda559aa1925ecc9f73ac) Thanks [@mxvincent](https://github.com/mxvincent)! - A `Pager` can now be reused across requests: sorts and filters are passed to each `getPage()` call instead of the constructor. Replace `new Pager(entity, { query, sorts, filters }).getPage(pagination)` with `new Pager(entity, { query }).getPage({ pagination, sorts, filters })`. The `cursorTransformer` option is replaced by `cursorEncoding: { encoder, decoder }`, since the cursor keys now follow the sorts of each call.
+
 ## 0.2.0
 
 ### Minor Changes
