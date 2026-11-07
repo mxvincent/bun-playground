@@ -3,12 +3,10 @@ import { beforeAll } from 'bun:test'
 import { SQL } from 'bun'
 import { getConnectionConfig, TEST_DATABASE } from './database'
 
-
 beforeAll(async () => {
 	const managementConnection = new SQL(getConnectionConfig(EnvValue.string('POSTGRES_DATABASE') ?? 'mxvincent'))
 
-	const [{ exists }] =
-		await managementConnection`select exists(select datname
+	const [{ exists }] = await managementConnection`select exists(select datname
                                              from pg_catalog.pg_database
                                              where datname = ${TEST_DATABASE})`
 
@@ -18,7 +16,6 @@ beforeAll(async () => {
 	await managementConnection.close({ timeout: 500 })
 
 	const testConnection = new SQL(getConnectionConfig(TEST_DATABASE))
-
 
 	await testConnection`
       create table if not exists "author"
