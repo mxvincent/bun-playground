@@ -48,18 +48,22 @@ A branch MUST contain exactly one commit at all times, including while the work 
 work on the branch amends that commit rather than adding to it.
 
 ```bash
+git add -A
+git commit --amend --no-edit        # or --amend to revise the message
+
+# before pushing
 git fetch origin
 git status                          # check the state of the working tree and the branch
 git rebase --autostash origin/main
-git add -A
-git commit --amend --no-edit        # or --amend to revise the message
 git push --force-with-lease
 ```
 
-- Before every commit and every push, the branch MUST be rebased on an up-to-date `origin/main`, and
-  the state of the repository MUST be checked: working tree, commits ahead and behind `origin/main`,
-  and open pull requests that touch the same files. A conflict is resolved locally, never discovered
-  on the pull request.
+- The state of the repository MUST be checked at two moments: when starting work on a new subject
+  (a new branch, therefore a new pull request), and before every push. Checking means: working tree,
+  commits ahead and behind `origin/main`, and open pull requests that touch the same files. Before a
+  push, the branch MUST also be rebased on an up-to-date `origin/main`, so a conflict is resolved
+  locally, never discovered on the pull request.
+- Local commits and amends in between do not require the check.
 - `--force-with-lease` MUST be used instead of `--force`. It refuses to overwrite commits pushed by
   someone else in the meantime.
 - Force-pushing a feature branch is expected and normal here. Force-pushing `main` is never
