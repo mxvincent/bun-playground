@@ -14,6 +14,7 @@ Formatting is owned by Biome (`biome.json`) and `.editorconfig`. It is never a r
 | Line width | 120 |
 | Line endings | LF |
 | Import order | Managed by Biome's `organizeImports` assist |
+| Control statements | Always braced, even for a single statement (`useBlockStatements`) |
 
 Biome only sees `**/src/**` and `**/test-helpers/**`. Code placed anywhere else is silently
 unformatted and unlinted — see [workspace-structure.md](./workspace-structure.md).

@@ -14,13 +14,23 @@ export function sortArrayWith<T extends ObjectLiteral>(array: T[], sorts: Sort<K
 			const aNull = aVal == null
 			const bNull = bVal == null
 
-			if (aNull && bNull) continue
+			if (aNull && bNull) {
+				continue
+			}
 			// null is always "largest": goes last in ASC, first in DESC
-			if (aNull) return direction === SortDirection.ASC ? 1 : -1
-			if (bNull) return direction === SortDirection.ASC ? -1 : 1
+			if (aNull) {
+				return direction === SortDirection.ASC ? 1 : -1
+			}
+			if (bNull) {
+				return direction === SortDirection.ASC ? -1 : 1
+			}
 
-			if (aVal < bVal) return direction === SortDirection.ASC ? -1 : 1
-			if (aVal > bVal) return direction === SortDirection.ASC ? 1 : -1
+			if (aVal < bVal) {
+				return direction === SortDirection.ASC ? -1 : 1
+			}
+			if (aVal > bVal) {
+				return direction === SortDirection.ASC ? 1 : -1
+			}
 		}
 		return 0
 	})
