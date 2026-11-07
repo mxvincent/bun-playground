@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
-import type { ObjectLiteral } from '@package/core'
+import type { KeyOf, ObjectLiteral } from '@package/core'
 import { sortArrayWith } from '@package/database'
 import { ComparisonFilter, type Page, Pagination, Sort } from '@package/query-params'
 import { useDatabaseContext, useDatabaseTransaction } from '#test-helpers/database'
@@ -46,6 +46,12 @@ const expectPages = <T extends ObjectLiteral>(pages: Page<T>[], sortedDataset: T
 	expect(pages.map((page) => page.hasNextPage)).toStrictEqual(chunks.map((_, index) => index < chunks.length - 1))
 	expect(pages.map((page) => page.totalCount)).toStrictEqual(chunks.map(() => sortedDataset.length))
 }
+
+/**
+ * Expected order of a paginated collection: the Pager breaks ties by primary key, ascending
+ */
+const sortLikePager = <T extends { id: string }>(dataset: T[], sorts: Sort<KeyOf<T>>[]) =>
+	sortArrayWith(dataset, [...sorts, Sort.asc('id' as KeyOf<T>)])
 
 describe('Pager.getPage()', () => {
 	describe.each<{ rawDataset: Author[]; description: string }>([
@@ -122,7 +128,7 @@ describe('Pager.getPage()', () => {
 		])('[SORT] $description: walks through every page', async ({ sorts }) => {
 			const pages = await getAllPages(createAuthorPager(), { sorts })
 
-			expectPages(pages, sortArrayWith(rawDataset, sorts))
+			expectPages(pages, sortLikePager(rawDataset, sorts))
 		})
 
 		it.each<{ sorts: Sort<keyof Author>[]; description: string }>([
@@ -131,7 +137,7 @@ describe('Pager.getPage()', () => {
 		])('[SORT] $description: breaks ties by primary key, ascending', async ({ sorts }) => {
 			const pages = await getAllPages(createAuthorPager(), { sorts })
 
-			expectPages(pages, sortArrayWith(rawDataset, [...sorts, Sort.asc('id')]))
+			expectPages(pages, sortLikePager(rawDataset, sorts))
 		})
 	})
 })
@@ -155,7 +161,7 @@ describe('should allow pagination when sort is done with a field that contain nu
 	])('[SORT] $description: walks through every page, cursors crossing null values', async ({ sorts }) => {
 		const pages = await getAllPages(createDateContainerPager(), { sorts })
 
-		expectPages(pages, sortArrayWith(rawDataset, sorts))
+		expectPages(pages, sortLikePager(rawDataset, sorts))
 	})
 })
 
@@ -222,7 +228,7 @@ describe('a Pager is reusable across calls', () => {
 		await getAllPages(pager, { sorts: [Sort.asc('createdAt')] })
 		const pages = await getAllPages(pager, { sorts })
 
-		expectPages(pages, sortArrayWith(dataset, sorts))
+		expectPages(pages, sortLikePager(dataset, sorts))
 	})
 
 	it('should apply only the filters of the current call', async () => {
