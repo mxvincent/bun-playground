@@ -77,7 +77,9 @@ function applyComparisonFilter<T extends object>(filter: ComparisonFilter<KeyOf<
 			case ComparisonOperator.NOT_LIKE:
 				return value === undefined || !value.includes(filterValue)
 			case ComparisonOperator.MATCH:
-				if (value === undefined) return false
+				if (value === undefined) {
+					return false
+				}
 				try {
 					const regex = new RegExp(filterValue)
 					return regex.test(value)
@@ -85,7 +87,9 @@ function applyComparisonFilter<T extends object>(filter: ComparisonFilter<KeyOf<
 					return false
 				}
 			case ComparisonOperator.INSENSITIVE_MATCH:
-				if (!value) return false
+				if (!value) {
+					return false
+				}
 				try {
 					const regex = new RegExp(filterValue, 'i')
 					return regex.test(value)
