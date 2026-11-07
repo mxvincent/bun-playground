@@ -43,7 +43,7 @@ export const createAuthors = (options: {
 		return createAuthor({
 			id,
 			name: `author-${id.slice(-12)}`,
-			createdAt: addSeconds(startingDate, options.dateStep * i),
+			createdAt: addSeconds(startingDate, Math.floor(i / options.dateStep)),
 			age: i % 100,
 			gender: getGender(i)
 		})
