@@ -48,11 +48,18 @@ A branch MUST contain exactly one commit at all times, including while the work 
 work on the branch amends that commit rather than adding to it.
 
 ```bash
+git fetch origin
+git status                          # check the state of the working tree and the branch
+git rebase --autostash origin/main
 git add -A
 git commit --amend --no-edit        # or --amend to revise the message
 git push --force-with-lease
 ```
 
+- Before every commit and every push, the branch MUST be rebased on an up-to-date `origin/main`, and
+  the state of the repository MUST be checked: working tree, commits ahead and behind `origin/main`,
+  and open pull requests that touch the same files. A conflict is resolved locally, never discovered
+  on the pull request.
 - `--force-with-lease` MUST be used instead of `--force`. It refuses to overwrite commits pushed by
   someone else in the meantime.
 - Force-pushing a feature branch is expected and normal here. Force-pushing `main` is never
@@ -121,18 +128,21 @@ Closes #<issue>
 
 - One pull request per branch, therefore one per issue.
 - The title MUST be the commit subject, unchanged.
+- The person who opens the pull request MUST assign themselves to it. The assignee is the owner who
+  takes it to merge.
 - `.github/workflows/pull-request.yml` runs type-checking, linting and the full test suite against
   Postgres and RabbitMQ. All three MUST be green before merge.
 - A pull request that changes a versioned workspace MUST include a changeset. See
   [versioning.md](./versioning.md).
 
 ```bash
-gh pr create --fill --base main       # single branch
-gh stack submit --auto                # stack: pushes every branch, opens draft PRs
-gh stack submit --auto --open         # same, ready for review instead of draft
+gh pr create --fill --base main --assignee @me   # single branch
+gh stack submit --auto                           # stack: pushes every branch, opens draft PRs
+gh stack submit --auto --open                    # same, ready for review instead of draft
 ```
 
 `gh stack` generates pull request titles and bodies. Adjust them afterwards with `gh pr edit`.
+`gh stack submit` does not set an assignee: add it with `gh pr edit <pr> --add-assignee @me`.
 
 ## Merging
 
