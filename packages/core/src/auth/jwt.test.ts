@@ -1,101 +1,64 @@
 import { describe, expect, test } from 'bun:test'
-import { generateKeyPairSync, randomBytes } from 'crypto'
-import { type SignOptions, sign, type VerifyOptions } from 'jsonwebtoken'
+import { generateKeyPairSync, randomBytes } from 'node:crypto'
+import { type SignOptions, sign } from 'jsonwebtoken'
 import { AuthTokenError } from './errors'
-import { verifyToken } from './jwt'
+import { getKeyIdHeader, verifyToken } from './jwt'
 import { JWTAlgorithm } from './types'
 
-const SECRET = randomBytes(64).toString('hex')
+const SECRET = randomBytes(32).toString('hex')
 const RSA_KEY_PAIR = generateKeyPairSync('rsa', {
-	modulusLength: 4096,
+	modulusLength: 2048,
 	publicKeyEncoding: { type: 'spki', format: 'pem' },
 	privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
 })
 
-const getSymmetricKeyTools = (
-	algorithm: JWTAlgorithm
-): {
-	sign: (payload: object, options?: SignOptions) => string
-	verify: (token: string) => Promise<Record<string, unknown>>
-} => {
-	const verifyOptions = {
-		algorithms: [algorithm],
-		audience: 'https://valid.com',
-		issuer: 'https://valid.com'
-	} satisfies VerifyOptions
-	const signOptions = {
-		algorithm,
-		audience: 'https://valid.com',
-		issuer: 'https://valid.com',
-		expiresIn: '1h',
-		notBefore: '0'
-	} satisfies SignOptions
-	switch (algorithm) {
-		case JWTAlgorithm.HS256:
-		case JWTAlgorithm.HS384:
-		case JWTAlgorithm.HS512:
-			return {
-				sign(payload, options) {
-					return sign(payload, SECRET, { ...signOptions, ...options })
-				},
-				verify(token) {
-					return verifyToken(token, SECRET, verifyOptions)
-				}
-			}
-		case JWTAlgorithm.RS256:
-		case JWTAlgorithm.RS384:
-		case JWTAlgorithm.RS512:
-			return {
-				sign(payload, options) {
-					return sign(payload, RSA_KEY_PAIR.privateKey, {
-						...signOptions,
-						...options
-					})
-				},
-				verify(token) {
-					return verifyToken(token, RSA_KEY_PAIR.publicKey, verifyOptions)
-				}
-			}
-		default:
-			throw new Error(`Missing certificates for ${algorithm}`)
-	}
-}
+const AUDIENCE = 'https://valid.com'
+const ISSUER = 'https://valid.com'
 
+// One algorithm per key family: symmetric (HMAC) and asymmetric (RSA)
 describe.each([
-	JWTAlgorithm.HS256,
-	JWTAlgorithm.HS384,
-	JWTAlgorithm.HS512,
-	JWTAlgorithm.RS256,
-	JWTAlgorithm.RS384,
-	JWTAlgorithm.RS512
-])(`verify token using %s algorithm`, (algorithm) => {
-	const { sign, verify } = getSymmetricKeyTools(algorithm)
-	const payload = {
-		key: 'value'
-	}
+	{ algorithm: JWTAlgorithm.HS256, signingKey: SECRET, verifyingKey: SECRET },
+	{ algorithm: JWTAlgorithm.RS256, signingKey: RSA_KEY_PAIR.privateKey, verifyingKey: RSA_KEY_PAIR.publicKey }
+])('verifyToken() with $algorithm', ({ algorithm, signingKey, verifyingKey }) => {
+	const payload = { key: 'value' }
+	const signToken = (options?: SignOptions) =>
+		sign(payload, signingKey, { algorithm, audience: AUDIENCE, issuer: ISSUER, expiresIn: '1h', ...options })
+	const verify = (token: string) =>
+		verifyToken(token, verifyingKey, { algorithms: [algorithm], audience: AUDIENCE, issuer: ISSUER })
 
-	test('should succeed to verify token', async () => {
-		const token = sign(payload)
-		await expect(verify(token)).resolves.toMatchObject(payload)
+	test('resolves the claims of a valid token', async () => {
+		await expect(verify(signToken())).resolves.toMatchObject(payload)
 	})
 
-	test(`should reject token when audience is not valid`, async () => {
-		const token = sign(payload, { audience: 'https://not.valid.com' })
-		await expect(verify(token)).rejects.toThrow(new AuthTokenError(`Token invalid`))
+	test('rejects a token with another audience', async () => {
+		await expect(verify(signToken({ audience: 'https://not.valid.com' }))).rejects.toThrow(
+			new AuthTokenError('Token invalid')
+		)
 	})
 
-	test(`should reject token when issuer is not valid`, async () => {
-		const token = sign(payload, { issuer: 'https://not.valid.com' })
-		await expect(verify(token)).rejects.toThrow(new AuthTokenError(`Token invalid`))
+	test('rejects a token with another issuer', async () => {
+		await expect(verify(signToken({ issuer: 'https://not.valid.com' }))).rejects.toThrow(
+			new AuthTokenError('Token invalid')
+		)
 	})
 
-	test('should reject expired token', async () => {
-		const token = sign(payload, { expiresIn: '-1h' })
-		await expect(verify(token)).rejects.toThrow(new AuthTokenError(`This token is expired`))
+	test('rejects an expired token', async () => {
+		await expect(verify(signToken({ expiresIn: '-1h' }))).rejects.toThrow(new AuthTokenError('This token is expired'))
 	})
 
-	test('should reject not enabled token', async () => {
-		const token = sign(payload, { notBefore: '1h', expiresIn: '2h' })
-		await expect(verify(token)).rejects.toThrow(new AuthTokenError(`This token cannot yet be used`))
+	test('rejects a token that is not active yet', async () => {
+		await expect(verify(signToken({ notBefore: '1h', expiresIn: '2h' }))).rejects.toThrow(
+			new AuthTokenError('This token cannot yet be used')
+		)
+	})
+})
+
+describe('getKeyIdHeader()', () => {
+	test('returns the kid header', () => {
+		expect(getKeyIdHeader(sign({}, SECRET, { keyid: 'key-1' }))).toBe('key-1')
+	})
+
+	test('throws when the kid header is missing', () => {
+		expect(() => getKeyIdHeader(sign({}, SECRET))).toThrow(new AuthTokenError('Key id header is missing'))
 	})
 })
