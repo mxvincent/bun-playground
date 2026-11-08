@@ -15,6 +15,15 @@ git config rerere.enabled true   # remember conflict resolutions across rebases
 
 - Every change MUST have an issue, opened before the branch. This includes fixes and chores; the
   issue is the unit of traceability, not a formality reserved for features.
+- Starting a new subject MUST begin with a search of the existing issues, open and closed:
+  ```bash
+  gh issue list --state all --search "<keywords>"
+  ```
+  - An open issue documents the subject: reuse it. Do not open a duplicate.
+  - Only a closed issue documents it: the work it tracked has shipped. Open a new issue that links
+    to it.
+  - No issue documents it: open one.
+- The author of the work MUST assign themselves to the issue.
 - An issue MUST describe one task, sized so that its resolution fits in a single commit. If the
   description needs the word "and" to hold together, it is two issues.
 - The title MUST state the outcome, not the implementation: *Cursor pagination drops rows with a
