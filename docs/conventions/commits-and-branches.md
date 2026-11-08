@@ -4,7 +4,7 @@ The unit of work is a **GitHub issue**. One issue produces one branch, one commi
 request. When a feature is too large for that, it is split into several issues whose branches form a
 **stack**.
 
-The tooling is `git` and the GitHub CLI. Nothing else — no Graphite, no custom wrapper.
+The tooling is `git`, the GitHub CLI and its `gh stack` extension. Nothing else, no custom wrapper.
 
 ```bash
 gh extension install github/gh-stack
