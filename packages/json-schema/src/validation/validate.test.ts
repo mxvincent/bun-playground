@@ -1,5 +1,12 @@
-import { describe, expect, it } from 'bun:test'
-import { getValidationFunction, JsonSchemaValidationError, Schema, Type, validate } from '../index'
+import { describe, expect, expectTypeOf, it } from 'bun:test'
+import {
+	createValidationFunction,
+	getValidationFunction,
+	JsonSchemaValidationError,
+	Schema,
+	Type,
+	validate
+} from '../index'
 
 describe('validate()', () => {
 	it('returns a valid value', () => {
@@ -85,4 +92,9 @@ describe('getValidationFunction()', () => {
 		const schema = Type.String()
 		expect(getValidationFunction(schema, { coerce: true })).not.toBe(getValidationFunction(schema, { coerce: false }))
 	})
+})
+
+it('createValidationFunction() types the payload with the static type of the schema', () => {
+	const validateName = createValidationFunction(Type.Object({ name: Type.String() }), { coerce: false })
+	expectTypeOf(validateName).returns.toEqualTypeOf<{ name: string }>()
 })
