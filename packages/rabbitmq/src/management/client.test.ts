@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, spyOn } from 'bun:test'
 import amqplib from 'amqplib'
 import { config } from '#test-helpers/config'
-import { managementApiServer } from '#test-helpers/management-api'
+import { fakeQueues, managementApiServer } from '#test-helpers/management-api'
 import { AmqpClient } from '../amqp/client'
 import { RabbitMQManagementClient } from './client'
 
@@ -144,6 +144,14 @@ afterAll(() => {
 // 		})
 // 	})
 // })
+
+describe('listQueues', () => {
+	it('should list the queues of the configured vhost', async () => {
+		const queues = await management.listQueues()
+
+		expect(queues).toEqual(Object.values(fakeQueues))
+	})
+})
 
 describe('diffQueueBindings', () => {
 	it('should make diff between queue bindings and given configuration', async () => {
