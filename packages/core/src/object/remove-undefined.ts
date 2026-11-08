@@ -1,31 +1,53 @@
-import type { JsonObject } from '../json/types'
+/** Values kept as they are: only plain objects and arrays are traversed */
+type Opaque = Date | RegExp | Map<unknown, unknown> | Set<unknown> | Uint8Array | ((...args: never[]) => unknown)
 
-type RemoveUndefined<T> = T extends object
-	? {
-			[P in keyof T]: T[P] extends undefined ? never : RemoveUndefined<NonNullable<T[P]>>
-		}
-	: T
+type Simplify<T> = { [K in keyof T]: T[K] } & {}
 
-export const removeUndefined = <T extends object>(obj: T): RemoveUndefined<T> => {
-	if (typeof obj !== 'object') {
-		throw new TypeError('Expected an object')
+/** Keys whose value can never be undefined */
+type DefinedKeys<T> = { [K in keyof T]-?: undefined extends T[K] ? never : K }[keyof T]
+
+/** Keys whose value can be undefined, but is not always undefined */
+type MaybeUndefinedKeys<T> = {
+	[K in keyof T]-?: undefined extends T[K] ? ([T[K]] extends [undefined] ? never : K) : never
+}[keyof T]
+
+export type RemoveUndefined<T> = T extends Opaque
+	? T
+	: T extends readonly (infer U)[]
+		? RemoveUndefined<Exclude<U, undefined>>[]
+		: T extends object
+			? Simplify<
+					{ [K in DefinedKeys<T>]: RemoveUndefined<T[K]> } & {
+						[K in MaybeUndefinedKeys<T>]?: RemoveUndefined<Exclude<T[K], undefined>>
+					}
+				>
+			: T
+
+const isPlainObject = (value: object): value is Record<string, unknown> => {
+	const prototype = Object.getPrototypeOf(value)
+	return prototype === Object.prototype || prototype === null
+}
+
+const strip = (value: unknown): unknown => {
+	if (Array.isArray(value)) {
+		return value.filter((item) => item !== undefined).map(strip)
 	}
-	if (obj === null) {
-		return obj as RemoveUndefined<T>
-	}
-	if (Array.isArray(obj)) {
-		return obj
-			.filter((item): item is NonNullable<typeof item> => item !== undefined)
-			.map((item) => removeUndefined(item as object)) as RemoveUndefined<T>
-	}
-	return Object.entries(obj).reduce((acc, [key, value]) => {
-		if (value !== undefined) {
-			if (value !== null && typeof value === 'object') {
-				acc[key] = removeUndefined(value)
-			} else {
-				acc[key] = value
+	if (value !== null && typeof value === 'object' && isPlainObject(value)) {
+		const result: Record<string, unknown> = {}
+		for (const [key, property] of Object.entries(value)) {
+			if (property !== undefined) {
+				result[key] = strip(property)
 			}
 		}
-		return acc
-	}, {} as JsonObject) as RemoveUndefined<T>
+		return result
+	}
+	return value
+}
+
+/**
+ * Remove undefined values from plain objects and arrays, recursively.
+ * Other objects (Date, Map, class instances…) are kept as they are.
+ */
+export const removeUndefined = <T extends object>(obj: T): RemoveUndefined<T> => {
+	return strip(obj) as RemoveUndefined<T>
 }
