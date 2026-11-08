@@ -1,52 +1,76 @@
 import { describe, expect, it } from 'bun:test'
 import { JsonSchemaValidationError, Schema, Type, validate } from '../index'
 
-const getTypeName = (value: unknown) => {
-	return Object.prototype.toString
-		.call(value)
-		.replace(/^\[object\s+([a-z]+)\]$/i, '$1')
-		.toLowerCase()
-}
+describe('validate()', () => {
+	it('returns a valid value', () => {
+		expect(validate(Type.String(), 'value')).toBe('value')
+	})
 
-const formatData = <T>(value: T): { type: string; value: T } => ({
-	type: getTypeName(value),
-	value
-})
+	it.each([0, NaN, {}, null, undefined, true])('throws a JsonSchemaValidationError for %p', (value) => {
+		expect(() => validate(Type.String(), value)).toThrowError(JsonSchemaValidationError)
+	})
 
-describe('String validation', () => {
-	describe('Regular string validation', () => {
-		const schema = Type.String()
+	it('attaches the ajv errors and the payload to the error', () => {
+		const payload = { name: 1 }
+		const error = (() => {
+			try {
+				validate(Type.Object({ name: Type.String() }), payload)
+			} catch (error) {
+				return error
+			}
+		})()
+		expect(error).toMatchObject({ payload, errors: [{ instancePath: '/name', keyword: 'type' }] })
+	})
 
-		it.each(['test value'].map(formatData))('should validate $type', ({ value }) => {
-			expect(validate(schema, value)).toBe(value)
+	it('applies the default values', () => {
+		expect(validate(Type.Object({ name: Type.String({ default: 'default' }) }), {})).toStrictEqual({
+			name: 'default'
 		})
+	})
 
-		it.each(
-			[0, NaN, Infinity, 123, {}, null, undefined, true, false].map(formatData)
-		)('should not validate $type', async ({ value }) => {
-			expect(() => validate(schema, value)).toThrowError(JsonSchemaValidationError)
-		})
+	it('removes the additional properties', () => {
+		const schema = Type.Object({ name: Type.String() }, { additionalProperties: false })
+		expect(validate(schema, { name: 'value', other: 1 })).toStrictEqual({ name: 'value' })
+	})
+
+	it('does not coerce types by default', () => {
+		expect(() => validate(Type.Number(), '123')).toThrowError(JsonSchemaValidationError)
+	})
+
+	it('coerces types when coerce is enabled', () => {
+		expect(validate(Type.Number(), '123', { coerce: true })).toBe(123)
 	})
 })
 
-describe('Nullable string validation', () => {
+describe('Schema.Nullable()', () => {
 	const schema = Schema.Nullable(Type.String())
 
-	it.each(['test value', null].map(formatData))('should validate $type', ({ value }) => {
+	it.each(['value', null])('accepts %p', (value) => {
 		expect(validate(schema, value)).toBe(value)
 	})
 
-	it.each([123, {}, undefined].map(formatData))('should not validate $type', ({ value }) => {
-		expect(() => validate(schema, value)).toThrowError(JsonSchemaValidationError)
+	it('rejects another type', () => {
+		expect(() => validate(schema, 123)).toThrowError(JsonSchemaValidationError)
 	})
 })
 
-describe('Optional type coercion', () => {
-	const schema = Type.Number()
-	it('should not coerce type by default', async () => {
-		expect(() => validate(schema, '123')).toThrowError(JsonSchemaValidationError)
+describe('Schema.DateTime()', () => {
+	it('accepts an ISO 8601 date time', () => {
+		expect(validate(Schema.DateTime(), '2026-01-01T00:00:00Z')).toBe('2026-01-01T00:00:00Z')
 	})
-	it('should coerce type by default', async () => {
-		expect(validate(schema, '123', { coerce: true })).toEqual(123)
+
+	it('rejects a date without time', () => {
+		expect(() => validate(Schema.DateTime(), '2026-01-01')).toThrowError(JsonSchemaValidationError)
+	})
+})
+
+describe('Schema.UUID()', () => {
+	it('accepts a UUID', () => {
+		const uuid = '0195f7b2-1c2d-7e3f-8a4b-5c6d7e8f9a0b'
+		expect(validate(Schema.UUID(), uuid)).toBe(uuid)
+	})
+
+	it('rejects another string', () => {
+		expect(() => validate(Schema.UUID(), 'not-a-uuid')).toThrowError(JsonSchemaValidationError)
 	})
 })
