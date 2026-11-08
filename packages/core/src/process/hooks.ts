@@ -16,10 +16,17 @@ export const beforeProcessShutdown = (teardownFunction: TeardownFunction) => {
 	teardownFunctions.add(teardownFunction)
 }
 
+/**
+ * Call every registered teardown function and wait for all of them to settle
+ */
+export const runTeardownFunctions = async (): Promise<void> => {
+	await Promise.allSettled([...teardownFunctions].map((teardownFunction) => teardownFunction()))
+}
+
 for (const signal of INTERRUPTION_SIGNALS) {
 	process.on(signal, async () => {
 		if (teardownFunctions.size) {
-			await Promise.allSettled(teardownFunctions)
+			await runTeardownFunctions()
 			process.exit(0)
 		}
 	})
