@@ -9,7 +9,7 @@ export const assertArray = <T = unknown>(value: unknown): Array<T> => {
 		return value
 	}
 	throw new AssertionError({
-		message: 'Value should be a string',
+		message: 'Value should be an array',
 		actual: value
 	})
 }
