@@ -29,22 +29,19 @@ export function createValidationFunction<T extends TSchema>(
 	}
 }
 
-const validators = new Map<
-	{
-		schema: TSchema
-		options: ValidationOptions
-	},
-	(value: unknown) => unknown
->()
+/** Validators by schema, one cache per coerce value: entries are released with their schema */
+type Validator = (payload: unknown) => unknown
+const validators = { coerce: new WeakMap<TSchema, Validator>(), strict: new WeakMap<TSchema, Validator>() }
 
 export const getValidationFunction = <T extends TSchema>(
 	schema: T,
 	options: ValidationOptions
 ): ((payload: unknown) => T) => {
-	let validate = validators.get({ schema, options })
+	const cache = options.coerce ? validators.coerce : validators.strict
+	let validate = cache.get(schema)
 	if (!validate) {
 		validate = createValidationFunction<T>(schema, options)
-		validators.set({ schema, options }, validate)
+		cache.set(schema, validate)
 	}
 	return validate as (payload: unknown) => T
 }
