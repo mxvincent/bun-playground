@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { JsonSchemaValidationError, Schema, Type, validate } from '../index'
+import { getValidationFunction, JsonSchemaValidationError, Schema, Type, validate } from '../index'
 
 describe('validate()', () => {
 	it('returns a valid value', () => {
@@ -72,5 +72,17 @@ describe('Schema.UUID()', () => {
 
 	it('rejects another string', () => {
 		expect(() => validate(Schema.UUID(), 'not-a-uuid')).toThrowError(JsonSchemaValidationError)
+	})
+})
+
+describe('getValidationFunction()', () => {
+	it('reuses the validator of a schema', () => {
+		const schema = Type.String()
+		expect(getValidationFunction(schema, { coerce: false })).toBe(getValidationFunction(schema, { coerce: false }))
+	})
+
+	it('builds one validator per coerce option', () => {
+		const schema = Type.String()
+		expect(getValidationFunction(schema, { coerce: true })).not.toBe(getValidationFunction(schema, { coerce: false }))
 	})
 })
