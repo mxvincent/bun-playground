@@ -19,7 +19,6 @@ export * from './mappers/date'
 /**
  * Schemas
  */
-export * from './schemas/auth'
 export * from './schemas/http-errors'
 export * from './schemas/resource'
 export * from './validation/ajv'
