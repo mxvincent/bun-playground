@@ -52,12 +52,20 @@ describe('ResourceNotFoundError', () => {
 	})
 
 	test('toString() appends a string id', () => {
-		expect(new ResourceNotFoundError('organization', 'id-1').toString()).toBe('Resource not found:id-1')
+		expect(new ResourceNotFoundError('organization', 'id-1').toString()).toBe(
+			'[RESOURCE_NOT_FOUND] Resource not found: id-1'
+		)
 	})
 
 	test('toString() appends the entries of an object id', () => {
 		expect(new ResourceNotFoundError('member', { organizationId: 'o', userId: 'u' }).toString()).toBe(
-			'Resource not found:organizationId=o,userId=u'
+			'[RESOURCE_NOT_FOUND] Resource not found: organizationId=o,userId=u'
+		)
+	})
+
+	test('toString() serializes the nested values of an object id as JSON', () => {
+		expect(new ResourceNotFoundError('member', { key: { organizationId: 'o' } }).toString()).toBe(
+			'[RESOURCE_NOT_FOUND] Resource not found: key={"organizationId":"o"}'
 		)
 	})
 })

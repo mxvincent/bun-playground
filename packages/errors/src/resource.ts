@@ -19,9 +19,9 @@ export class ResourceNotFoundError extends NotFoundError {
 			typeof this.resourceId === 'string'
 				? this.resourceId
 				: Object.entries(this.resourceId)
-						.map(([key, value]) => `${key}=${value}`)
+						.map(([key, value]) => `${key}=${typeof value === 'object' ? JSON.stringify(value) : value}`)
 						.join(',')
-		return this.message + ':' + parameters
+		return `${super.toString()}: ${parameters}`
 	}
 
 	override toJSON() {
