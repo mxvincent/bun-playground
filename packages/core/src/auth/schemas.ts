@@ -39,5 +39,5 @@ export type SymmetricJWTConfig = Static<typeof SymmetricJWTConfigSchema>
 export const JWTConfigSchema = Type.Union([AsymmetricJWTConfigSchema, SymmetricJWTConfigSchema])
 export type JWTConfig = Static<typeof JWTConfigSchema>
 
-export const ASYMMETRIC_ALGORITHMS = Object.values(JWTSymmetricAlgorithm)
+export const ASYMMETRIC_ALGORITHMS = Object.values(JWTAsymmetricAlgorithm)
 export const SYMMETRIC_ALGORITHMS = Object.values(JWTSymmetricAlgorithm)
