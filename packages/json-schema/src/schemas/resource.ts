@@ -1,5 +1,5 @@
-import type { ObjectOptions, TObject, TProperties, TString } from '@sinclair/typebox'
-import { Schema } from '../builder'
+import { type ObjectOptions, type TObject, type TProperties, type TString, Type } from '@sinclair/typebox'
+import { DateTime, UUID } from '../builder/formats'
 
 export type ResourceProperties = {
 	id: TString
@@ -8,11 +8,11 @@ export type ResourceProperties = {
 }
 
 export const getResourceProperties = (): ResourceProperties => ({
-	id: Schema.UUID({ description: 'Resource unique identifier.' }),
-	createdAt: Schema.DateTime({
+	id: UUID({ description: 'Resource unique identifier.' }),
+	createdAt: DateTime({
 		description: 'A date representing when this resource was created.'
 	}),
-	updatedAt: Schema.DateTime({
+	updatedAt: DateTime({
 		description: 'A date representing when this resource was last updated.'
 	})
 })
@@ -21,5 +21,5 @@ export const ResourceSchema = <T extends TProperties>(
 	properties: T,
 	options?: ObjectOptions
 ): TObject<ResourceProperties & T> => {
-	return Schema.Object(Object.assign(getResourceProperties(), properties), options)
+	return Type.Object(Object.assign(getResourceProperties(), properties), options)
 }
