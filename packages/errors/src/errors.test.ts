@@ -23,6 +23,10 @@ describe('BaseError', () => {
 		})
 	})
 
+	test('name is the name of the concrete class', () => {
+		expect(new NotFoundError('missing').name).toBe('NotFoundError')
+	})
+
 	test('toString() prefixes the message with the code', () => {
 		expect(new NotFoundError('missing').toString()).toBe('[NOT_FOUND] missing')
 	})
