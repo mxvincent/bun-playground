@@ -1,5 +1,5 @@
 import process from 'node:process'
-import { type DeriveJsonType, getPackageRootPath, readJsonFileSync, removeUndefined } from '@package/core'
+import { type DeriveJsonType, getPackageRootPath, readJsonFileSync, stripUndefinedValues } from '@package/core'
 import { JsonSchemaValidationError, type Static, type TSchema, Type, validate } from '@package/json-schema'
 import { logger, serializers } from '@package/telemetry'
 import { toMerged } from 'es-toolkit'
@@ -32,7 +32,7 @@ const loadConfig = <T extends TSchema>(schema: T, configFromEnvironment: DeriveJ
 				logger.warn({ error, path }, 'Failed to load config file.')
 			}
 		}
-		return validate(schema, toMerged(configFromFile, removeUndefined(configFromEnvironment ?? {})), {
+		return validate(schema, toMerged(configFromFile, stripUndefinedValues(configFromEnvironment ?? {})), {
 			coerce: true
 		})
 	} catch (error) {

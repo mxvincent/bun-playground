@@ -11,14 +11,14 @@ type MaybeUndefinedKeys<T> = {
 	[K in keyof T]-?: undefined extends T[K] ? ([T[K]] extends [undefined] ? never : K) : never
 }[keyof T]
 
-export type RemoveUndefined<T> = T extends Opaque
+export type StripUndefinedValues<T> = T extends Opaque
 	? T
 	: T extends readonly (infer U)[]
-		? RemoveUndefined<Exclude<U, undefined>>[]
+		? StripUndefinedValues<Exclude<U, undefined>>[]
 		: T extends object
 			? Simplify<
-					{ [K in DefinedKeys<T>]: RemoveUndefined<T[K]> } & {
-						[K in MaybeUndefinedKeys<T>]?: RemoveUndefined<Exclude<T[K], undefined>>
+					{ [K in DefinedKeys<T>]: StripUndefinedValues<T[K]> } & {
+						[K in MaybeUndefinedKeys<T>]?: StripUndefinedValues<Exclude<T[K], undefined>>
 					}
 				>
 			: T
@@ -48,6 +48,9 @@ const strip = (value: unknown): unknown => {
  * Remove undefined values from plain objects and arrays, recursively.
  * Other objects (Date, Map, class instances…) are kept as they are.
  */
-export const removeUndefined = <T extends object>(obj: T): RemoveUndefined<T> => {
-	return strip(obj) as RemoveUndefined<T>
+export const stripUndefinedValues = <T extends object>(obj: T): StripUndefinedValues<T> => {
+	return strip(obj) as StripUndefinedValues<T>
 }
+
+/** @deprecated Renamed to {@link stripUndefinedValues} */
+export const removeUndefined = stripUndefinedValues
