@@ -58,6 +58,12 @@ export const fakeQueues: Record<string, ManagementApiQueue> = {
 }
 
 export const managementApiServer = setupServer(
+	http.get(`https://localhost/api/queues/:vhost`, (info) => {
+		if (info.params.vhost !== config.connection.vhost) {
+			return new Response(null, { status: 404 })
+		}
+		return new Response(JSON.stringify(Object.values(fakeQueues)), { status: 200 })
+	}),
 	http.get(`https://localhost/api/queues/:vhost/:queue/bindings`, (info) => {
 		if (info.params.vhost !== config.connection.vhost) {
 			return new Response(null, { status: 404 })

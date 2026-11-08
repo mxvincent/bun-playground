@@ -7,6 +7,7 @@ import { AmqpQueue, QueueRole, QueueType } from '../types/queue'
 import type { ExchangeConfig, TopicBinding } from '../types/topic'
 
 import { RabbitMQManagementAPI } from './api'
+import type { ManagementApiQueue } from './types'
 
 export type ChannelOption = ChannelWrapper | Channel
 
@@ -35,6 +36,13 @@ export class RabbitMQManagementClient {
 
 	get channel() {
 		return this.amqp.getDefaultChannel()
+	}
+
+	/**
+	 * List the queues of the configured vhost
+	 */
+	async listQueues(): Promise<ManagementApiQueue[]> {
+		return this.api.listQueues()
 	}
 
 	async diffQueueBindings(queue: Required<Pick<AmqpQueue, 'bindings' | 'name'>>): Promise<{
