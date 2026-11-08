@@ -10,7 +10,7 @@
 	},
 	"scripts": {
 		"lint:check": "biome lint .",
-		"test": "bun test --pass-with-no-tests",
+		"test": "bun test",
 		"test:watch": "bun test --watch",
 		"tsc:check": "tsc --noEmit",
 		"tsc:check:watch": "tsc --noEmit --watch",
