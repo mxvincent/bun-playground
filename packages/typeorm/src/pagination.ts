@@ -15,7 +15,7 @@ import { Brackets, type ObjectType, type SelectQueryBuilder } from 'typeorm'
 import { applyFilters } from './filters/applyFilters'
 import { getPrimaryKeyColumns } from './helpers/primary-key'
 import { getAliasedPath, getDefaultSort, mergePrimaryKeySorts } from './helpers/sortPath'
-import { enforceFilterPathAliasing } from './sort'
+import { applySorts, enforceFilterPathAliasing } from './sort'
 
 /**
  * Encoding of the cursor string. The cursor keys are derived from the sorts of each call.
@@ -74,7 +74,7 @@ export class Pager<T extends ObjectLiteral> {
 		if (filters) {
 			applyFilters(query, enforceFilterPathAliasing(filters, query.alias), LogicalOperator.AND)
 		}
-		this.applySorts(query, sorts)
+		applySorts(query, sorts)
 
 		// Optionally count items matching filters
 		const totalCount = pagination.isCountRequested ? await query.getCount() : null
@@ -95,16 +95,6 @@ export class Pager<T extends ObjectLiteral> {
 		}))
 
 		return { edges, hasNextPage, totalCount }
-	}
-
-	private applySorts(query: SelectQueryBuilder<T>, sorts: NonEmptyArray<Sort<KeyOf<T>>>) {
-		for (const sort of sorts) {
-			query.addOrderBy(
-				getAliasedPath(sort.path, query.alias),
-				sort.direction === SortDirection.DESC ? 'DESC' : 'ASC',
-				sort.direction === SortDirection.DESC ? 'NULLS FIRST' : 'NULLS LAST'
-			)
-		}
 	}
 
 	/**

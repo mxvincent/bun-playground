@@ -47,8 +47,8 @@ describe.each([
 		const sorts = [Sort.asc('createdAt'), Sort.asc('id')]
 		const expected = sortArrayWith<Author>(collection, sorts)
 		const query = database.manager.createQueryBuilder(Author, 'author')
-		const sorter = new Sorter(Author, { sorts, query })
-		const result = await sorter.getSortedCollection()
+		const sorter = new Sorter(Author, { query })
+		const result = await sorter.getSortedCollection({ sorts })
 		expect(result).toEqual(expected)
 	})
 
@@ -56,8 +56,8 @@ describe.each([
 		const sorts = [Sort.desc('createdAt'), Sort.asc('id')]
 		const expected = sortArrayWith<Author>(collection, sorts)
 		const query = database.manager.createQueryBuilder(Author, 'author')
-		const sorter = new Sorter(Author, { sorts, query })
-		const result = await sorter.getSortedCollection()
+		const sorter = new Sorter(Author, { query })
+		const result = await sorter.getSortedCollection({ sorts })
 		expect(result).toEqual(expected)
 	})
 })
@@ -92,8 +92,8 @@ describe('should sort on field containing null values', () => {
 	])('($direction) should sort on field containing null values', async ({ direction, expected }) => {
 		const sorts = [{ path: 'name', direction }] satisfies Sort<KeyOf<Post>>[]
 		const query = database.manager.createQueryBuilder(Post, 'post')
-		const sorter = new Sorter(Post, { query, sorts })
-		const result = await sorter.getSortedCollection()
+		const sorter = new Sorter(Post, { query })
+		const result = await sorter.getSortedCollection({ sorts })
 		expect(result.map((el) => el.name)).toEqual(expected)
 	})
 })
@@ -119,27 +119,50 @@ describe('handle nested fields', () => {
 		await database.manager.save([author, ...posts])
 
 		const sorter = new Sorter(Author, {
-			query: database.manager.createQueryBuilder(Author, 'author').leftJoinAndSelect('author.posts', 'posts'),
+			query: database.manager.createQueryBuilder(Author, 'author').leftJoinAndSelect('author.posts', 'posts')
+		})
+		const [result] = await sorter.getSortedCollection({
 			sorts: [
 				{ path: 'name', direction: SortDirection.DESC },
 				{ path: 'posts.name' as never, direction: SortDirection.ASC }
 			]
 		})
-		const [result] = await sorter.getSortedCollection()
 		for (let i = 0; i < 4; i++) {
 			expect(invariant(result).posts?.at(i)?.name).toBe(`post-${i}`)
 		}
 	})
 })
 
-describe('a Sorter keeps the given query untouched', () => {
+describe('a Sorter is reusable across calls', () => {
 	useDatabaseTransaction(database, 'group')
+
+	const collection = factories.createAuthors({ collectionSize: 6, dateStep: 2, useSequentialIds: false })
+
+	beforeAll(async () => {
+		await database.manager.insert(Author, collection)
+	})
+
+	it('should apply only the sorts of the current call', async () => {
+		const sorter = new Sorter(Author, { query: database.manager.createQueryBuilder(Author, 'author') })
+		await sorter.getSortedCollection({ sorts: [Sort.desc('createdAt')] })
+		const result = await sorter.getSortedCollection({ sorts: [Sort.asc('name')] })
+		expect(result).toEqual(sortArrayWith<Author>(collection, [Sort.asc('name'), Sort.asc('id')]))
+	})
+
+	it('should apply only the filters of the current call', async () => {
+		const sorter = new Sorter(Author, { query: database.manager.createQueryBuilder(Author, 'author') })
+		await sorter.getSortedCollection({ filters: [ComparisonFilter.equal('gender', 'female')] })
+		const result = await sorter.getSortedCollection({ filters: [ComparisonFilter.equal('gender', 'male')] })
+		expect(result.map(({ gender }) => gender)).toEqual(['male', 'male'])
+	})
 
 	it('should not modify the query given to the constructor', async () => {
 		const query = database.manager.createQueryBuilder(Author, 'author')
 		const baseQuery = query.getQuery()
-		const sorter = new Sorter(Author, { query, sorts: [Sort.asc('name')], filters: [ComparisonFilter.notNull('name')] })
-		await sorter.getSortedCollection()
+		await new Sorter(Author, { query }).getSortedCollection({
+			sorts: [Sort.asc('name')],
+			filters: [ComparisonFilter.notNull('name')]
+		})
 		expect(query.getQuery()).toBe(baseQuery)
 	})
 })
