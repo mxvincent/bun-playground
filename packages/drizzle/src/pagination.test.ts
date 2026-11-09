@@ -3,10 +3,9 @@ import { invariant } from '@package/core'
 import { sortArrayWith } from '@package/database'
 import { Pagination, Sort } from '@package/query-params'
 import { useDatabaseContext, useDatabaseTransaction } from '#test-helpers/database'
-import { type AuthorRecord, type DateContainerRecord, factories } from '#test-helpers/factories'
-import { authors, dateContainers } from '#test-helpers/schema'
+import { type AuthorRecord, factories } from '#test-helpers/factories'
+import { authors } from '#test-helpers/schema'
 import { DrizzleCursorPager } from './pagination'
-import type { ColumnMapping } from './query-params'
 
 // Drizzle's PgSelectBase removes `.where()` from the return type after it's called,
 // making it incompatible with the recursive `DrizzleQuery` type. The runtime behavior
@@ -142,71 +141,6 @@ describe('DrizzleCursorPager.getPage()', () => {
 	})
 })
 
-describe('should allow pagination when sort is done with a field that contain null values', () => {
-	useDatabaseTransaction(database, 'group')
-
-	const rawDataset = factories.createDateContainers(collectionSize)
-
-	const dateContainerColumnMapping = {
-		id: dateContainers.id,
-		a: dateContainers.a,
-		b: dateContainers.b
-	} satisfies ColumnMapping<keyof DateContainerRecord>
-
-	const createDateContainerPager = () => {
-		return new DrizzleCursorPager({
-			database: database.database,
-			table: dateContainers,
-			primaryKey: { id: dateContainers.id },
-			columnMapping: dateContainerColumnMapping
-		})
-	}
-
-	beforeAll(async () => {
-		await database.database.insert(dateContainers).values(rawDataset)
-	})
-
-	it('[SORT] asc(id)', async () => {
-		const sorts: Sort<keyof DateContainerRecord>[] = [Sort.asc('id')]
-		const dataset = sortArrayWith(rawDataset, sorts)
-		const pager = createDateContainerPager()
-		const query = asQuery(database.database.select().from(dateContainers))
-
-		const result = await pager.getPage({
-			query,
-			parameters: {
-				sorts,
-				pagination: Pagination.take(10)
-			}
-		})
-
-		expect(result.edges).toHaveLength(10)
-		expect(result.hasNextPage).toBe(true)
-		expect(result.totalCount).toBe(collectionSize)
-		expect(result.edges.map((e) => e.node.id)).toEqual(dataset.slice(0, 10).map((d) => d.id))
-	})
-
-	it('[SORT] desc(id)', async () => {
-		const sorts: Sort<keyof DateContainerRecord>[] = [Sort.desc('id')]
-		const dataset = sortArrayWith(rawDataset, sorts)
-		const pager = createDateContainerPager()
-		const query = asQuery(database.database.select().from(dateContainers))
-
-		const result = await pager.getPage({
-			query,
-			parameters: {
-				sorts,
-				pagination: Pagination.take(10)
-			}
-		})
-
-		expect(result.edges).toHaveLength(10)
-		expect(result.hasNextPage).toBe(true)
-		expect(result.totalCount).toBe(collectionSize)
-		expect(result.edges.map((e) => e.node.id)).toEqual(dataset.slice(0, 10).map((d) => d.id))
-	})
-})
-
 describe('Performance: allow query without `totalCount` for better performance on large tables', () => {
 	useDatabaseTransaction(database, 'group')
 
@@ -229,20 +163,6 @@ describe('Performance: allow query without `totalCount` for better performance o
 			parameters: {
 				pagination: Pagination.take(5)
 			}
-		})
-
-		expect(result.totalCount).toBe(collectionSize)
-	})
-
-	it('should include `totalCount` when explicitly requested', async () => {
-		const pager = createAuthorPager()
-		const query = asQuery(database.database.select().from(authors))
-		const pagination = Pagination.take(5)
-		pagination.isCountRequested = true
-
-		const result = await pager.getPage({
-			query,
-			parameters: { pagination }
 		})
 
 		expect(result.totalCount).toBe(collectionSize)

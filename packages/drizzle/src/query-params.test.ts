@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import { ComparisonFilter, LogicalFilter, Pagination, Sort } from '@package/query-params'
-import { integer, pgTable, text, uuid } from 'drizzle-orm/pg-core'
+import { ComparisonFilter, type Filter, LogicalFilter, Pagination, Sort } from '@package/query-params'
+import { integer, PgDialect, pgTable, text, uuid } from 'drizzle-orm/pg-core'
 import type { ColumnMapping } from './query-params'
 import {
 	isMappedColumn,
@@ -59,62 +59,54 @@ describe('validateSorts()', () => {
 	})
 })
 
+const toSql = (filter: Filter<TestKey>) => new PgDialect().sqlToQuery(transformFilter(filter, columnMapping))
+
 describe('transformFilter()', () => {
-	describe('value comparison operators', () => {
-		it.each<{ filter: ComparisonFilter<TestKey>; description: string }>([
-			{ filter: ComparisonFilter.equal<TestKey>('name', 'value'), description: 'EQUAL' },
-			{ filter: ComparisonFilter.notEqual<TestKey>('name', 'value'), description: 'NOT_EQUAL' },
-			{ filter: ComparisonFilter.greaterThan<TestKey>('name', 'value'), description: 'GREATER_THAN' },
-			{ filter: ComparisonFilter.greaterThanOrEqual<TestKey>('name', 'value'), description: 'GREATER_THAN_OR_EQUAL' },
-			{ filter: ComparisonFilter.lessThan<TestKey>('name', 'value'), description: 'LESS_THAN' },
-			{ filter: ComparisonFilter.lessThanOrEqual<TestKey>('name', 'value'), description: 'LESS_THAN_OR_EQUAL' },
-			{ filter: ComparisonFilter.like<TestKey>('name', 'value'), description: 'LIKE' },
-			{ filter: ComparisonFilter.notLike<TestKey>('name', 'value'), description: 'NOT_LIKE' }
-		])('should transform $description filter', ({ filter }) => {
-			const result = transformFilter(filter, columnMapping)
-			expect(result).toBeDefined()
-		})
+	it.each<[ComparisonFilter<TestKey>, string]>([
+		[ComparisonFilter.equal('name', 'v'), '"test"."name" = $1'],
+		[ComparisonFilter.notEqual('name', 'v'), '"test"."name" <> $1'],
+		[ComparisonFilter.greaterThan('name', 'v'), '"test"."name" > $1'],
+		[ComparisonFilter.greaterThanOrEqual('name', 'v'), '"test"."name" >= $1'],
+		[ComparisonFilter.lessThan('name', 'v'), '"test"."name" < $1'],
+		[ComparisonFilter.lessThanOrEqual('name', 'v'), '"test"."name" <= $1'],
+		[ComparisonFilter.like('name', 'v'), '"test"."name" like $1'],
+		[ComparisonFilter.notLike('name', 'v'), '"test"."name" not like $1']
+	])('translates %p into %p', (filter, sql) => {
+		expect(toSql(filter)).toMatchObject({ sql, params: ['v'] })
 	})
 
-	describe('array comparison operators', () => {
-		it.each<{ filter: ComparisonFilter<TestKey>; description: string }>([
-			{ filter: ComparisonFilter.in<TestKey>('name', ['a', 'b']), description: 'IN' },
-			{ filter: ComparisonFilter.notIn<TestKey>('name', ['a', 'b']), description: 'NOT_IN' }
-		])('should transform $description filter', ({ filter }) => {
-			const result = transformFilter(filter, columnMapping)
-			expect(result).toBeDefined()
-		})
+	it.each<[ComparisonFilter<TestKey>, string]>([
+		[ComparisonFilter.in('name', ['a', 'b']), '"test"."name" in ($1, $2)'],
+		[ComparisonFilter.notIn('name', ['a', 'b']), '"test"."name" not in ($1, $2)']
+	])('translates %p into %p', (filter, sql) => {
+		expect(toSql(filter)).toMatchObject({ sql, params: ['a', 'b'] })
 	})
 
-	describe('null comparison operators', () => {
-		it.each<{ filter: ComparisonFilter<TestKey>; description: string }>([
-			{ filter: ComparisonFilter.null<TestKey>('name'), description: 'NULL' },
-			{ filter: ComparisonFilter.notNull<TestKey>('name'), description: 'NOT_NULL' }
-		])('should transform $description filter', ({ filter }) => {
-			const result = transformFilter(filter, columnMapping)
-			expect(result).toBeDefined()
-		})
+	it.each<[ComparisonFilter<TestKey>, string]>([
+		[ComparisonFilter.null('name'), '"test"."name" is null'],
+		[ComparisonFilter.notNull('name'), '"test"."name" is not null']
+	])('translates %p into %p', (filter, sql) => {
+		expect(toSql(filter)).toMatchObject({ sql, params: [] })
 	})
 
-	describe('logical operators', () => {
-		it('should transform AND filter', () => {
-			const filter = LogicalFilter.and([ComparisonFilter.equal('name', 'a'), ComparisonFilter.equal('name', 'b')])
-			const result = transformFilter(filter, columnMapping)
-			expect(result).toBeDefined()
-		})
-		it('should transform OR filter', () => {
-			const filter = LogicalFilter.or([ComparisonFilter.equal('name', 'a'), ComparisonFilter.equal('name', 'b')])
-			const result = transformFilter(filter, columnMapping)
-			expect(result).toBeDefined()
-		})
-		it('should transform nested logical filters', () => {
-			const filter = LogicalFilter.and([
-				LogicalFilter.or([ComparisonFilter.equal('name', 'a'), ComparisonFilter.equal('name', 'b')]),
-				ComparisonFilter.greaterThan('age', '10')
-			])
-			const result = transformFilter(filter, columnMapping)
-			expect(result).toBeDefined()
-		})
+	it.each<[Filter<TestKey>, string]>([
+		[
+			LogicalFilter.and([ComparisonFilter.equal('name', 'a'), ComparisonFilter.null('age')]),
+			'("test"."name" = $1 and "test"."age" is null)'
+		],
+		[
+			LogicalFilter.or([ComparisonFilter.equal('name', 'a'), ComparisonFilter.null('age')]),
+			'("test"."name" = $1 or "test"."age" is null)'
+		],
+		[
+			LogicalFilter.and([
+				LogicalFilter.or([ComparisonFilter.equal('name', 'a'), ComparisonFilter.null('age')]),
+				ComparisonFilter.notNull('id')
+			]),
+			'(("test"."name" = $1 or "test"."age" is null) and "test"."id" is not null)'
+		]
+	])('translates the logical filter %p into %p', (filter, sql) => {
+		expect(toSql(filter).sql).toBe(sql)
 	})
 })
 
@@ -184,7 +176,7 @@ describe('parseAndValidateQueryParameters()', () => {
 	it('should throw for invalid filter paths', () => {
 		expect(() =>
 			parseAndValidateQueryParameters(
-				{ filters: 'eq(unknown,value)' },
+				{ filters: 'equal(unknown,dmFsdWU)' },
 				{
 					defaultSort: Sort.asc('id'),
 					defaultPaginationSize: 10,
