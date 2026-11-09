@@ -25,7 +25,13 @@ export class DrizzleDatabaseContext implements DatabaseContext {
 		this.transactionDepth++
 	}
 
+	/**
+	 * Roll back the current transaction, or its last savepoint; without transaction, do nothing
+	 */
 	async rollbackTransaction() {
+		if (!this.isTransactionActive) {
+			return
+		}
 		this.transactionDepth--
 		if (this.transactionDepth === 0) {
 			await this.client.query('ROLLBACK')
@@ -34,7 +40,13 @@ export class DrizzleDatabaseContext implements DatabaseContext {
 		}
 	}
 
+	/**
+	 * Commit the current transaction, or release its last savepoint; without transaction, do nothing
+	 */
 	async commitTransaction() {
+		if (!this.isTransactionActive) {
+			return
+		}
 		this.transactionDepth--
 		if (this.transactionDepth === 0) {
 			await this.client.query('COMMIT')
