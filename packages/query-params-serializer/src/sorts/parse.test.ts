@@ -6,7 +6,9 @@ it.each([
 	['createdAt', Sort.asc('createdAt')],
 	['asc(createdAt)', Sort.asc('createdAt')],
 	['desc(createdAt)', Sort.desc('createdAt')],
-	['desc(user.fullName)', Sort.desc('user.fullName')]
+	['desc(user.fullName)', Sort.desc('user.fullName')],
+	['description', Sort.asc('description')],
+	['ascending', Sort.asc('ascending')]
 ])('parses %p', (queryStringParameter, sort) => {
 	expect(parseSorts(queryStringParameter)).toStrictEqual([sort])
 })
@@ -25,4 +27,8 @@ it('keeps the first sort only with getFirstOnly', () => {
 
 it('ignores an invalid sort', () => {
 	expect(parseSorts(['up(id)', 'desc(updatedAt)'])).toStrictEqual([Sort.desc('updatedAt')])
+})
+
+it('ignores a sort with unbalanced parentheses', () => {
+	expect(parseSorts('asc(name')).toStrictEqual([])
 })
