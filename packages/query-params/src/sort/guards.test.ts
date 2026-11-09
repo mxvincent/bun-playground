@@ -1,28 +1,15 @@
-import { describe, expect, it } from 'bun:test'
+import { expect, it } from 'bun:test'
 import { isSort } from './guards'
-import { SORT_DIRECTIONS } from './sort'
+import { SORT_DIRECTIONS, Sort } from './sort'
 
-it.each(SORT_DIRECTIONS)('should return true', (direction) => {
-	expect(isSort({ direction, path: 'key' })).toBeTruthy()
+it.each(SORT_DIRECTIONS)('accepts a Sort instance with the %p direction', (direction) => {
+	expect(isSort(new Sort(direction, 'key'))).toBe(true)
 })
 
-describe('should return false', () => {
-	it('should handle null', () => {
-		expect(isSort(null)).toBeFalsy()
-	})
-	it('should handle array', () => {
-		expect(isSort([])).toBeFalsy()
-	})
-	it('should handle object', () => {
-		expect(isSort({})).toBeFalsy()
-	})
-	it('should handle string', () => {
-		expect(isSort('a')).toBeFalsy()
-	})
-	it('should handle number', () => {
-		expect(isSort(1)).toBeFalsy()
-	})
-	it('should handle undefined', () => {
-		expect(isSort(undefined)).toBeFalsy()
-	})
+it('accepts an object with a direction and a path', () => {
+	expect(isSort({ direction: 'asc', path: 'key' })).toBe(true)
+})
+
+it.each([[null], ['asc:key'], [{ direction: 'up', path: 'key' }], [{ direction: 'asc' }]])('rejects %p', (value) => {
+	expect(isSort(value)).toBe(false)
 })
