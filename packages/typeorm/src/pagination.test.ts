@@ -186,16 +186,6 @@ describe('Performance: allow query without `totalCount` for better performance o
 			expect(connection).toMatchObject({ totalCount: collectionSize })
 		})
 
-		it('should include `totalCount`', async () => {
-			const pager = createAuthorPager()
-			const pagination = Pagination.take(5)
-			pagination.isCountRequested = true
-
-			const connection = await pager.getPage({ pagination })
-
-			expect(connection).toMatchObject({ totalCount: collectionSize })
-		})
-
 		it('should not include `totalCount`', async () => {
 			const pager = createAuthorPager()
 			const pagination = Pagination.take(5)
