@@ -73,4 +73,26 @@ describe('DrizzleDatabaseContext', () => {
 		await context.commitTransaction()
 		expect([await values(), context.isTransactionActive]).toEqual([['after'], false])
 	})
+
+	it('keeps the outer changes when the commit of a failed savepoint throws and the savepoint is rolled back', async () => {
+		await context.startTransaction()
+		await insert('outer')
+		await context.startTransaction()
+		await insert('inner')
+		// A failing statement aborts the transaction: releasing the savepoint then fails
+		await client.query(`insert into ${TABLE} (value) values (null)`).catch(() => undefined)
+		await expect(context.commitTransaction()).rejects.toThrow()
+		await context.rollbackTransaction()
+		await context.commitTransaction()
+		expect(await values()).toEqual(['outer'])
+	})
+
+	it('ends the transaction when the top-level commit throws', async () => {
+		await context.startTransaction()
+		// A deferred unique constraint is only checked by the COMMIT
+		await client.query('create temp table deferred_unique (value int unique deferrable initially deferred)')
+		await client.query('insert into deferred_unique values (1), (1)')
+		await expect(context.commitTransaction()).rejects.toThrow()
+		expect(context.isTransactionActive).toBe(false)
+	})
 })
