@@ -176,7 +176,10 @@ export class Consumer<Schema extends TObject> {
 		await this.channel.sendToQueue(getRetryAttemptQueueName(this.queue), content)
 	}
 
-	private async handleError(message: ConsumeMessage, error: unknown, messageContent?: unknown) {
+	/**
+	 * Handle a message that failed, and return whether it can be acked: true once it is kept elsewhere
+	 */
+	private async handleError(message: ConsumeMessage, error: unknown, messageContent?: unknown): Promise<boolean> {
 		const currentAttempt = getMessageRetryAttempt(message)
 		const amqp = {
 			queue: this.queue,
@@ -202,14 +205,14 @@ export class Consumer<Schema extends TObject> {
 			if (this.options.keepUnprocessableMessages) {
 				await this.publishUnprocessableMessage(message, error)
 			}
-			return
+			return true
 		}
 
 		logger.error({ amqp, error }, `[AMQP] Message processing failed.`)
 
-		// Without retry, the error is logged and the message is acked
+		// Without retry, the message is nacked: the queue settings of RabbitMQ decide what happens to it
 		if (!amqp.retry.isEnabled) {
-			return
+			return false
 		}
 
 		await this.channel.sendToQueue(
@@ -223,6 +226,7 @@ export class Consumer<Schema extends TObject> {
 				}
 			}
 		)
+		return true
 	}
 
 	private async consumeMessage(message: ConsumeMessage | null): Promise<void> {
@@ -249,8 +253,8 @@ export class Consumer<Schema extends TObject> {
 			this.channel.ack(message)
 		} catch (error) {
 			try {
-				await this.handleError(message, error, content ?? message.content)
-				return this.channel.ack(message)
+				const canAck = await this.handleError(message, error, content ?? message.content)
+				return canAck ? this.channel.ack(message) : this.channel.nack(message)
 			} catch (error) {
 				logger.error({ error }, '[RabbitMQ] Failed during ack.')
 				return this.channel.nack(message)

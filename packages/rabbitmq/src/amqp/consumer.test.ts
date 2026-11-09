@@ -226,7 +226,7 @@ describe('Consumer retry on handler failure', () => {
 		expect(mockChannel.ack).toHaveBeenCalledWith(message)
 	})
 
-	it('does not retry when retry attempts are disabled', async () => {
+	it('nacks the failed message instead of retrying it when retry attempts are disabled', async () => {
 		const withoutRetry = new Consumer(mockClient as never, {
 			queue,
 			schema: MeasureMessageSchema,
@@ -237,7 +237,10 @@ describe('Consumer retry on handler failure', () => {
 			logMessageContent: false
 		})
 		await withoutRetry.start()
-		await sendMessage(failingMessage())
-		expect(mockChannel.sendToQueue).not.toHaveBeenCalled()
+		const message = failingMessage()
+		await sendMessage(message)
+		expect([mockChannel.sendToQueue.mock.calls, mockChannel.ack.mock.calls, mockChannel.nack.mock.calls]).toStrictEqual(
+			[[], [], [[message]]]
+		)
 	})
 })
