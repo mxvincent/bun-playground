@@ -93,14 +93,20 @@ const parseFilter = (filterString: string, decode = decodeFilterValue): Comparis
 	}
 
 	if (isValueComparisonOperator(operator)) {
-		const [value] = parameters
+		const [value, ...extraParameters] = parameters
 		if (value === undefined) {
 			throw new QueryStringParameterValidationError(`Can not extract filter value`, [filterString])
+		}
+		if (extraParameters.length > 0) {
+			throw new QueryStringParameterValidationError(`A value filter takes one value`, [filterString])
 		}
 		return new ValueComparisonFilter(operator, path, decodeValue(value, decode, filterString))
 	}
 
 	if (isNullComparisonOperator(operator)) {
+		if (parameters.length > 0) {
+			throw new QueryStringParameterValidationError(`A null filter takes no value`, [filterString])
+		}
 		return new NullComparisonFilter(operator, path)
 	}
 
