@@ -7,6 +7,7 @@ import { NetInstrumentation } from '@opentelemetry/instrumentation-net'
 import { PgInstrumentation } from '@opentelemetry/instrumentation-pg'
 import { PinoInstrumentation } from '@opentelemetry/instrumentation-pino'
 import { NodeSDK } from '@opentelemetry/sdk-node'
+import { beforeProcessShutdown } from '@package/core'
 import { TypeormInstrumentation } from 'opentelemetry-instrumentation-typeorm'
 import type { TelemetryConfig } from '../config/schemas'
 import { getResource, getResourceDetectors } from '../resources'
@@ -52,8 +53,8 @@ export const initializeTelemetrySdk = (config: TelemetryConfig): NodeSDK => {
 		)
 	}
 
-	// Shutdown telemetry on interruption signal
-	process.on('SIGTERM', shutdownTelemetry)
+	// On SIGINT or SIGTERM, the process exits once the SDK has flushed the pending spans
+	beforeProcessShutdown(shutdownTelemetry)
 
 	return sdk
 }
