@@ -63,6 +63,28 @@ const compareValues = (value: unknown, filterValue: string): number | undefined 
 	return undefined
 }
 
+/**
+ * Build the regular expression of a SQL `LIKE` pattern: `%` matches any sequence, `_` any single character,
+ * and `\\` escapes `%`, `_` and itself
+ */
+const likePatternToRegExp = (pattern: string): RegExp => {
+	let source = ''
+	for (let index = 0; index < pattern.length; index += 1) {
+		const character = pattern[index] as string
+		if (character === '\\' && index + 1 < pattern.length) {
+			index += 1
+			source += RegExp.escape(pattern[index] as string)
+		} else if (character === '%') {
+			source += '.*'
+		} else if (character === '_') {
+			source += '.'
+		} else {
+			source += RegExp.escape(character)
+		}
+	}
+	return new RegExp(`^${source}$`, 's')
+}
+
 const isEqualValue = (value: unknown, filterValue: string): boolean => compareValues(value, filterValue) === 0
 
 /**
@@ -112,9 +134,9 @@ function applyComparisonFilter<T extends object>(filter: ComparisonFilter<KeyOf<
 			case ComparisonOperator.GREATER_THAN_OR_EQUAL:
 				return order !== undefined && order >= 0
 			case ComparisonOperator.LIKE:
-				return value?.includes(filterValue) ?? false
+				return value !== undefined && likePatternToRegExp(filterValue).test(value)
 			case ComparisonOperator.NOT_LIKE:
-				return value === undefined || !value.includes(filterValue)
+				return value === undefined || !likePatternToRegExp(filterValue).test(value)
 			case ComparisonOperator.MATCH:
 				if (value === undefined) {
 					return false
