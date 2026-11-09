@@ -28,7 +28,10 @@ export const fastifyRequestContext: FastifyPluginAsync = plugin(
 				logger: logger.child({
 					request: request.id
 				}),
-				actor: request.actor,
+				// Read when used: the authentication may set the actor after this hook, depending on the plugin order
+				get actor() {
+					return request.actor ?? null
+				},
 				request: {
 					id: request.id,
 					method: request.method,

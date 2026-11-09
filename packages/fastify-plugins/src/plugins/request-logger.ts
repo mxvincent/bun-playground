@@ -4,7 +4,8 @@ import { requestContext } from './request-context.js'
 
 export const fastifyRequestLogger: FastifyPluginAsync = plugin(
 	async (app: FastifyInstance): Promise<void> => {
-		app.addHook('onRequest', async () => {
+		// preParsing runs after every onRequest hook, so the authentication has set the actor whatever the plugin order
+		app.addHook('preParsing', async () => {
 			const context = requestContext.getStore()
 			if (!context) {
 				return
