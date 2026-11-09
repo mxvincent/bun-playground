@@ -61,3 +61,11 @@ it('dual sort with opposite direction', () => {
 		{ a: 'a', b: 1 }
 	])
 })
+
+it.each([
+	[Sort.asc('a'), [1, 2, null]],
+	[Sort.desc('a'), [null, 2, 1]]
+] as const)('sorts null values like PostgreSQL with %p: NULLS LAST in asc, NULLS FIRST in desc', (sort, expected) => {
+	const values = [{ a: 2 }, { a: null }, { a: 1 }]
+	expect(sortArrayWith(values, [sort]).map(({ a }) => a)).toEqual([...expected])
+})
