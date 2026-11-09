@@ -1,76 +1,84 @@
+import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { randomUUID } from 'node:crypto'
 import { config } from '#test-helpers/config'
-import { AmqpConnectionManagerClass } from 'amqp-connection-manager'
-import amqplib from 'amqplib'
-import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test'
-import { getAmqpConnectionUrl } from '../config'
+import { createMeasureMessageContent, type MeasureMessage, MeasureMessageSchema } from '#test-helpers/message'
 import { AmqpClient } from './client'
+import type { Consumer } from './consumer'
 
-const mockAmqpConnect = spyOn(amqplib, 'connect').mockImplementation(() => Promise.resolve({} as never))
+describe('AmqpClient before initialize()', () => {
+	test('getDefaultChannel() throws', () => {
+		expect(() => new AmqpClient(config).getDefaultChannel()).toThrow('Client is not initialized yet.')
+	})
 
-afterEach(async () => {
-	mockAmqpConnect.mockClear()
+	test('getConnectionManager() throws', () => {
+		expect(() => new AmqpClient(config).getConnectionManager()).toThrow('Connection manager is not initialized yet.')
+	})
 })
 
-describe.skip('RabbiMQClient.initialize()', () => {
-	test.skip('should call amqplib connect', async () => {
-		const client = new AmqpClient(config)
+describe('AmqpClient.publish()', () => {
+	test('publishes to a topic with the exchange and the routing key', async () => {
+		const channel = { publish: mock(() => Promise.resolve()), sendToQueue: mock(() => Promise.resolve()) }
+		await new AmqpClient(config).publish('message', {
+			channel: channel as never,
+			destination: { type: 'topic', name: 'exchange', routingKey: 'routing-key' }
+		})
+		expect(channel.publish).toHaveBeenCalledWith('exchange', 'routing-key', 'message')
+	})
+
+	test('sends to a queue by its name', async () => {
+		const channel = { publish: mock(() => Promise.resolve()), sendToQueue: mock(() => Promise.resolve()) }
+		await new AmqpClient(config).publish('message', {
+			channel: channel as never,
+			destination: { type: 'queue', name: 'queue' }
+		})
+		expect(channel.sendToQueue).toHaveBeenCalledWith('queue', 'message')
+	})
+})
+
+// Against the RabbitMQ of the test environment (local docker, CI service)
+describe('AmqpClient with a broker', () => {
+	const queue = `test.amqp-client.${randomUUID()}`
+	// Assigned before initialize() so that afterAll() closes its connection manager when the broker is unreachable
+	const client = new AmqpClient(config)
+	let isQueueAsserted = false
+	const consumers: Consumer<typeof MeasureMessageSchema>[] = []
+
+	beforeAll(async () => {
 		await client.initialize()
-		expect(mockAmqpConnect).toHaveBeenCalledWith(getAmqpConnectionUrl(config), {
-			timeout: 60000
-		})
+		await client.getDefaultChannel().assertQueue(queue)
+		isQueueAsserted = true
 	})
 
-	test('should fail when rabbitmq server is unreachable', async () => {
-		mockAmqpConnect.mockRejectedValueOnce(new Error('RabbitMQ server is unreachable.'))
-		await expect(AmqpClient.initialize(config)).rejects.toStrictEqual(new Error('RabbitMQ server is unreachable.'))
+	afterAll(async () => {
+		// Stop the consumers first: deleting a consumed queue closes their channel
+		await Promise.all(consumers.map((consumer) => consumer.stop()))
+		if (isQueueAsserted) {
+			await client.getDefaultChannel().deleteQueue(queue)
+		}
+		await client.teardown()
 	})
 
-	test('should create connection manager', async () => {
-		const client = await AmqpClient.initialize(config)
-		expect(client.getConnectionManager()).toBeInstanceOf(AmqpConnectionManagerClass)
+	test('initialize() connects the default channel', () => {
+		expect(client.getDefaultChannel().name).toBe('default-publish-channel')
 	})
 
-	test('should create default channel', async () => {
-		const client = await AmqpClient.initialize(config)
-		expect(client.getDefaultChannel()?.constructor.name).toBe('ChannelWrapper')
-	})
-})
-
-describe('RabbiMQClient.publish()', () => {
-	test('should publish with default channel', async () => {
-		const defaultChannelPublishSpy = mock()
-
-		const client = new AmqpClient(config)
-		const defaultChannelSpy = spyOn(client, 'getDefaultChannel').mockReturnValue({
-			publish: defaultChannelPublishSpy
-		} as never)
-
-		await client.publish('message', {
-			destination: {
-				type: 'topic',
-				name: 'exchange',
-				routingKey: 'routing-key'
-			}
+	test('a consumer receives the validated content of a published message', async () => {
+		const content = createMeasureMessageContent()
+		const received = new Promise<MeasureMessage>((resolve) => {
+			const consumer = client.consume({
+				queue,
+				schema: MeasureMessageSchema,
+				handler: async (message) => resolve(message),
+				concurrency: 1,
+				retryAttempts: 0,
+				keepUnprocessableMessages: false,
+				logMessageContent: false
+			})
+			consumer.then((started) => consumers.push(started))
 		})
 
-		expect(defaultChannelPublishSpy).toHaveBeenCalledTimes(1)
-		expect(defaultChannelPublishSpy).toHaveBeenCalledWith('exchange', 'routing-key', 'message')
+		await client.publish(JSON.stringify(content), { destination: { type: 'queue', name: queue } })
 
-		defaultChannelSpy.mockRestore()
-	})
-
-	test('should publish with a custom channel', async () => {
-		const mockChannel = { publish: mock() }
-		const client = new AmqpClient(config)
-		await client.publish('message', {
-			channel: mockChannel as never,
-			destination: {
-				type: 'topic',
-				name: 'exchange',
-				routingKey: 'routing-key'
-			}
-		})
-		expect(mockChannel.publish).toHaveBeenCalledTimes(1)
-		expect(mockChannel.publish).toHaveBeenCalledWith('exchange', 'routing-key', 'message')
+		expect(await received).toStrictEqual(content)
 	})
 })
