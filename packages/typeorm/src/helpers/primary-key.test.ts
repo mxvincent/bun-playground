@@ -11,6 +11,9 @@ describe('set sortable paths', () => {
 		setPrimaryKeyColumns(Author, ['id'])
 		expect(primaryKeys.get(Author)).toEqual(['id'])
 	})
+	it('should throw an error without column', () => {
+		expect(() => setPrimaryKeyColumns(Author, [])).toThrowError('Keys should be a non empty array of string.')
+	})
 })
 
 describe('get primary key', () => {

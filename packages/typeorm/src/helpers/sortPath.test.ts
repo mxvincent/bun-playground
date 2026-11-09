@@ -34,7 +34,7 @@ describe('getAliasedPath()', () => {
 	})
 })
 
-describe('appendPrimaryKeySorts()', () => {
+describe('mergePrimaryKeySorts()', () => {
 	type Pet = {
 		id: string
 		name: string
