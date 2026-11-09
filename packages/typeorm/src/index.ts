@@ -6,10 +6,6 @@ export * from 'typeorm'
 export * from './adapters/database-context'
 export * from './adapters/logger'
 
-/**
- * Errors
- */
-export * from './errors/resource-not-found'
 export { applyFilters } from './filters/applyFilters'
 
 /**
