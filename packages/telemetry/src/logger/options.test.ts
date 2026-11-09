@@ -63,3 +63,9 @@ describe('getLoggerOptions()', () => {
 		expect(getLoggerOptions().transport).toBeUndefined()
 	})
 })
+
+it('the pino-pretty transport is a runtime dependency', async () => {
+	// The transport is loaded at runtime outside production: installs without dev dependencies need it
+	const packageJson = await Bun.file(new URL('../../package.json', import.meta.url)).json()
+	expect(Object.keys(packageJson.dependencies)).toContain('pino-pretty')
+})

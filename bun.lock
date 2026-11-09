@@ -207,10 +207,8 @@
         "opentelemetry-instrumentation-sequelize": "^0.41.0",
         "opentelemetry-instrumentation-typeorm": "^0.41.0",
         "pino": "^9.8.0",
-        "pino-std-serializers": "^7.0.0",
-      },
-      "devDependencies": {
         "pino-pretty": "^13.1.1",
+        "pino-std-serializers": "^7.0.0",
       },
     },
     "packages/typeorm": {
