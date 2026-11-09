@@ -1,8 +1,8 @@
 # Commits and branches
 
 The unit of work is a **GitHub issue**. One issue produces one branch, one commit and one pull
-request. When a feature is too large for that, it is split into several issues whose branches form a
-**stack**.
+request. When a subject is too large for that, a parent issue documents it, and it is split into
+**sub-issues** whose branches form a **stack** when they depend on each other.
 
 The tooling is `git`, the GitHub CLI and its `gh stack` extension. Nothing else, no custom wrapper.
 
@@ -34,8 +34,19 @@ git config rerere.enabled true   # remember conflict resolutions across rebases
   ✅ `` `isSort` returns false for `Sort` instances ``, `` Rename `removeUndefined` to `stripUndefinedValues` ``
   ❌ `isSort returns false for Sort instances`, `query-params: isSort returns false`, `fix sort guard`
 - The issue MUST carry its labels. See [Labels](#labels).
-- A feature that cannot fit in one commit MUST be decomposed into an ordered set of issues, one per
-  reviewable layer, before any code is written. See [Stacks](#stacks).
+- A subject that cannot fit in one commit MUST be split with sub-issues, before any code is
+  written:
+  - The **parent issue** documents the subject as a whole: the problem, the goal, the decisions. It
+    stays the reference for the topic and carries no branch of its own.
+  - Each **sub-issue** is one step that fits in one commit, with its own branch, commit and pull
+    request, and follows every rule above. Steps that depend on each other form a stack, in the
+    order of the sub-issues. See [Stacks](#stacks).
+  - The parent issue MUST be closed by hand once its last sub-issue is done: no commit references it.
+  ```bash
+  gh issue create --assignee @me --label pkg/core --title "..." --body "..."           # parent: #42
+  gh issue create --assignee @me --label pkg/core --parent 42 --title "..." --body "..." # step
+  gh issue edit 42 --add-sub-issue 43,44     # attach existing issues as steps
+  ```
 
 ## Labels
 
@@ -237,8 +248,8 @@ Left is the bottom and merges first; right is the top.
 
 - Use a stack when a feature is too large for one reviewable commit. Splitting is the norm for
   anything crossing more than one workspace.
-- Do NOT build everything on one branch and split it afterwards. Decompose into issues first, then
-  create the layers as you go.
+- Do NOT build everything on one branch and split it afterwards. Decompose into sub-issues of a
+  parent issue first, then create the layers as you go: one layer per sub-issue.
 - A layer MUST be one dependent concern, and each layer MUST leave the repository green — type-check
   and tests pass at every level. Foundational work goes at the bottom: domain types, then
   persistence, then the endpoint that exposes it.
