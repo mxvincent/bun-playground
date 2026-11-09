@@ -54,6 +54,13 @@ export const getRetryFailureQueueName = (queue: string): string => {
 }
 
 /**
+ * Returns the name of the queue that keeps the unprocessable messages of a queue.
+ */
+export const getUnprocessableQueueName = (queue: string): string => {
+	return `${queue}.unprocessable`
+}
+
+/**
  * Check if given queue name match retry queue name pattern
  */
 export const isRetryQueue = (queue: string): boolean => {
