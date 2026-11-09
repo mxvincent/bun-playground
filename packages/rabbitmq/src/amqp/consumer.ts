@@ -207,7 +207,8 @@ export class Consumer<Schema extends TObject> {
 
 		logger.error({ amqp, error }, `[AMQP] Message processing failed.`)
 
-		if (amqp.retry.isEnabled) {
+		// Without retry, the error is logged and the message is acked
+		if (!amqp.retry.isEnabled) {
 			return
 		}
 

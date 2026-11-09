@@ -1,9 +1,10 @@
-import { afterAll, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test'
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test'
 import { invariant, jsonToBuffer } from '@package/core'
 import { logger } from '@package/telemetry'
 import type { ConsumeMessage } from 'amqplib'
 import { createFakeMessage, createMeasureMessageContent, MeasureMessageSchema } from '#test-helpers/message'
 import { Consumer } from './consumer'
+import { RETRY_ATTEMPTS_HEADER } from './retry'
 
 const loggerInfoSpy = spyOn(logger, 'info')
 const loggerWarnSpy = spyOn(logger, 'warn')
@@ -172,5 +173,71 @@ describe('Consumer.consumeMessage()', () => {
 
 		expect(handler).not.toHaveBeenCalled()
 		expect(mockChannel.ack).toHaveBeenCalledTimes(0)
+	})
+})
+
+describe('Consumer retry on handler failure', () => {
+	const sendMessage = async (message: ConsumeMessage) => {
+		const callback = invariant(mockChannel.consume.mock.lastCall?.at(1)) as never as (
+			message: ConsumeMessage
+		) => Promise<void>
+		await callback(message)
+	}
+
+	const failingMessage = (attempt?: number) => {
+		const message = createFakeMessage(jsonToBuffer(createMeasureMessageContent()))
+		message.properties.headers = attempt === undefined ? {} : { [RETRY_ATTEMPTS_HEADER]: attempt }
+		return message
+	}
+
+	beforeEach(async () => {
+		handler.mockImplementation(() => Promise.reject(new Error('failure')))
+		await consumer.start()
+	})
+
+	afterEach(() => {
+		handler.mockImplementation(() => Promise.resolve())
+	})
+
+	it.each([
+		[undefined, 'test-queue.retry-1', 1],
+		[1, 'test-queue.retry-2', 2],
+		[2, 'test-queue.retry-failure', 3]
+	])('after attempt %p, sends the message to %p with the attempt header %p', async (attempt, retryQueue, nextAttempt) => {
+		const message = failingMessage(attempt)
+		await sendMessage(message)
+		expect(mockChannel.sendToQueue).toHaveBeenCalledWith(retryQueue, message.content, {
+			headers: { [RETRY_ATTEMPTS_HEADER]: nextAttempt }
+		})
+	})
+
+	it('acks the failed message once it is sent to a retry queue', async () => {
+		const calls: string[] = []
+		mockChannel.sendToQueue.mockImplementationOnce(() => {
+			calls.push('sendToQueue')
+			return Promise.resolve()
+		})
+		mockChannel.ack.mockImplementationOnce(() => {
+			calls.push('ack')
+		})
+		const message = failingMessage()
+		await sendMessage(message)
+		expect(calls).toStrictEqual(['sendToQueue', 'ack'])
+		expect(mockChannel.ack).toHaveBeenCalledWith(message)
+	})
+
+	it('does not retry when retry attempts are disabled', async () => {
+		const withoutRetry = new Consumer(mockClient as never, {
+			queue,
+			schema: MeasureMessageSchema,
+			handler,
+			concurrency: 1,
+			retryAttempts: 0,
+			keepUnprocessableMessages: false,
+			logMessageContent: false
+		})
+		await withoutRetry.start()
+		await sendMessage(failingMessage())
+		expect(mockChannel.sendToQueue).not.toHaveBeenCalled()
 	})
 })
