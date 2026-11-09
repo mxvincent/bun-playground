@@ -225,6 +225,16 @@ gh pr merge <pr> --squash             # single branch
 gh stack merge <pr> --yes --squash    # that PR and every unmerged PR below it
 ```
 
+- Before merging, the branch, or every branch of the stack, MUST be rebased on an up-to-date
+  `origin/main` and pushed, and the checks of each pull request MUST be green on the rebased commits:
+  ```bash
+  gh stack rebase && gh stack push                          # stack
+  git rebase origin/main && git push --force-with-lease     # single branch
+  gh pr checks <pr> --watch                                 # each pull request
+  ```
+  A check shown green can come from the run of a previous commit when the run of the latest one
+  failed to start: confirm with `gh run list --commit <sha>` when a pull request has fewer checks
+  than the others.
 - `gh stack merge` is all-or-nothing: if any pull request in the selected set cannot merge, none do.
 - A stack squash-merges each pull request on its own: merging `n` pull requests creates `n` commits
   on `main`. A stack MUST NOT be collapsed into a single commit, for example by retargeting its top
