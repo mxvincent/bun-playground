@@ -285,3 +285,32 @@ it('empty filters returns all items', () => {
 	expect(result).toHaveLength(5)
 	expect(result).toEqual(resources)
 })
+
+describe('typed comparisons', () => {
+	const items = [
+		{ id: '1', age: 9, createdAt: new Date('2020-01-01T00:00:00.000Z') },
+		{ id: '2', age: 10, createdAt: new Date('2020-01-02T00:00:00.000Z') }
+	]
+	const ids = (filter: Parameters<typeof filterArrayWith<(typeof items)[number]>>[1][number]) =>
+		filterArrayWith(items, [filter]).map(({ id }) => id)
+
+	it('compares numbers as numbers', () => {
+		expect(ids(ComparisonFilter.greaterThan('age', '9'))).toEqual(['2'])
+	})
+
+	it('matches a number in a list', () => {
+		expect(ids(ComparisonFilter.in('age', ['10']))).toEqual(['2'])
+	})
+
+	it('compares dates as timestamps', () => {
+		expect(ids(ComparisonFilter.lessThan('createdAt', '2020-01-02'))).toEqual(['1'])
+	})
+
+	it('matches a date written without milliseconds', () => {
+		expect(ids(ComparisonFilter.equal('createdAt', '2020-01-01T00:00:00Z'))).toEqual(['1'])
+	})
+
+	it('matches nothing when the filter value cannot be parsed as the item type', () => {
+		expect(ids(ComparisonFilter.lessThan('age', 'abc'))).toEqual([])
+	})
+})
