@@ -44,7 +44,7 @@ export const createAuthors = (n: number, dateStep = 1, useSequentialIds = true):
 			name: `author-${id.slice(-12)}`,
 			createdAt: addSeconds(startingDate, Math.trunc(i / dateStep)),
 			age: i % 100,
-			gender: ['female', 'male', 'unknown'][n % 3] as Author['gender']
+			gender: (['female', 'male', 'unknown'] as const)[i % 3] as Author['gender']
 		}
 	})
 }
