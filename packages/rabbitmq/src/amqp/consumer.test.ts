@@ -244,3 +244,42 @@ describe('Consumer retry on handler failure', () => {
 		)
 	})
 })
+
+describe('Consumer with an unprocessable message', () => {
+	const sendMessage = async (message: ConsumeMessage) => {
+		const callback = invariant(mockChannel.consume.mock.lastCall?.at(1)) as never as (
+			message: ConsumeMessage
+		) => Promise<void>
+		await callback(message)
+	}
+
+	const invalidMessage = () => createFakeMessage(jsonToBuffer({ value: 12 }))
+
+	it('sends it to the unprocessable queue of the consumed queue', async () => {
+		await consumer.start()
+		await sendMessage(invalidMessage())
+		expect(mockChannel.sendToQueue).toHaveBeenCalledWith('test-queue.unprocessable', expect.any(Buffer))
+	})
+
+	it('acks it without calling the handler', async () => {
+		await consumer.start()
+		const message = invalidMessage()
+		await sendMessage(message)
+		expect([handler.mock.calls.length, mockChannel.ack.mock.lastCall]).toStrictEqual([0, [message]])
+	})
+
+	it('does not keep it when keepUnprocessableMessages is disabled', async () => {
+		const withoutKeep = new Consumer(mockClient as never, {
+			queue,
+			schema: MeasureMessageSchema,
+			handler,
+			concurrency: 1,
+			retryAttempts: 2,
+			keepUnprocessableMessages: false,
+			logMessageContent: false
+		})
+		await withoutKeep.start()
+		await sendMessage(invalidMessage())
+		expect(mockChannel.sendToQueue).not.toHaveBeenCalled()
+	})
+})

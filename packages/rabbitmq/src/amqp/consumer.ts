@@ -9,7 +9,12 @@ import type { ConsumeMessage } from 'amqplib'
 import { AmqpParseMessageError } from '../errors/amqp-parse-message-error'
 import type { AmqpQueue } from '../types/queue'
 import type { AmqpClient } from './client'
-import { getRetryAttemptQueueName, getRetryFailureQueueName, RETRY_ATTEMPTS_HEADER } from './retry'
+import {
+	getRetryAttemptQueueName,
+	getRetryFailureQueueName,
+	getUnprocessableQueueName,
+	RETRY_ATTEMPTS_HEADER
+} from './retry'
 
 function getMessageRetryAttempt(message: ConsumeMessage) {
 	const headers = message.properties?.headers ?? {}
@@ -173,7 +178,7 @@ export class Consumer<Schema extends TObject> {
 
 	private async publishUnprocessableMessage(message: ConsumeMessage, error: unknown) {
 		const content = jsonToBuffer({ error, message })
-		await this.channel.sendToQueue(getRetryAttemptQueueName(this.queue), content)
+		await this.channel.sendToQueue(getUnprocessableQueueName(this.queue), content)
 	}
 
 	/**

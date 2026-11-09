@@ -1,7 +1,12 @@
 import { isNumber, isString } from '@package/core'
 import type { Options } from 'amqplib'
 import { isEqual } from 'es-toolkit'
-import { getRetryAttemptDelayInMilliseconds, getRetryAttemptRoutingKey, RETRY_EXCHANGE } from '../amqp/retry'
+import {
+	getRetryAttemptDelayInMilliseconds,
+	getRetryAttemptRoutingKey,
+	getUnprocessableQueueName,
+	RETRY_EXCHANGE
+} from '../amqp/retry'
 import { AmqpConfigError } from '../errors/amqp-config-error'
 import type { ManagementApiQueue } from '../management/types'
 import type { TopicBinding } from './topic'
@@ -129,6 +134,6 @@ export class AmqpQueue {
 	}
 
 	getUnprocessableQueueName(): string {
-		return `${this.name}.unprocessable`
+		return getUnprocessableQueueName(this.name)
 	}
 }

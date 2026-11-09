@@ -6,6 +6,7 @@ import {
 	getRetryAttemptRoutingKey,
 	getRetryExchangeConfig,
 	getRetryFailureQueueName,
+	getUnprocessableQueueName,
 	isRetryQueue,
 	RETRY_EXCHANGE
 } from './retry'
@@ -73,5 +74,11 @@ describe('isRetryQueue()', () => {
 
 	it.each(['orders', 'orders.unprocessable', 'retry-1'])('is false for %p', (queue) => {
 		expect(isRetryQueue(queue)).toBe(false)
+	})
+})
+
+describe('getUnprocessableQueueName()', () => {
+	it('should return the unprocessable queue name', () => {
+		expect(getUnprocessableQueueName('test-queue')).toBe('test-queue.unprocessable')
 	})
 })
