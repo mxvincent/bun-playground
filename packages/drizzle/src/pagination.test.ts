@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { invariant } from '@package/core'
 import { sortArrayWith } from '@package/database'
-import { Pagination, Sort } from '@package/query-params'
+import { ComparisonFilter, Pagination, Sort } from '@package/query-params'
 import { useDatabaseContext, useDatabaseTransaction } from '#test-helpers/database'
 import { type AuthorRecord, factories } from '#test-helpers/factories'
 import { authors } from '#test-helpers/schema'
@@ -180,5 +180,31 @@ describe('Performance: allow query without `totalCount` for better performance o
 		})
 
 		expect(result.totalCount).toBeNull()
+	})
+})
+
+describe('filters', () => {
+	useDatabaseTransaction(database, 'group')
+
+	const dataset = factories.createAuthors({ collectionSize: 9, dateStep: 1, useSequentialIds: true })
+	const males = sortArrayWith(
+		dataset.filter(({ gender }) => gender === 'male'),
+		[Sort.asc('id')]
+	)
+
+	beforeAll(async () => {
+		await database.database.insert(authors).values(dataset)
+	})
+
+	it('filters the first page', async () => {
+		const result = await createAuthorPager().getPage({
+			query: asQuery(database.database.select().from(authors)),
+			parameters: { filters: [ComparisonFilter.equal('gender', 'male')], pagination: Pagination.take(2) }
+		})
+
+		expect({ ids: result.edges.map(({ node }) => node.id), totalCount: result.totalCount }).toStrictEqual({
+			ids: males.slice(0, 2).map(({ id }) => id),
+			totalCount: males.length
+		})
 	})
 })

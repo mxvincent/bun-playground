@@ -67,11 +67,14 @@ export class DrizzleCursorPager<
 
 		const { size, cursor, isCountRequested } = parameters.pagination
 
-		// Apply cursor conditions
+		// Apply the filters on every page, and the cursor condition after the first one
+		const conditions = [...filters]
 		const cursorValues = cursor ? this.decodeCursor(cursor) : null
 		if (cursorValues) {
-			const cursorCondition = this.buildCursorCondition(sorts, cursorValues)
-			query = query.where(and(cursorCondition, ...filters))
+			conditions.push(this.buildCursorCondition(sorts, cursorValues))
+		}
+		if (conditions.length > 0) {
+			query = query.where(and(...conditions))
 		}
 
 		// Apply ordering
