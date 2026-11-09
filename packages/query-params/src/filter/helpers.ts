@@ -1,5 +1,5 @@
 import { uniq } from 'es-toolkit'
-import type { ComparisonFilter, Filter, LogicalFilter } from './filters'
+import { type ComparisonFilter, type Filter, LogicalFilter } from './filters'
 import { isComparisonFilter, isLogicalFilter } from './guards'
 
 /**
@@ -12,21 +12,20 @@ export const flattenComparisonPaths = (filters: (ComparisonFilter | LogicalFilte
 }
 
 /**
- * Remove duplicated entries from filter params list
- * @param filters
- * TODO: handle different operator for a same path
+ * Remove the filters identical to a previous one (same operator, path and value), at every level.
+ * Keep the order of the filters, and return new logical filters instead of mutating the given ones.
  */
-export const removeDuplicatedFilters = (filters: Filter[]): Filter[] => {
-	const logicalFilters = filters.filter(isLogicalFilter)
-	const comparisonFilters = filters.filter(isComparisonFilter)
-	return [
-		...comparisonFilters.filter(
-			(filter, index) => comparisonFilters.findIndex(({ path }) => filter.path === path) === index
-		),
-		...logicalFilters.map((filter) =>
-			Object.assign(filter, {
-				filters: removeDuplicatedFilters(filter.filters)
-			})
-		)
-	]
+export const removeDuplicatedFilters = <T extends string>(filters: Filter<T>[]): Filter<T>[] => {
+	const seen = new Set<string>()
+	return filters.flatMap((filter) => {
+		const deduplicated = isLogicalFilter(filter)
+			? new LogicalFilter<T>(filter.operator, removeDuplicatedFilters(filter.filters))
+			: filter
+		const key = JSON.stringify(deduplicated.toJSON())
+		if (seen.has(key)) {
+			return []
+		}
+		seen.add(key)
+		return [deduplicated]
+	})
 }
