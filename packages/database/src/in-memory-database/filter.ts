@@ -29,10 +29,42 @@ const normalizeValue = (value: unknown): string | undefined => {
 }
 
 /**
+ * Compare an item value with a filter value, by the type of the item value:
+ * numbers as numbers, dates as timestamps, strings as strings.
+ * Returns undefined when the values cannot be compared (missing value, unparsable filter value).
+ */
+const compareValues = (value: unknown, filterValue: string): number | undefined => {
+	const order = (a: number | bigint | string, b: number | bigint | string) => (a < b ? -1 : a > b ? 1 : 0)
+	switch (typeof value) {
+		case 'string':
+			return order(value, filterValue)
+		case 'number': {
+			const parsed = Number(filterValue)
+			return filterValue.trim() === '' || Number.isNaN(parsed) ? undefined : order(value, parsed)
+		}
+		case 'bigint':
+			try {
+				return order(value, BigInt(filterValue))
+			} catch {
+				return undefined
+			}
+		case 'object':
+			if (value instanceof Date) {
+				const parsed = Date.parse(filterValue)
+				return Number.isNaN(parsed) ? undefined : order(value.getTime(), parsed)
+			}
+	}
+	return undefined
+}
+
+const isEqualValue = (value: unknown, filterValue: string): boolean => compareValues(value, filterValue) === 0
+
+/**
  * Apply a comparison filter to a single item
  */
 function applyComparisonFilter<T extends object>(filter: ComparisonFilter<KeyOf<T>>, item: T): boolean {
-	const value = normalizeValue(item[filter.path])
+	const rawValue = item[filter.path]
+	const value = normalizeValue(rawValue)
 
 	// Null comparison filters
 	if (filter instanceof NullComparisonFilter) {
@@ -46,32 +78,33 @@ function applyComparisonFilter<T extends object>(filter: ComparisonFilter<KeyOf<
 
 	// Array comparison filters
 	if (filter instanceof ArrayComparisonFilter) {
-		// const stringValue = serializeFilterValue(value)
+		const isIncluded = filter.values.some((filterValue) => isEqualValue(rawValue, filterValue))
 		switch (filter.operator) {
 			case ComparisonOperator.IN:
-				return value !== undefined && filter.values.includes(value)
+				return value !== undefined && isIncluded
 			case ComparisonOperator.NOT_IN:
-				return value === undefined || !filter.values.includes(value)
+				return value === undefined || !isIncluded
 		}
 	}
 
 	// Value comparison filters
 	if (filter instanceof ValueComparisonFilter) {
 		const filterValue = filter.value
+		const order = compareValues(rawValue, filterValue)
 
 		switch (filter.operator) {
 			case ComparisonOperator.EQUAL:
-				return value === filterValue
+				return order === 0
 			case ComparisonOperator.NOT_EQUAL:
-				return value !== filterValue
+				return order !== 0
 			case ComparisonOperator.LESS_THAN:
-				return value !== undefined && value < filterValue
+				return order !== undefined && order < 0
 			case ComparisonOperator.LESS_THAN_OR_EQUAL:
-				return value !== undefined && value <= filterValue
+				return order !== undefined && order <= 0
 			case ComparisonOperator.GREATER_THAN:
-				return value !== undefined && value > filterValue
+				return order !== undefined && order > 0
 			case ComparisonOperator.GREATER_THAN_OR_EQUAL:
-				return value !== undefined && value >= filterValue
+				return order !== undefined && order >= 0
 			case ComparisonOperator.LIKE:
 				return value?.includes(filterValue) ?? false
 			case ComparisonOperator.NOT_LIKE:
