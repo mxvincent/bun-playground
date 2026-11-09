@@ -28,8 +28,31 @@ git config rerere.enabled true   # remember conflict resolutions across rebases
   description needs the word "and" to hold together, it is two issues.
 - The title MUST state the outcome, not the implementation: *Cursor pagination drops rows with a
   null sort value*, not *Fix pagination*.
+- The title MUST start with an upper case letter, unless its first word is code. Code — a function,
+  a variable, a type, a path, a package — keeps its case and is written as inline code with
+  backticks. The title carries no scope prefix: the `pkg/` label holds the scope.
+  ✅ `` `isSort` returns false for `Sort` instances ``, `` Rename `removeUndefined` to `stripUndefinedValues` ``
+  ❌ `isSort returns false for Sort instances`, `query-params: isSort returns false`, `fix sort guard`
+- The issue MUST carry its labels. See [Labels](#labels).
 - A feature that cannot fit in one commit MUST be decomposed into an ordered set of issues, one per
   reviewable layer, before any code is written. See [Stacks](#stacks).
+
+## Labels
+
+Issues and pull requests MUST carry two kinds of labels:
+
+- **Kind**, one or more: `bug`, `test`, `performance`, `refactor`, `documentation`, `enhancement`.
+- **Scope**, one `pkg/<workspace>` label per package concerned, named after the workspace
+  directory: `pkg/core`, `pkg/json-schema`, `pkg/query-params-serializer`. A change that spans
+  several packages carries one label for each.
+
+Release pull requests, and changes limited to the repository root (docs, tooling), carry no `pkg/`
+label.
+
+```bash
+gh issue create --assignee @me --label bug --label pkg/core --title "..." --body "..."
+gh pr edit <pr> --add-label bug --add-label pkg/core
+```
 
 ## Branches
 
@@ -143,19 +166,21 @@ Closes #<issue>
 - The title MUST be the commit subject, unchanged.
 - The person who opens the pull request MUST assign themselves to it. The assignee is the owner who
   takes it to merge.
+- The pull request MUST carry the labels of its issue. See [Labels](#labels).
 - `.github/workflows/pull-request.yml` runs type-checking, linting and the full test suite against
   Postgres and RabbitMQ. All three MUST be green before merge.
 - A pull request that changes a versioned workspace MUST include a changeset. See
   [versioning.md](./versioning.md).
 
 ```bash
-gh pr create --fill --base main --assignee @me   # single branch
+gh pr create --fill --base main --assignee @me --label bug --label pkg/core   # single branch
 gh stack submit --auto                           # stack: pushes every branch, opens draft PRs
 gh stack submit --auto --open                    # same, ready for review instead of draft
 ```
 
 `gh stack` generates pull request titles and bodies. Adjust them afterwards with `gh pr edit`.
-`gh stack submit` does not set an assignee: add it with `gh pr edit <pr> --add-assignee @me`.
+`gh stack submit` sets neither an assignee nor labels: add them with
+`gh pr edit <pr> --add-assignee @me --add-label <label>`.
 
 ## Merging
 
