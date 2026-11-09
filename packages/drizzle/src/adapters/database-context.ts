@@ -47,11 +47,15 @@ export class DrizzleDatabaseContext implements DatabaseContext {
 		if (!this.isTransactionActive) {
 			return
 		}
-		this.transactionDepth--
-		if (this.transactionDepth === 0) {
+		const depth = this.transactionDepth - 1
+		if (depth === 0) {
+			// PostgreSQL ends the transaction even when the COMMIT fails
+			this.transactionDepth = 0
 			await this.client.query('COMMIT')
-		} else {
-			await this.client.query(`RELEASE SAVEPOINT sp_${this.transactionDepth}`)
+			return
 		}
+		// The depth only decreases once the release succeeds: a failed release keeps the level to roll back
+		await this.client.query(`RELEASE SAVEPOINT sp_${depth}`)
+		this.transactionDepth = depth
 	}
 }
