@@ -62,12 +62,14 @@ export class DrizzleCursorPager<
 	}: GetPageOptions<TColumns, TResult>): Promise<Page<TResult>> {
 		const filters = transformFilters(parameters.filters, this.columnMapping)
 
-		const sorts = parameters.sorts ?? []
-		for (const requiredSort of Object.keys(this.primaryKey)) {
-			if (!sorts.find((sort) => sort.path === requiredSort)) {
-				sorts.push(Sort.asc(requiredSort as TColumns))
-			}
-		}
+		// Break ties with the primary key, on a copy: the given sorts are not modified
+		const givenSorts = parameters.sorts ?? []
+		const sorts = [
+			...givenSorts,
+			...Object.keys(this.primaryKey)
+				.filter((column) => !givenSorts.some((sort) => sort.path === column))
+				.map((column) => Sort.asc(column as TColumns))
+		]
 
 		const { size, cursor, isCountRequested } = parameters.pagination
 

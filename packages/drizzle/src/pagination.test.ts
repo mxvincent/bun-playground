@@ -208,3 +208,12 @@ describe('sorts on a column holding null values', () => {
 		expect(ids).toStrictEqual(expected)
 	})
 })
+
+it('does not modify the given sorts', async () => {
+	const sorts = [Sort.desc<keyof AuthorRecord>('createdAt')]
+	await createAuthorPager().getPage({
+		query: asQuery(database.database.select().from(authors)),
+		parameters: { sorts, pagination: Pagination.take(1) }
+	})
+	expect(sorts).toStrictEqual([Sort.desc('createdAt')])
+})
