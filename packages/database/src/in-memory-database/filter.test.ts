@@ -111,7 +111,7 @@ describe('comparison filters', () => {
 	})
 
 	it('like filter', () => {
-		const filters = [ComparisonFilter.like('name', 'a')]
+		const filters = [ComparisonFilter.like('name', '%a%')]
 		const result = filterArrayWith(resources, filters)
 
 		expect(result).toHaveLength(2)
@@ -119,7 +119,7 @@ describe('comparison filters', () => {
 	})
 
 	it('not like filter', () => {
-		const filters = [ComparisonFilter.notLike('name', 'a')]
+		const filters = [ComparisonFilter.notLike('name', '%a%')]
 		const result = filterArrayWith(resources, filters)
 
 		expect(result.map((r) => r.name)).toEqual(['Alice', 'Bob', 'Eve'])
@@ -331,5 +331,21 @@ describe('boolean values', () => {
 		['false', ['2']]
 	])('equal matches %p', (value, expected) => {
 		expect(filterArrayWith(items, [ComparisonFilter.equal('active', value)]).map(({ id }) => id)).toEqual(expected)
+	})
+})
+
+describe('like patterns', () => {
+	const items = [{ name: 'a' }, { name: 'ab' }, { name: 'ba' }, { name: '%' }]
+	const names = (pattern: string) =>
+		filterArrayWith(items, [ComparisonFilter.like('name', pattern)]).map(({ name }) => name)
+
+	it.each([
+		['a', ['a']],
+		['a%', ['a', 'ab']],
+		['%a', ['a', 'ba']],
+		['_a', ['ba']],
+		['\\%', ['%']]
+	])('%p matches %p', (pattern, expected) => {
+		expect(names(pattern)).toEqual(expected)
 	})
 })
