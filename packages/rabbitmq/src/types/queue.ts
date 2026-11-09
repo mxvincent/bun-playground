@@ -92,7 +92,7 @@ export class AmqpQueue {
 
 	static retryFailureQueueFrom(queue: AmqpQueue): AmqpQueue {
 		if (queue.role !== QueueRole.CONSUMER) {
-			throw new AmqpConfigError('Queue role should be "consumer" to create a retry attempt queue.')
+			throw new AmqpConfigError('Queue role should be "consumer" to create a retry failure queue.')
 		}
 		return new AmqpQueue({
 			name: queue.getRetryFailureQueueName(),
@@ -106,7 +106,7 @@ export class AmqpQueue {
 
 	static unprocessableQueueFrom(queue: AmqpQueue): AmqpQueue {
 		if (queue.role !== QueueRole.CONSUMER) {
-			throw new AmqpConfigError('Queue role should be "consumer" to create a retry attempt queue.')
+			throw new AmqpConfigError('Queue role should be "consumer" to create an unprocessable queue.')
 		}
 		return new AmqpQueue({
 			name: queue.getUnprocessableQueueName(),

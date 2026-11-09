@@ -57,11 +57,23 @@ describe('derived queues', () => {
 	})
 
 	it.each([
-		['retryAttemptQueueFrom', () => AmqpQueue.retryAttemptQueueFrom(AmqpQueue.retryFailureQueueFrom(consumerQueue), 1)],
-		['retryFailureQueueFrom', () => AmqpQueue.retryFailureQueueFrom(AmqpQueue.retryFailureQueueFrom(consumerQueue))],
-		['unprocessableQueueFrom', () => AmqpQueue.unprocessableQueueFrom(AmqpQueue.retryFailureQueueFrom(consumerQueue))]
-	])('%s() rejects a queue that is not a consumer queue', (_factory, derive) => {
-		expect(derive).toThrow(AmqpConfigError)
+		[
+			'retryAttemptQueueFrom',
+			() => AmqpQueue.retryAttemptQueueFrom(AmqpQueue.retryFailureQueueFrom(consumerQueue), 1),
+			'a retry attempt queue'
+		],
+		[
+			'retryFailureQueueFrom',
+			() => AmqpQueue.retryFailureQueueFrom(AmqpQueue.retryFailureQueueFrom(consumerQueue)),
+			'a retry failure queue'
+		],
+		[
+			'unprocessableQueueFrom',
+			() => AmqpQueue.unprocessableQueueFrom(AmqpQueue.retryFailureQueueFrom(consumerQueue)),
+			'an unprocessable queue'
+		]
+	])('%s() rejects a queue that is not a consumer queue', (_factory, derive, queueKind) => {
+		expect(derive).toThrow(new AmqpConfigError(`Queue role should be "consumer" to create ${queueKind}.`))
 	})
 })
 
