@@ -1,4 +1,3 @@
-import { base64Encode } from '@package/core'
 import {
 	type Filter,
 	isArrayComparisonFilter,
@@ -7,8 +6,9 @@ import {
 	isValueComparisonFilter
 } from '@package/query-params'
 import { encodeFilterOperator } from './transformers'
+import { encodeFilterValue } from './value-encoding'
 
-export const serializeFilter = (filter: Filter, encodeParameter = base64Encode): string => {
+export const serializeFilter = (filter: Filter, encodeParameter = encodeFilterValue): string => {
 	if (isLogicalFilter(filter)) {
 		const innerFilters = filter.filters.map((filter) => serializeFilter(filter, encodeParameter)).join(',')
 		return `${encodeFilterOperator(filter.operator)}(${innerFilters})`
@@ -25,6 +25,6 @@ export const serializeFilter = (filter: Filter, encodeParameter = base64Encode):
 	throw new TypeError('Invalid filter')
 }
 
-export const serializeFilters = (filters: Filter[], encode = encodeURIComponent): string[] => {
+export const serializeFilters = (filters: Filter[], encode = encodeFilterValue): string[] => {
 	return filters.map((filter) => serializeFilter(filter, encode))
 }

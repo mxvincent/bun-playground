@@ -1,4 +1,3 @@
-import { base64Decode } from '@package/core'
 import {
 	ArrayComparisonFilter,
 	type ComparisonFilter,
@@ -14,6 +13,7 @@ import {
 import { isString } from 'es-toolkit'
 import { QueryStringParameterValidationError } from '../shared/errors'
 import { decodeFilterOperator } from './transformers'
+import { decodeFilterValue } from './value-encoding'
 
 /**
  * Filters can be nested when we use logical filters
@@ -35,12 +35,18 @@ export const parseLogicalFilterParameters = (input: string): string[] => {
 			depth += 1
 		} else if (input[index] === ')') {
 			depth -= 1
+			if (depth < 0) {
+				break
+			}
 			if (depth === 0) {
-				input.slice(start, index + 1)
 				result.push(input.slice(start, index + 1))
 				start = index + 2
 			}
 		}
+	}
+	// Unbalanced parentheses, or characters after the last filter: the input cannot be split
+	if (depth !== 0 || start < input.length) {
+		throw new QueryStringParameterValidationError(`Malformed filter`, [input])
 	}
 	return result
 }
@@ -48,7 +54,7 @@ export const parseLogicalFilterParameters = (input: string): string[] => {
 /**
  * Parse filter string
  */
-const parseFilter = (filterString: string, decode = base64Decode): ComparisonFilter | LogicalFilter => {
+const parseFilter = (filterString: string, decode = decodeFilterValue): ComparisonFilter | LogicalFilter => {
 	const matches = filterString.match(/^((?<operator>[a-z]+)\()?(?<parameters>.*)\)$/i)
 
 	if (!matches?.groups) {
@@ -101,7 +107,7 @@ const parseFilter = (filterString: string, decode = base64Decode): ComparisonFil
 /**
  * Extract filter params from a parsed query string
  */
-export const parseFilters = (filters: string[] | string, decode = decodeURIComponent): Filter[] => {
+export const parseFilters = (filters: string[] | string, decode = decodeFilterValue): Filter[] => {
 	if (isString(filters)) {
 		return [parseFilter(filters, decode)]
 	}

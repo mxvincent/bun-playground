@@ -14,13 +14,13 @@ import {
 import { parseFilters } from './parse'
 import { serializeFilters } from './serialize'
 
-// Values hold the characters the format uses as separators
+// Values hold the separators of the format and characters that have a meaning in a URL
 const FILTERS: Filter[] = [
-	...VALUE_COMPARISON_OPERATORS.map((operator) => new ValueComparisonFilter(operator, 'path', 'a,b %')),
+	...VALUE_COMPARISON_OPERATORS.map((operator) => new ValueComparisonFilter(operator, 'path', 'a,b %(c)/d+e?=é')),
 	...ARRAY_COMPARISON_OPERATORS.map((operator) => new ArrayComparisonFilter(operator, 'path', ['a,b', 'c'])),
 	...NULL_COMPARISON_OPERATORS.map((operator) => new NullComparisonFilter(operator, 'path')),
 	...LOGICAL_OPERATORS.map(
-		(operator) => new LogicalFilter(operator, [ComparisonFilter.null('a'), ComparisonFilter.null('b')])
+		(operator) => new LogicalFilter(operator, [ComparisonFilter.equal('a', 'x)y'), ComparisonFilter.null('b')])
 	)
 ]
 

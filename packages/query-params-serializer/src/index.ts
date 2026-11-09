@@ -3,6 +3,7 @@
  */
 export * from './filters/parse'
 export * from './filters/serialize'
+export * from './filters/value-encoding'
 /**
  * Pagination
  */
