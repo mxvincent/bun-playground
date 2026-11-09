@@ -1,3 +1,4 @@
+export * from './config/config'
 export * from './config/enums'
 export * from './config/schemas'
 export * from './config/values'
