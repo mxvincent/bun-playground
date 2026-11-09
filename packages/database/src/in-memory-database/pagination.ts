@@ -57,15 +57,6 @@ export class ArrayPager<T extends ObjectLiteral> {
 			filteredItems = filterArrayWith(filteredItems, cursorFilters)
 		}
 
-		// If no resources, return an empty page
-		if (filteredItems.length === 0) {
-			return {
-				edges: [],
-				hasNextPage: false,
-				totalCount: filteredItems.length
-			} satisfies Page<T>
-		}
-
 		// Apply pagination
 		const paginatedItems = filteredItems.slice(0, pagination.size)
 		const edges = paginatedItems.map((node) => ({
