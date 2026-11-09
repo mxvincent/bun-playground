@@ -71,4 +71,24 @@ export class DrizzleDatabaseContext implements DatabaseContext {
 		await this.client.query(`RELEASE SAVEPOINT sp_${depth}`)
 		this.transactionDepth = depth
 	}
+
+	/**
+	 * Run the callback in a transaction: commit when it resolves, roll back and rethrow when it rejects.
+	 * Nested calls run in savepoints.
+	 */
+	async transaction<TResult>(callback: (database: NodePgDatabase) => Promise<TResult>): Promise<TResult> {
+		await this.startTransaction()
+		const depth = this.transactionDepth
+		try {
+			const result = await callback(this.database)
+			await this.commitTransaction()
+			return result
+		} catch (error) {
+			// Roll back this level and the ones the callback left open: a commit that PostgreSQL rolled back has already left it
+			while (this.transactionDepth >= depth) {
+				await this.rollbackTransaction()
+			}
+			throw error
+		}
+	}
 }

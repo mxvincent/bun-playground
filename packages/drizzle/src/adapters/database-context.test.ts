@@ -127,3 +127,64 @@ describe('DrizzleDatabaseContext', () => {
 		expect(loggedMessage).toBe(message)
 	})
 })
+
+describe('DrizzleDatabaseContext.transaction()', () => {
+	it('commits the changes of the callback and returns its result', async () => {
+		const result = await context.transaction(async () => {
+			await insert('committed')
+			return 'result'
+		})
+		expect([result, await values(), context.isTransactionActive]).toEqual(['result', ['committed'], false])
+	})
+
+	it('rolls back the changes of a failing callback and rethrows its error', async () => {
+		const failure = context.transaction(async () => {
+			await insert('rolled back')
+			throw new Error('failure')
+		})
+		await expect(failure).rejects.toThrow('failure')
+		expect([await values(), context.isTransactionActive]).toEqual([[], false])
+	})
+
+	it('rolls back the levels that a failing callback left open', async () => {
+		const failure = context.transaction(async () => {
+			await insert('rolled back')
+			await context.startTransaction()
+			throw new Error('failure')
+		})
+		await expect(failure).rejects.toThrow('failure')
+		expect([await values(), context.isTransactionActive]).toEqual([[], false])
+	})
+
+	it('runs a nested call in a savepoint', async () => {
+		await context.transaction(async () => {
+			await insert('outer')
+			await context
+				.transaction(async () => {
+					await insert('inner')
+					throw new Error('inner failure')
+				})
+				.catch(() => undefined)
+		})
+		expect(await values()).toEqual(['outer'])
+	})
+
+	it('rethrows the rolled back commit of a failed statement without rolling back again', async () => {
+		const warnLogSpy = spyOn(logger, 'warn')
+		const failure = context.transaction(async () => {
+			await insert('lost')
+			// The callback swallows the error of a statement: PostgreSQL rolls the commit back
+			await client.query(`insert into ${TABLE} (value) values (null)`).catch(() => undefined)
+		})
+		const outcome = await failure.then(
+			() => 'resolved',
+			(error: Error) => error.message
+		)
+		const warnings = warnLogSpy.mock.calls.length
+		expect([outcome, warnings, await values()]).toEqual([
+			'Transaction rolled back: a statement of the transaction failed.',
+			0,
+			[]
+		])
+	})
+})
