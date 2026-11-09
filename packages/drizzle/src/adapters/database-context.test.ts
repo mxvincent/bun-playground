@@ -56,4 +56,16 @@ describe('DrizzleDatabaseContext', () => {
 		await context.commitTransaction()
 		expect([isActive, context.isTransactionActive]).toEqual([true, false])
 	})
+
+	it.each([
+		'commitTransaction',
+		'rollbackTransaction'
+	] as const)('ignores %s without transaction, so the next transaction still works', async (method) => {
+		await context[method]()
+		await context.startTransaction()
+		await insert('after')
+		await context.commitTransaction()
+		expect([await values(), context.isTransactionActive]).toEqual([['after'], false])
+		await client.query(`truncate ${TABLE}`)
+	})
 })
