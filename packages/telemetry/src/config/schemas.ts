@@ -10,15 +10,6 @@ export const HTTPExporterSchema = Type.Object(
 	}
 )
 
-export const GCPExporterSchema = Type.Object(
-	{
-		type: Type.Literal('GCP')
-	},
-	{
-		description: 'Google Cloud Platform exporter.'
-	}
-)
-
 export const TelemetryConfigSchema = Type.Object(
 	{
 		service: Type.Object({
@@ -26,7 +17,7 @@ export const TelemetryConfigSchema = Type.Object(
 			name: Type.String({ description: 'Application name.' }),
 			version: Type.String({ description: 'Application version.' })
 		}),
-		exporter: Type.Union([HTTPExporterSchema, GCPExporterSchema]),
+		exporter: HTTPExporterSchema,
 		detectors: Type.Object(
 			{
 				container: Type.Boolean({ default: false })
