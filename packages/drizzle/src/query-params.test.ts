@@ -70,7 +70,9 @@ describe('transformFilter()', () => {
 		[ComparisonFilter.lessThan('name', 'v'), '"test"."name" < $1'],
 		[ComparisonFilter.lessThanOrEqual('name', 'v'), '"test"."name" <= $1'],
 		[ComparisonFilter.like('name', 'v'), '"test"."name" like $1'],
-		[ComparisonFilter.notLike('name', 'v'), '"test"."name" not like $1']
+		[ComparisonFilter.notLike('name', 'v'), '"test"."name" not like $1'],
+		[ComparisonFilter.match('name', 'v'), 'cast("test"."name" as text) ~ $1'],
+		[ComparisonFilter.insensitiveMatch('name', 'v'), 'cast("test"."name" as text) ~* $1']
 	])('translates %p into %p', (filter, sql) => {
 		expect(toSql(filter)).toMatchObject({ sql, params: ['v'] })
 	})
