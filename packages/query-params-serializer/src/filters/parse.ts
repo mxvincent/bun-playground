@@ -52,6 +52,17 @@ export const parseLogicalFilterParameters = (input: string): string[] => {
 }
 
 /**
+ * Decode a filter value, turning a decoding failure (not base64url, not UTF-8 text) into a validation error
+ */
+const decodeValue = (value: string, decode: (value: string) => string, filterString: string): string => {
+	try {
+		return decode(value)
+	} catch {
+		throw new QueryStringParameterValidationError(`Can not decode filter value`, [filterString])
+	}
+}
+
+/**
  * Parse filter string
  */
 const parseFilter = (filterString: string, decode = decodeFilterValue): ComparisonFilter | LogicalFilter => {
@@ -86,7 +97,7 @@ const parseFilter = (filterString: string, decode = decodeFilterValue): Comparis
 		if (value === undefined) {
 			throw new QueryStringParameterValidationError(`Can not extract filter value`, [filterString])
 		}
-		return new ValueComparisonFilter(operator, path, decode(value))
+		return new ValueComparisonFilter(operator, path, decodeValue(value, decode, filterString))
 	}
 
 	if (isNullComparisonOperator(operator)) {
@@ -97,7 +108,7 @@ const parseFilter = (filterString: string, decode = decodeFilterValue): Comparis
 		return new ArrayComparisonFilter(
 			operator,
 			path,
-			parameters.map((value) => decode(value))
+			parameters.map((value) => decodeValue(value, decode, filterString))
 		)
 	}
 
