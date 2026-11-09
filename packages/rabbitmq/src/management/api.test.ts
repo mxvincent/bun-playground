@@ -64,3 +64,36 @@ describe('shovels', () => {
 		await expect(api.deleteShovel('id')).rejects.toThrow(RabbitMQManagementAPIError)
 	})
 })
+
+describe('queue names in URLs', () => {
+	afterEach(() => {
+		managementApiServer.resetHandlers()
+	})
+
+	// A name holding URL separators must reach the API as a single path segment
+	const name = 'orders/eu#1?x=%'
+
+	it('getQueue() encodes the queue name', async () => {
+		let requestedName: unknown
+		managementApiServer.use(
+			http.get('https://localhost/api/queues/:vhost/:queue', ({ params }) => {
+				requestedName = params.queue
+				return new Response(null, { status: 404 })
+			})
+		)
+		await api.getQueue(name)
+		expect(requestedName).toBe(name)
+	})
+
+	it('listQueueBindings() encodes the queue name', async () => {
+		let requestedName: unknown
+		managementApiServer.use(
+			http.get('https://localhost/api/queues/:vhost/:queue/bindings', ({ params }) => {
+				requestedName = params.queue
+				return new Response(JSON.stringify([]), { status: 200 })
+			})
+		)
+		await api.listQueueBindings(name)
+		expect(requestedName).toBe(name)
+	})
+})
