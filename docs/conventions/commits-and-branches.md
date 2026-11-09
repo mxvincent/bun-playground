@@ -11,6 +11,13 @@ gh extension install github/gh-stack
 git config rerere.enabled true   # remember conflict resolutions across rebases
 ```
 
+## Language
+
+Everything written on GitHub MUST be in English, with American spelling, like the code (see
+[naming.md](./naming.md#language-and-spelling)): issue and pull request titles and bodies, review
+comments, replies to review comments, and discussions. This holds even when the conversation that led
+to the change took place in another language.
+
 ## Issues
 
 - Every change MUST have an issue, opened before the branch. This includes fixes and chores; the

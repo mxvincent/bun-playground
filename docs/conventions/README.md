@@ -12,7 +12,7 @@ document wins and the code is aligned when it is next touched.
 | [naming.md](./naming.md) | Files, directories, TypeScript identifiers, reserved suffixes, database objects, HTTP endpoints, environment variables |
 | [code-style.md](./code-style.md) | Formatting, TypeScript language rules, functions and classes, errors, schemas, configuration, logging |
 | [testing.md](./testing.md) | Test placement, structure, helpers, database-backed tests |
-| [commits-and-branches.md](./commits-and-branches.md) | Issues, branches, single-commit rule, commit messages, pull requests, stacked pull requests |
+| [commits-and-branches.md](./commits-and-branches.md) | Language on GitHub, issues, branches, single-commit rule, commit messages, pull requests, stacked pull requests |
 | [versioning.md](./versioning.md) | Public surface, semver policy, changesets, release pipeline, Docker image versions |
 
 ## Reading the rules

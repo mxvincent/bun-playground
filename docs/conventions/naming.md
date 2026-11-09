@@ -45,7 +45,8 @@
 
 ## Language and spelling
 
-- All identifiers, comments, commit messages and documentation MUST be written in English.
+- All identifiers, comments, commit messages and documentation MUST be written in English, and so
+  MUST everything written on GitHub (see [commits-and-branches.md](./commits-and-branches.md#language)).
 - Spelling MUST be American English: `organization`, `serialize`, `behavior`, `color`.
   ❌ `organisation`, `serialise`, `behaviour`.
 - Identifiers MUST spell words out: `parameters`, `configuration`, `environment`, `database` — not
