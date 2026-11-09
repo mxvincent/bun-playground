@@ -13,7 +13,7 @@ import {
 import { isString } from 'es-toolkit'
 import { QueryStringParameterValidationError } from '../shared/errors'
 import { decodeFilterOperator } from './transformers'
-import { decodeFilterValue } from './value-encoding'
+import { getFilterValueEncoding } from './value-encoding'
 
 /**
  * Filters can be nested when we use logical filters
@@ -54,9 +54,9 @@ export const parseLogicalFilterParameters = (input: string): string[] => {
 /**
  * Decode a filter value, turning a decoding failure (not base64url, not UTF-8 text) into a validation error
  */
-const decodeValue = (value: string, decode: (value: string) => string, filterString: string): string => {
+const decodeValue = (value: string, filterString: string): string => {
 	try {
-		return decode(value)
+		return getFilterValueEncoding().decode(value)
 	} catch {
 		throw new QueryStringParameterValidationError(`Can not decode filter value`, [filterString])
 	}
@@ -65,7 +65,7 @@ const decodeValue = (value: string, decode: (value: string) => string, filterStr
 /**
  * Parse filter string
  */
-const parseFilter = (filterString: string, decode = decodeFilterValue): ComparisonFilter | LogicalFilter => {
+const parseFilter = (filterString: string): ComparisonFilter | LogicalFilter => {
 	const matches = filterString.match(/^((?<operator>[a-z]+)\()?(?<parameters>.*)\)$/i)
 
 	if (!matches?.groups) {
@@ -82,7 +82,7 @@ const parseFilter = (filterString: string, decode = decodeFilterValue): Comparis
 	}
 
 	if (isLogicalOperator(operator)) {
-		const filters = parseLogicalFilterParameters(matches.groups.parameters).map((filter) => parseFilter(filter, decode))
+		const filters = parseLogicalFilterParameters(matches.groups.parameters).map((filter) => parseFilter(filter))
 		return new LogicalFilter(operator, filters)
 	}
 
@@ -100,7 +100,7 @@ const parseFilter = (filterString: string, decode = decodeFilterValue): Comparis
 		if (extraParameters.length > 0) {
 			throw new QueryStringParameterValidationError(`A value filter takes one value`, [filterString])
 		}
-		return new ValueComparisonFilter(operator, path, decodeValue(value, decode, filterString))
+		return new ValueComparisonFilter(operator, path, decodeValue(value, filterString))
 	}
 
 	if (isNullComparisonOperator(operator)) {
@@ -114,7 +114,7 @@ const parseFilter = (filterString: string, decode = decodeFilterValue): Comparis
 		return new ArrayComparisonFilter(
 			operator,
 			path,
-			parameters.map((value) => decodeValue(value, decode, filterString))
+			parameters.map((value) => decodeValue(value, filterString))
 		)
 	}
 
@@ -122,14 +122,14 @@ const parseFilter = (filterString: string, decode = decodeFilterValue): Comparis
 }
 
 /**
- * Extract filter params from a parsed query string
+ * Extract filters from a parsed query string, decoding their values with the configured filter value encoding
  */
-export const parseFilters = (filters: string[] | string, decode = decodeFilterValue): Filter[] => {
+export const parseFilters = (filters: string[] | string): Filter[] => {
 	if (isString(filters)) {
-		return [parseFilter(filters, decode)]
+		return [parseFilter(filters)]
 	}
 	if (Array.isArray(filters)) {
-		return filters.filter(isString).map((filter) => parseFilter(filter, decode))
+		return filters.filter(isString).map((filter) => parseFilter(filter))
 	}
 	return []
 }
