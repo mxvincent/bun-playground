@@ -95,4 +95,12 @@ describe('DrizzleDatabaseContext', () => {
 		await expect(context.commitTransaction()).rejects.toThrow()
 		expect(context.isTransactionActive).toBe(false)
 	})
+
+	it('throws when committing a transaction whose statement failed, which PostgreSQL rolls back', async () => {
+		await context.startTransaction()
+		await insert('lost')
+		await client.query(`insert into ${TABLE} (value) values (null)`).catch(() => undefined)
+		await expect(context.commitTransaction()).rejects.toThrow('Transaction rolled back')
+		expect([await values(), context.isTransactionActive]).toEqual([[], false])
+	})
 })

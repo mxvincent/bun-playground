@@ -51,7 +51,11 @@ export class DrizzleDatabaseContext implements DatabaseContext {
 		if (depth === 0) {
 			// PostgreSQL ends the transaction even when the COMMIT fails
 			this.transactionDepth = 0
-			await this.client.query('COMMIT')
+			const result = await this.client.query('COMMIT')
+			// PostgreSQL answers COMMIT with ROLLBACK, and no error, when a statement of the transaction failed
+			if (result.command === 'ROLLBACK') {
+				throw new Error('Transaction rolled back: a statement of the transaction failed.')
+			}
 			return
 		}
 		// The depth only decreases once the release succeeds: a failed release keeps the level to roll back
