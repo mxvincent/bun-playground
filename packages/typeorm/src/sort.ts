@@ -8,7 +8,6 @@ import {
 	type Sort,
 	SortDirection
 } from '@package/query-params'
-import { clone } from 'es-toolkit'
 import type { ObjectType, SelectQueryBuilder } from 'typeorm'
 import { applyFilters } from './filters/applyFilters'
 import { getPrimaryKeyColumns } from './helpers/primary-key'
@@ -62,7 +61,8 @@ export class Sorter<T extends ObjectLiteral> {
 		options: CollectionSorterOptions<T>
 	) {
 		this.primaryKeyColumns = getPrimaryKeyColumns(entity)
-		this[query] = options.query
+		// Work on a copy: the query given by the caller is never modified
+		this[query] = options.query.clone()
 		if (options.filters) {
 			const filters = enforceFilterPathAliasing(options.filters, options.query.alias)
 			applyFilters(this[query], filters, LogicalOperator.AND)
@@ -71,20 +71,13 @@ export class Sorter<T extends ObjectLiteral> {
 	}
 
 	/**
-	 * We need to clone the provided query
-	 * The base query should only be filtered and parametrized
-	 */
-	cloneInitialQuery() {
-		return clone(this[query])
-	}
-
-	/**
 	 * Apply sortableKeys parameters then query the database without pagination
 	 */
 	async getSortedCollection(): Promise<T[]> {
-		const query = this.cloneInitialQuery()
-		this.applySorts(query)
-		return query.getMany()
+		// SelectQueryBuilder.clone() copies the expression map: sorts applied to the copy stay on the copy
+		const sortedQuery = this[query].clone()
+		this.applySorts(sortedQuery)
+		return sortedQuery.getMany()
 	}
 
 	/**

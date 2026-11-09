@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'bun:test'
 import { randomUUID } from 'node:crypto'
 import { hydrate, hydratePartial, invariant, type KeyOf } from '@package/core'
 import { sortArrayWith } from '@package/database'
-import { Sort, SortDirection } from '@package/query-params'
+import { ComparisonFilter, Sort, SortDirection } from '@package/query-params'
 import { useDatabaseContext, useDatabaseTransaction } from '#test-helpers/database'
 import { Author, Post } from '#test-helpers/entities'
 import { factories } from '#test-helpers/factories'
@@ -129,5 +129,17 @@ describe('handle nested fields', () => {
 		for (let i = 0; i < 4; i++) {
 			expect(invariant(result).posts?.at(i)?.name).toBe(`post-${i}`)
 		}
+	})
+})
+
+describe('a Sorter keeps the given query untouched', () => {
+	useDatabaseTransaction(database, 'group')
+
+	it('should not modify the query given to the constructor', async () => {
+		const query = database.manager.createQueryBuilder(Author, 'author')
+		const baseQuery = query.getQuery()
+		const sorter = new Sorter(Author, { query, sorts: [Sort.asc('name')], filters: [ComparisonFilter.notNull('name')] })
+		await sorter.getSortedCollection()
+		expect(query.getQuery()).toBe(baseQuery)
 	})
 })
