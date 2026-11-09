@@ -217,3 +217,24 @@ it('does not modify the given sorts', async () => {
 	})
 	expect(sorts).toStrictEqual([Sort.desc('createdAt')])
 })
+
+describe('regular expression filters', () => {
+	useDatabaseTransaction(database, 'group')
+
+	const dataset = ['Alice', 'alicia', 'Bob'].map((name) => factories.createAuthor({ name }))
+
+	beforeAll(async () => {
+		await database.database.insert(authors).values(dataset)
+	})
+
+	it.each([
+		[ComparisonFilter.match<keyof AuthorRecord>('name', '^Ali'), ['Alice']],
+		[ComparisonFilter.insensitiveMatch<keyof AuthorRecord>('name', '^ali'), ['Alice', 'alicia']]
+	])('%p matches %p', async (filter, names) => {
+		const result = await createAuthorPager().getPage({
+			query: asQuery(database.database.select().from(authors)),
+			parameters: { filters: [filter], sorts: [Sort.asc('name')], pagination: Pagination.take(10) }
+		})
+		expect(result.edges.map(({ node }) => node.name)).toStrictEqual(names)
+	})
+})

@@ -13,7 +13,7 @@ import {
 import { parseFilters, parseSorts, QueryStringParameterValidationError } from '@package/query-params-serializer'
 import type { PgColumn } from 'drizzle-orm/pg-core'
 import * as SQLCondition from 'drizzle-orm/sql/expressions/conditions'
-import type { SQL } from 'drizzle-orm/sql/sql'
+import { type SQL, sql } from 'drizzle-orm/sql/sql'
 
 export type ColumnMapping<T extends string = string> = Record<T, PgColumn>
 
@@ -70,6 +70,11 @@ export const transformFilter = <Key extends string>(filter: Filter<Key>, columns
 				return SQLCondition.like(column, filter.value)
 			case ComparisonOperator.NOT_LIKE:
 				return SQLCondition.notLike(column, filter.value)
+			// POSIX regular expressions, on the text form of the column like @package/typeorm
+			case ComparisonOperator.MATCH:
+				return sql`cast(${column} as text) ~ ${filter.value}`
+			case ComparisonOperator.INSENSITIVE_MATCH:
+				return sql`cast(${column} as text) ~* ${filter.value}`
 		}
 	}
 	if (isArrayComparisonFilter(filter)) {
