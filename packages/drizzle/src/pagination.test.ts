@@ -2,8 +2,8 @@ import { beforeAll, describe, expect, it } from 'bun:test'
 import { sortArrayWith } from '@package/database'
 import { ComparisonFilter, Pagination, Sort } from '@package/query-params'
 import { useDatabaseContext, useDatabaseTransaction } from '#test-helpers/database'
-import { type AuthorRecord, factories } from '#test-helpers/factories'
-import { authors } from '#test-helpers/schema'
+import { type AuthorRecord, type DateContainerRecord, factories } from '#test-helpers/factories'
+import { authors, dateContainers } from '#test-helpers/schema'
 import { DrizzleCursorPager } from './pagination'
 
 // Drizzle's PgSelectBase removes `.where()` from the return type after it's called,
@@ -164,5 +164,47 @@ describe('filters', () => {
 			ids: males.slice(0, 2).map(({ id }) => id),
 			totalCount: males.length
 		})
+	})
+})
+
+describe('sorts on a column holding null values', () => {
+	useDatabaseTransaction(database, 'group')
+
+	// b is null on every other row
+	const rawDataset = factories.createDateContainers(collectionSize)
+
+	const createDateContainerPager = () =>
+		new DrizzleCursorPager({
+			database: database.database,
+			table: dateContainers,
+			primaryKey: { id: dateContainers.id },
+			columnMapping: { id: dateContainers.id, a: dateContainers.a, b: dateContainers.b }
+		})
+
+	beforeAll(async () => {
+		await database.database.insert(dateContainers).values(rawDataset)
+	})
+
+	it.each<{ sorts: Sort<keyof DateContainerRecord>[]; description: string }>([
+		{ description: 'asc(b)', sorts: [Sort.asc('b')] },
+		{ description: 'desc(b)', sorts: [Sort.desc('b')] },
+		{ description: 'asc(b) + desc(a)', sorts: [Sort.asc('b'), Sort.desc('a')] },
+		{ description: 'desc(b) + asc(a)', sorts: [Sort.desc('b'), Sort.asc('a')] }
+	])('[SORT] $description: every page, in order', async ({ sorts }) => {
+		// sortArrayWith orders null values like PostgreSQL: NULLS LAST in asc, NULLS FIRST in desc
+		const expected = sortArrayWith(rawDataset, [...sorts, Sort.asc('id')]).map(({ id }) => id)
+		const pager = createDateContainerPager()
+		const ids: string[] = []
+		let cursor: string | undefined
+		do {
+			const page = await pager.getPage({
+				query: asQuery(database.database.select().from(dateContainers)),
+				parameters: { sorts, pagination: Pagination.take(PAGE_SIZE, cursor) }
+			})
+			ids.push(...page.edges.map(({ node }) => node.id as string))
+			cursor = page.hasNextPage ? page.edges.at(-1)?.cursor : undefined
+		} while (cursor)
+
+		expect(ids).toStrictEqual(expected)
 	})
 })
