@@ -1,6 +1,11 @@
 import { jsonToBuffer, type Optional } from '@package/core'
-import { JsonSchemaValidationError, type Static, type TObject, type TSchema } from '@package/json-schema'
-import { createValidationFunction } from '@package/json-schema/src/validation/validate'
+import {
+	createValidationFunction,
+	JsonSchemaValidationError,
+	type Static,
+	type TObject,
+	type TSchema
+} from '@package/json-schema'
 import { logger } from '@package/telemetry'
 
 import type { ChannelWrapper } from 'amqp-connection-manager'
