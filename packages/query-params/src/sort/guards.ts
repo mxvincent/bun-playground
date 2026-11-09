@@ -1,9 +1,12 @@
-import { isPlainObject } from 'es-toolkit'
 import { SORT_DIRECTIONS, type Sort } from './sort'
 
 /**
- * SortParams type guard
+ * Sort type guard: accepts Sort instances and objects with a direction and a path
  */
 export const isSort = (value: unknown): value is Sort => {
-	return isPlainObject(value) && SORT_DIRECTIONS.includes(value.direction) && typeof value.path === 'string'
+	if (typeof value !== 'object' || value === null) {
+		return false
+	}
+	const { direction, path } = value as Partial<Sort>
+	return SORT_DIRECTIONS.includes(direction as never) && typeof path === 'string'
 }
