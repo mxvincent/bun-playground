@@ -1,11 +1,12 @@
 import type { AmqpConfig } from './schemas/config'
 
 /**
- * Amqp connection URL
+ * Amqp connection URL, with the credentials and the vhost percent-encoded (the vhost `/` is `%2F`)
  */
 export const getAmqpConnectionUrl = (config: AmqpConfig): string => {
 	const { username, password, host, port, vhost } = config.connection
-	return `amqp://${username}:${password}@${host}:${port}/${vhost ?? ''}`
+	const credentials = `${encodeURIComponent(username)}:${encodeURIComponent(password)}`
+	return `amqp://${credentials}@${host}:${port}/${encodeURIComponent(vhost ?? '')}`
 }
 
 /**

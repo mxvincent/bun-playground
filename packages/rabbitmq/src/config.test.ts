@@ -25,6 +25,11 @@ describe('RabbitMQ config', () => {
 		expect(getAmqpConnectionUrl(config)).toEqual('amqp://test-user:test-pass@rabbitmq.local:5672/test-vhost')
 	})
 
+	test('should encode the credentials and the vhost of the amqp connection URL', () => {
+		const connection = { ...config.connection, username: 'us@r', password: 'p@ss/w', vhost: '/' }
+		expect(getAmqpConnectionUrl({ ...config, connection })).toEqual('amqp://us%40r:p%40ss%2Fw@rabbitmq.local:5672/%2F')
+	})
+
 	test('should return management API URL', () => {
 		expect(getManagementApiConfigUrl(config)).toBe('https://rabbitmq-management.local')
 	})
