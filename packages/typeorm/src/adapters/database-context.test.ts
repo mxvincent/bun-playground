@@ -43,3 +43,48 @@ describe('TypeormDatabaseContext.transaction()', () => {
 		expect(context.isTransactionActive).toBe(false)
 	})
 })
+
+describe('nested TypeormDatabaseContext.transaction()', () => {
+	const outer = factories.createAuthor()
+	const inner = factories.createAuthor()
+	const isPersisted = async (author: Author) => (await testDataSource.manager.countBy(Author, { id: author.id })) === 1
+
+	afterEach(async () => {
+		await testDataSource.manager.delete(Author, [outer.id, inner.id])
+	})
+
+	it('keeps the outer transaction active after the inner one', async () => {
+		const context = new TypeormDatabaseContext(testDataSource)
+		let isOuterActive = false
+		await context.transaction(async () => {
+			await context.transaction(async () => undefined)
+			isOuterActive = context.isTransactionActive
+		})
+		expect(isOuterActive).toBe(true)
+	})
+
+	it('rolls back the inner changes when the outer callback fails', async () => {
+		const context = new TypeormDatabaseContext(testDataSource)
+		const failure = context.transaction(async (manager) => {
+			await context.transaction((innerManager) => innerManager.insert(Author, inner))
+			await manager.insert(Author, outer)
+			throw new Error('failure')
+		})
+		await expect(failure).rejects.toThrow('failure')
+		expect([await isPersisted(inner), await isPersisted(outer)]).toEqual([false, false])
+	})
+
+	it('keeps the outer changes when the inner callback fails', async () => {
+		const context = new TypeormDatabaseContext(testDataSource)
+		await context.transaction(async (manager) => {
+			await manager.insert(Author, outer)
+			await context
+				.transaction(async (innerManager) => {
+					await innerManager.insert(Author, inner)
+					throw new Error('inner failure')
+				})
+				.catch(() => undefined)
+		})
+		expect([await isPersisted(inner), await isPersisted(outer)]).toEqual([false, true])
+	})
+})

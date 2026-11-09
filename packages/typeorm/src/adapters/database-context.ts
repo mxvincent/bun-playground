@@ -39,23 +39,24 @@ export class TypeormDatabaseContext implements DatabaseContext {
 		return manager
 	}
 
+	/**
+	 * Start a transaction, or a savepoint when a transaction is already active
+	 * The query runner tracks the depth: each level is committed or rolled back on its own
+	 */
 	async startTransaction(isolationLevel?: IsolationLevel) {
 		if (!this.queryRunner) {
 			this.queryRunner = this.dataSource.createQueryRunner()
 		}
-		if (this.queryRunner.isTransactionActive) {
-			logger.debug('Transaction already active, save point created.')
-		} else {
-			await this.queryRunner.startTransaction(isolationLevel)
-			logger.debug('Transaction started.')
-		}
+		const isNested = this.queryRunner.isTransactionActive
+		await this.queryRunner.startTransaction(isolationLevel)
+		logger.debug(isNested ? 'Save point created.' : 'Transaction started.')
 	}
 
 	async commitTransaction() {
 		if (this.queryRunner?.isTransactionActive) {
 			await this.queryRunner.commitTransaction()
 			logger.debug('Transaction commit completed.')
-			await this.releaseQueryRunner()
+			await this.releaseQueryRunnerWhenDone()
 		} else {
 			logger.debug('There is no transaction to commit.')
 		}
@@ -66,7 +67,7 @@ export class TypeormDatabaseContext implements DatabaseContext {
 			try {
 				await this.queryRunner.rollbackTransaction()
 				logger.debug('Transaction rollback completed.')
-				await this.releaseQueryRunner()
+				await this.releaseQueryRunnerWhenDone()
 			} catch (error) {
 				logger.debug({ error }, 'Transaction rollback failed.')
 			}
@@ -99,8 +100,11 @@ export class TypeormDatabaseContext implements DatabaseContext {
 		}
 	}
 
-	private async releaseQueryRunner(): Promise<void> {
-		if (!this.queryRunner || this.useInheritedQueryRunner) {
+	/**
+	 * Release the query runner once the outermost transaction is over
+	 */
+	private async releaseQueryRunnerWhenDone(): Promise<void> {
+		if (!this.queryRunner || this.useInheritedQueryRunner || this.queryRunner.isTransactionActive) {
 			return
 		}
 		if (this.queryRunner.isReleased) {
