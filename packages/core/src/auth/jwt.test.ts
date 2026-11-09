@@ -1,25 +1,48 @@
 import { describe, expect, test } from 'bun:test'
-import { generateKeyPairSync, randomBytes } from 'node:crypto'
+import { generateKeyPairSync, type KeyObject, randomBytes } from 'node:crypto'
 import { type SignOptions, sign } from 'jsonwebtoken'
 import { AuthTokenError } from './errors'
 import { getKeyIdHeader, verifyToken } from './jwt'
 import { JWTAlgorithm } from './types'
 
 const SECRET = randomBytes(32).toString('hex')
-const RSA_KEY_PAIR = generateKeyPairSync('rsa', {
-	modulusLength: 2048,
-	publicKeyEncoding: { type: 'spki', format: 'pem' },
-	privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+
+const pemKeyPair = (keyPair: { privateKey: KeyObject; publicKey: KeyObject }) => ({
+	signingKey: keyPair.privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+	verifyingKey: keyPair.publicKey.export({ type: 'spki', format: 'pem' }).toString()
 })
+
+// Generated once: RSA keys serve RS and PS algorithms, each ECDSA algorithm has its own curve
+const HMAC = { signingKey: SECRET, verifyingKey: SECRET }
+const RSA = pemKeyPair(generateKeyPairSync('rsa', { modulusLength: 2048 }))
+const EC = {
+	ES256: pemKeyPair(generateKeyPairSync('ec', { namedCurve: 'P-256' })),
+	ES384: pemKeyPair(generateKeyPairSync('ec', { namedCurve: 'P-384' })),
+	ES512: pemKeyPair(generateKeyPairSync('ec', { namedCurve: 'P-521' }))
+}
 
 const AUDIENCE = 'https://valid.com'
 const ISSUER = 'https://valid.com'
 
-// One algorithm per key family: symmetric (HMAC) and asymmetric (RSA)
-describe.each([
-	{ algorithm: JWTAlgorithm.HS256, signingKey: SECRET, verifyingKey: SECRET },
-	{ algorithm: JWTAlgorithm.RS256, signingKey: RSA_KEY_PAIR.privateKey, verifyingKey: RSA_KEY_PAIR.publicKey }
-])('verifyToken() with $algorithm', ({ algorithm, signingKey, verifyingKey }) => {
+// A Record: adding an algorithm to JWTAlgorithm without keys here fails type-checking
+const KEYS: Record<JWTAlgorithm, { signingKey: string; verifyingKey: string }> = {
+	HS256: HMAC,
+	HS384: HMAC,
+	HS512: HMAC,
+	RS256: RSA,
+	RS384: RSA,
+	RS512: RSA,
+	ES256: EC.ES256,
+	ES384: EC.ES384,
+	ES512: EC.ES512,
+	PS256: RSA,
+	PS384: RSA,
+	PS512: RSA
+}
+
+describe.each(
+	Object.values(JWTAlgorithm).map((algorithm) => ({ algorithm, ...KEYS[algorithm] }))
+)('verifyToken() with $algorithm', ({ algorithm, signingKey, verifyingKey }) => {
 	const payload = { key: 'value' }
 	const signToken = (options?: SignOptions) =>
 		sign(payload, signingKey, { algorithm, audience: AUDIENCE, issuer: ISSUER, expiresIn: '1h', ...options })
