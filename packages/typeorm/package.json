@@ -23,6 +23,6 @@
 	},
 	"peerDependencies": {
 		"pg": "^8.18.0",
-		"typeorm": "^0.3.28"
+		"typeorm": "^1.1.0"
 	}
 }

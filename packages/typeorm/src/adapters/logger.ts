@@ -1,5 +1,5 @@
 import type { Logger } from '@package/telemetry'
-import type { Logger as TypeormLogger } from 'typeorm'
+import type { ObjectLiteral, Logger as TypeormLogger } from 'typeorm'
 
 const withPrefix = (message: string, prefix = 'Database') => `[${prefix}] ${message}`
 
@@ -23,21 +23,21 @@ export class PinoLoggerAdapter implements TypeormLogger {
 	/**
 	 * Logs query and parameters used in it.
 	 */
-	logQuery(query: string, parameters?: unknown[]): void {
+	logQuery(query: string, parameters?: unknown[] | ObjectLiteral): void {
 		this.logger.debug({ query, parameters }, withPrefix('query completed'))
 	}
 
 	/**
 	 * Logs query that is failed.
 	 */
-	logQueryError(error: string | Error, query: string, parameters?: unknown[]): void {
+	logQueryError(error: string | Error, query: string, parameters?: unknown[] | ObjectLiteral): void {
 		this.logger.error({ query, parameters, error }, withPrefix('query failed'))
 	}
 
 	/**
 	 * Logs query that is slow.
 	 */
-	logQuerySlow(duration: number, query: string, parameters?: unknown[]): void {
+	logQuerySlow(duration: number, query: string, parameters?: unknown[] | ObjectLiteral): void {
 		this.logger.warn({ query, parameters, duration }, withPrefix('long query detected'))
 	}
 

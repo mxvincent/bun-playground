@@ -1,6 +1,6 @@
 import type { Logger } from '@package/telemetry'
 import { DataSource } from 'typeorm'
-import type { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions.js'
+import type { PostgresDataSourceOptions } from 'typeorm/driver/postgres/PostgresDataSourceOptions.js'
 import type { PostgresConnectionPoolOptions } from './postgres-connection-pool-options'
 
 export type CreatePostgresDataSourceOptions = {
@@ -19,5 +19,5 @@ export type CreatePostgresDataSourceOptions = {
 }
 
 export class PostgresDataSource extends DataSource {
-	declare options: PostgresConnectionOptions
+	declare options: PostgresDataSourceOptions
 }
