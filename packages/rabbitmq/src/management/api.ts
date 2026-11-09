@@ -111,7 +111,7 @@ export class RabbitMQManagementAPI {
 			'dest-queue': options.destinationQueue,
 			'src-consumer-args': {}
 		}
-		await fetch(`${this.apiBaseUrl}/api/parameters/shovel/${encodeURIComponent(vhost)}/${id}`, {
+		const response = await fetch(`${this.apiBaseUrl}/api/parameters/shovel/${encodeURIComponent(vhost)}/${id}`, {
 			method: 'PUT',
 			body: JSON.stringify({ value }),
 			headers: new Headers({
@@ -119,17 +119,30 @@ export class RabbitMQManagementAPI {
 				'Content-Type': 'application/json'
 			})
 		})
+		// A shovel that is not created never drains its source queue: moveMessages would wait forever
+		if (!response.ok) {
+			throw new RabbitMQManagementAPIError('[RabbitMQ] Create shovel query failed.', {
+				statusCode: response.status,
+				statusText: response.statusText
+			})
+		}
 		return { id, value }
 	}
 
 	async deleteShovel(id: string) {
 		const { vhost } = this.config.connection
-		await fetch(`${this.apiBaseUrl}/api/parameters/shovel/${encodeURIComponent(vhost)}/${id}`, {
+		const response = await fetch(`${this.apiBaseUrl}/api/parameters/shovel/${encodeURIComponent(vhost)}/${id}`, {
 			method: 'DELETE',
 			headers: new Headers({
 				Authorization: getManagementApiAuthorizationHeader(this.config),
 				'Content-Type': 'application/json'
 			})
 		})
+		if (!response.ok) {
+			throw new RabbitMQManagementAPIError('[RabbitMQ] Delete shovel query failed.', {
+				statusCode: response.status,
+				statusText: response.statusText
+			})
+		}
 	}
 }
