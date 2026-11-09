@@ -36,7 +36,7 @@ export class RabbitMQManagementAPI {
 	}
 
 	async getQueue(name: string): Promise<ManagementApiQueue | null> {
-		const url = `${this.apiBaseUrl}/api/queues/${this.encodedVhost}/${name}`
+		const url = `${this.apiBaseUrl}/api/queues/${this.encodedVhost}/${encodeURIComponent(name)}`
 		const response = await fetch(url, {
 			headers: new Headers({
 				Authorization: getManagementApiAuthorizationHeader(this.config)
@@ -53,11 +53,14 @@ export class RabbitMQManagementAPI {
 	}
 
 	async listQueueBindings(queue: string): Promise<TopicBinding[]> {
-		const response = await fetch(`${this.apiBaseUrl}/api/queues/${this.encodedVhost}/${queue}/bindings`, {
-			headers: new Headers({
-				Authorization: getManagementApiAuthorizationHeader(this.config)
-			})
-		})
+		const response = await fetch(
+			`${this.apiBaseUrl}/api/queues/${this.encodedVhost}/${encodeURIComponent(queue)}/bindings`,
+			{
+				headers: new Headers({
+					Authorization: getManagementApiAuthorizationHeader(this.config)
+				})
+			}
+		)
 		if (response.status !== 200) {
 			throw new RabbitMQManagementAPIError('[RabbitMQ] List queue bindings query failed.', {
 				statusCode: response.status,
