@@ -29,69 +29,59 @@ export const enforceFilterPathAliasing = (filters: (ComparisonFilter | LogicalFi
 	})
 }
 
-export type CollectionSorterOptions<T extends ObjectLiteral> = {
-	filters?: (ComparisonFilter<KeyOf<T>> | LogicalFilter<KeyOf<T>>)[]
-	sorts?: Sort<KeyOf<T>>[]
+export type SorterOptions<T extends ObjectLiteral> = {
+	/**
+	 * Base query, never modified: each call works on a clone
+	 */
 	query: SelectQueryBuilder<T>
 }
 
-const query = Symbol('CollectionSorter.query')
+export type GetSortedCollectionOptions<T extends ObjectLiteral> = {
+	sorts?: Sort<KeyOf<T>>[]
+	filters?: (ComparisonFilter<KeyOf<T>> | LogicalFilter<KeyOf<T>>)[]
+}
 
+/**
+ * Apply sorts to a query builder, with the null ordering of PostgreSQL:
+ * NULLS LAST in ascending order, NULLS FIRST in descending order
+ */
+export const applySorts = <T extends ObjectLiteral>(query: SelectQueryBuilder<T>, sorts: Sort<KeyOf<T>>[]): void => {
+	for (const sort of sorts) {
+		query.addOrderBy(
+			getAliasedPath(sort.path, query.alias),
+			sort.direction === SortDirection.DESC ? 'DESC' : 'ASC',
+			sort.direction === SortDirection.DESC ? 'NULLS FIRST' : 'NULLS LAST'
+		)
+	}
+}
+
+/**
+ * Sorted collection over a base query.
+ *
+ * A `Sorter` holds what is shared by every request (entity, base query) and receives what comes
+ * from the request (sorts, filters) on each `getSortedCollection()` call, like `Pager`.
+ */
 export class Sorter<T extends ObjectLiteral> {
-	/**
-	 * User provided query
-	 */
-	readonly [query]: SelectQueryBuilder<T>
+	private readonly baseQuery: SelectQueryBuilder<T>
+	private readonly entity: ObjectType<T>
+	private readonly primaryKeyColumns: NonEmptyArray<KeyOf<T>>
 
-	/**
-	 * Resource primary key is used to get a predictable sort result
-	 */
-	readonly primaryKeyColumns: NonEmptyArray<KeyOf<T>>
-
-	/**
-	 * Collection sort options
-	 */
-	protected readonly sorts: NonEmptyArray<Sort<KeyOf<T>>>
-
-	/**
-	 * Create a collection sorter
-	 */
-	constructor(
-		protected entity: ObjectType<T>,
-		options: CollectionSorterOptions<T>
-	) {
+	constructor(entity: ObjectType<T>, options: SorterOptions<T>) {
+		this.entity = entity
 		this.primaryKeyColumns = getPrimaryKeyColumns(entity)
-		// Work on a copy: the query given by the caller is never modified
-		this[query] = options.query.clone()
-		if (options.filters) {
-			const filters = enforceFilterPathAliasing(options.filters, options.query.alias)
-			applyFilters(this[query], filters, LogicalOperator.AND)
-		}
-		this.sorts = mergePrimaryKeySorts(options.sorts ?? getDefaultSort(entity), this.primaryKeyColumns)
+		this.baseQuery = options.query
 	}
 
 	/**
-	 * Apply sortableKeys parameters then query the database without pagination
+	 * Query the whole collection, filtered and sorted, with the primary key as tie-breaker
 	 */
-	async getSortedCollection(): Promise<T[]> {
-		// SelectQueryBuilder.clone() copies the expression map: sorts applied to the copy stay on the copy
-		const sortedQuery = this[query].clone()
-		this.applySorts(sortedQuery)
-		return sortedQuery.getMany()
-	}
-
-	/**
-	 * Apply sorts to the given query builder instance
-	 * SQLite null values are considered bigger than non-null values like Postgres
-	 * We can invert sort order with the second parameter to allow backward pagination
-	 */
-	protected applySorts(query: SelectQueryBuilder<T>) {
-		for (const sort of this.sorts) {
-			query.addOrderBy(
-				getAliasedPath(sort.path, query.alias),
-				sort.direction === SortDirection.DESC ? 'DESC' : 'ASC',
-				sort.direction === SortDirection.DESC ? 'NULLS FIRST' : 'NULLS LAST'
-			)
+	async getSortedCollection({ sorts, filters }: GetSortedCollectionOptions<T> = {}): Promise<T[]> {
+		// TypeORM's clone copies the expression map, so the base query is never modified
+		const query = this.baseQuery.clone()
+		if (filters) {
+			applyFilters(query, enforceFilterPathAliasing(filters, query.alias), LogicalOperator.AND)
 		}
+		applySorts(query, mergePrimaryKeySorts(sorts ?? getDefaultSort(this.entity), this.primaryKeyColumns))
+		return query.getMany()
 	}
 }
