@@ -1,14 +1,19 @@
 import { invariant } from '@package/core'
-import { type Filter, type Page, type Pagination, Sort, SortDirection } from '@package/query-params'
+import {
+	type Filter,
+	type Page,
+	type Pagination,
+	PaginationCursorTransformer,
+	Sort,
+	SortDirection
+} from '@package/query-params'
 import { logger } from '@package/telemetry'
-import { and, asc, desc, eq, gt, lt, or, type SQL } from 'drizzle-orm'
+import { and, asc, desc, or, type SQL, sql } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
 import { transformFilters } from './query-params'
 
-type CursorValue = string | number | Date | null
-
-type EncodedCursor = string
+type CursorValues = Record<string, string | null>
 
 // Type for a Drizzle query builder that supports the methods we need
 type DrizzleQuery<TResult> = {
@@ -67,9 +72,12 @@ export class DrizzleCursorPager<
 
 		const { size, cursor, isCountRequested } = parameters.pagination
 
+		// The cursor holds the value of every sort column of the last row of the previous page
+		const cursorTransformer = new PaginationCursorTransformer<Record<string, unknown>>(sorts.map(({ path }) => path))
+
 		// Apply the filters on every page, and the cursor condition after the first one
 		const conditions = [...filters]
-		const cursorValues = cursor ? this.decodeCursor(cursor) : null
+		const cursorValues = cursor ? this.decodeCursor(cursor, cursorTransformer) : null
 		if (cursorValues) {
 			conditions.push(this.buildCursorCondition(sorts, cursorValues))
 		}
@@ -96,7 +104,7 @@ export class DrizzleCursorPager<
 			: null
 
 		return {
-			edges: nodes.map((node) => ({ node, cursor: this.encodeCursor(node) })),
+			edges: nodes.map((node) => ({ node, cursor: cursorTransformer.encode(node) })),
 			hasNextPage,
 			totalCount
 		}
@@ -107,7 +115,9 @@ export class DrizzleCursorPager<
 	// WHERE (col1, col2) > (cursor_val1, cursor_val2) in tuple comparison
 	// Since Drizzle doesn't support tuple comparison directly, we expand it:
 	// WHERE col1 > val1 OR (col1 = val1 AND col2 < val2)
-	private buildCursorCondition(sorts: Sort<TColumns>[], cursorValues: Record<string, CursorValue>): SQL {
+	// Cursor values are strings: they are sent as raw parameters, cast by PostgreSQL to the column type,
+	// since the column mapping of Drizzle expects the decoded type (e.g. a Date for a timestamp)
+	private buildCursorCondition(sorts: Sort<TColumns>[], cursorValues: CursorValues): SQL {
 		const conditions: SQL[] = []
 
 		for (let i = 0; i < sorts.length; i++) {
@@ -115,19 +125,16 @@ export class DrizzleCursorPager<
 			const column = this.columnMapping[currentSort.path]
 			const cursorValue = cursorValues[currentSort.path]
 
-			// Build condition for this level
-			const equalityConditions: SQL[] = []
-
 			// Add equality conditions for all previous columns
+			const equalityConditions: SQL[] = []
 			for (let j = 0; j < i; j++) {
 				const prevSort = invariant(sorts[j])
-				const prevColumn = this.columnMapping[prevSort.path]
-				const prevValue = cursorValues[prevSort.path]
-				equalityConditions.push(eq(prevColumn, prevValue))
+				equalityConditions.push(sql`${this.columnMapping[prevSort.path]} = ${cursorValues[prevSort.path]}`)
 			}
 
 			// Add comparison for current column
-			const comparison = currentSort.direction === SortDirection.ASC ? gt(column, cursorValue) : lt(column, cursorValue)
+			const comparison =
+				currentSort.direction === SortDirection.ASC ? sql`${column} > ${cursorValue}` : sql`${column} < ${cursorValue}`
 
 			if (equalityConditions.length > 0) {
 				// biome-ignore lint/style/noNonNullAssertion: in this statement the conditions are always non-null
@@ -148,27 +155,14 @@ export class DrizzleCursorPager<
 		})
 	}
 
-	private encodeCursor(row: Record<string, unknown>): EncodedCursor {
-		const json: Record<string, CursorValue> = Object.keys(this.primaryKey).reduce((record, key) => {
-			return Object.assign(record, { [key]: row[key] })
-		}, {})
-
-		logger.trace({ json }, 'Encoded cursor')
-
-		return Buffer.from(JSON.stringify(json)).toString('base64')
-	}
-
-	private decodeCursor(cursor: EncodedCursor): Record<string, CursorValue> {
+	private decodeCursor(
+		cursor: string,
+		cursorTransformer: PaginationCursorTransformer<Record<string, unknown>>
+	): CursorValues {
 		try {
-			const decoded = Buffer.from(cursor, 'base64').toString('utf-8')
-			const json = JSON.parse(decoded) as Record<string, CursorValue>
-			Object.keys(this.primaryKey).forEach((key) => {
-				if (!(key in json)) {
-					throw new Error(`Malformed cursor: missing column ${key}`)
-				}
-			})
-			logger.trace({ json }, 'Decoded cursor')
-			return json
+			const values = cursorTransformer.decode(cursor)
+			logger.trace({ values }, 'Decoded cursor')
+			return values
 		} catch (error) {
 			logger.error({ error }, 'Failed to decode cursor')
 			throw new Error('Invalid cursor format')

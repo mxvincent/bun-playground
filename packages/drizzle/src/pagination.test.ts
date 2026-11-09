@@ -1,5 +1,4 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { invariant } from '@package/core'
 import { sortArrayWith } from '@package/database'
 import { ComparisonFilter, Pagination, Sort } from '@package/query-params'
 import { useDatabaseContext, useDatabaseTransaction } from '#test-helpers/database'
@@ -32,35 +31,38 @@ const createAuthorPager = () => {
 	})
 }
 
-const encodeCursor = (row: Record<string, unknown>): string => {
-	const json = { id: row.id }
-	return Buffer.from(JSON.stringify(json)).toString('base64')
+const PAGE_SIZE = 10
+
+/**
+ * Walk through every page the way a client does: each page is requested with the cursor of the last edge
+ */
+const getAllPages = async (sorts: Sort<keyof AuthorRecord>[]) => {
+	const pager = createAuthorPager()
+	const pages = []
+	let cursor: string | undefined
+	do {
+		const page = await pager.getPage({
+			query: asQuery(database.database.select().from(authors)),
+			parameters: { sorts, pagination: Pagination.take(PAGE_SIZE, cursor) }
+		})
+		pages.push(page)
+		cursor = page.hasNextPage ? page.edges.at(-1)?.cursor : undefined
+	} while (cursor)
+	return pages
 }
 
 describe('DrizzleCursorPager.getPage()', () => {
 	describe.each<{ rawDataset: AuthorRecord[]; description: string }>([
 		{
-			rawDataset: factories.createAuthors({
-				collectionSize,
-				dateStep: 1,
-				useSequentialIds: true
-			}),
+			rawDataset: factories.createAuthors({ collectionSize, dateStep: 1, useSequentialIds: true }),
 			description: `sequential id's, unique createdAt`
 		},
 		{
-			rawDataset: factories.createAuthors({
-				collectionSize,
-				dateStep: 2,
-				useSequentialIds: true
-			}),
+			rawDataset: factories.createAuthors({ collectionSize, dateStep: 2, useSequentialIds: true }),
 			description: `sequential id's, duplicated createdAt`
 		},
 		{
-			rawDataset: factories.createAuthors({
-				collectionSize,
-				dateStep: 3,
-				useSequentialIds: false
-			}),
+			rawDataset: factories.createAuthors({ collectionSize, dateStep: 3, useSequentialIds: false }),
 			description: `random ids, duplicated createdAt`
 		}
 	])('[DATASET] $description', ({ rawDataset }) => {
@@ -70,73 +72,29 @@ describe('DrizzleCursorPager.getPage()', () => {
 			await database.database.insert(authors).values(rawDataset)
 		})
 
-		describe.each<{ sorts: Sort<keyof AuthorRecord>[]; description: string }>([
-			{
-				description: 'asc(id)',
-				sorts: [Sort.asc('id')]
-			},
-			{
-				description: 'desc(id)',
-				sorts: [Sort.desc('id')]
-			}
-		])('[SORT] $description', ({ sorts }) => {
-			const dataset = sortArrayWith(rawDataset, sorts)
+		it.each<{ sorts: Sort<keyof AuthorRecord>[]; description: string }>([
+			{ description: 'asc(id)', sorts: [Sort.asc('id')] },
+			{ description: 'desc(id)', sorts: [Sort.desc('id')] },
+			{ description: 'asc(createdAt)', sorts: [Sort.asc('createdAt')] },
+			{ description: 'desc(createdAt)', sorts: [Sort.desc('createdAt')] },
+			{ description: 'asc(createdAt) + desc(id)', sorts: [Sort.asc('createdAt'), Sort.desc('id')] },
+			{ description: 'desc(gender) + asc(name)', sorts: [Sort.desc('gender'), Sort.asc('name')] }
+		])('[SORT] $description: every page, in order', async ({ sorts }) => {
+			// The pager breaks ties with asc(id) when the sorts do not include id
+			const expected = sortArrayWith(
+				rawDataset,
+				sorts.some(({ path }) => path === 'id') ? sorts : [...sorts, Sort.asc('id')]
+			)
 
-			it('take first page', async () => {
-				const pager = createAuthorPager()
-				const query = asQuery(database.database.select().from(authors))
+			const pages = await getAllPages(sorts)
 
-				const result = await pager.getPage({
-					query,
-					parameters: {
-						sorts,
-						pagination: Pagination.take(10)
-					}
-				})
-
-				expect(result.edges).toHaveLength(10)
-				expect(result.hasNextPage).toBe(true)
-				expect(result.totalCount).toBe(collectionSize)
-				expect(result.edges.map((e) => e.node.id)).toEqual(dataset.slice(0, 10).map((a) => a.id))
-			})
-
-			it('take second page', async () => {
-				const pager = createAuthorPager()
-				const query = asQuery(database.database.select().from(authors))
-				const cursor = encodeCursor(invariant(dataset[9]))
-
-				const result = await pager.getPage({
-					query,
-					parameters: {
-						sorts,
-						pagination: Pagination.take(10, cursor)
-					}
-				})
-
-				expect(result.edges).toHaveLength(10)
-				expect(result.hasNextPage).toBe(true)
-				expect(result.totalCount).toBe(collectionSize)
-				expect(result.edges.map((e) => e.node.id)).toEqual(dataset.slice(10, 20).map((a) => a.id))
-			})
-
-			it('take last page', async () => {
-				const pager = createAuthorPager()
-				const query = asQuery(database.database.select().from(authors))
-				const cursor = encodeCursor(invariant(dataset[19]))
-
-				const result = await pager.getPage({
-					query,
-					parameters: {
-						sorts,
-						pagination: Pagination.take(10, cursor)
-					}
-				})
-
-				expect(result.edges).toHaveLength(5)
-				expect(result.hasNextPage).toBe(false)
-				expect(result.totalCount).toBe(collectionSize)
-				expect(result.edges.map((e) => e.node.id)).toEqual(dataset.slice(20, 25).map((a) => a.id))
-			})
+			expect(pages.map((page) => ({ ...page, edges: page.edges.map(({ node }) => node.id) }))).toStrictEqual(
+				[0, 1, 2].map((index) => ({
+					edges: expected.slice(index * PAGE_SIZE, (index + 1) * PAGE_SIZE).map(({ id }) => id),
+					hasNextPage: index < 2,
+					totalCount: collectionSize
+				}))
+			)
 		})
 	})
 })
