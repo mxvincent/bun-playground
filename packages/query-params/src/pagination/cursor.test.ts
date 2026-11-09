@@ -1,5 +1,5 @@
-import { base64Encode } from '@package/core'
 import { describe, expect, it } from 'bun:test'
+import { base64Encode } from '@package/core'
 import { PaginationCursorTransformer } from './cursor'
 
 describe('PaginationCursorTransformer', () => {
@@ -110,5 +110,15 @@ describe('PaginationCursorTransformer', () => {
 			const decoded = transformer.decode(cursor)
 			expect(decoded).toEqual({ id: 'hello,world', name: 'foo,bar,baz' })
 		})
+	})
+
+	it('does not depend on the order of the keys', () => {
+		const cursor = new PaginationCursorTransformer(['id', 'createdAt']).encode(author)
+		expect(new PaginationCursorTransformer(['createdAt', 'id']).encode(author)).toBe(cursor)
+	})
+
+	it('throws on a value that cannot be serialized', () => {
+		const transformer = new PaginationCursorTransformer(['id'])
+		expect(() => transformer.encode({ id: { nested: true } })).toThrow(TypeError)
 	})
 })
