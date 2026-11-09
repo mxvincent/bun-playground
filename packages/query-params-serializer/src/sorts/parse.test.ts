@@ -1,29 +1,28 @@
-import { describe, expect, it } from 'bun:test'
+import { expect, it } from 'bun:test'
 import { Sort } from '@package/query-params'
 import { parseSorts } from './parse'
 
-describe('return sort options', () => {
-	it.each([
-		['createdAt', [Sort.asc('createdAt')]],
-		['asc(createdAt)', [Sort.asc('createdAt')]],
-		['desc(deletedAt)', [Sort.desc('deletedAt')]],
-		[
-			['id', 'desc(updatedAt)'],
-			[Sort.asc('id'), Sort.desc('updatedAt')]
-		]
-	])('%p', (inputValues, expectedResult) => {
-		expect(parseSorts(inputValues)).toEqual(expectedResult)
-	})
+it.each([
+	['createdAt', Sort.asc('createdAt')],
+	['asc(createdAt)', Sort.asc('createdAt')],
+	['desc(createdAt)', Sort.desc('createdAt')],
+	['desc(user.fullName)', Sort.desc('user.fullName')]
+])('parses %p', (queryStringParameter, sort) => {
+	expect(parseSorts(queryStringParameter)).toStrictEqual([sort])
 })
 
-it('should handle patch with nested properties', () => {
-	expect(parseSorts(`desc(user.fullName)`)).toEqual([Sort.desc('user.fullName')])
+it('parses every sort of a repeated query string parameter', () => {
+	expect(parseSorts(['id', 'desc(updatedAt)'])).toStrictEqual([Sort.asc('id'), Sort.desc('updatedAt')])
 })
 
-it('should return many sort options', () => {
-	expect(parseSorts(['asc(createdAt)', 'desc(updatedAt)'])).toEqual([Sort.asc('createdAt'), Sort.desc('updatedAt')])
+it('keeps the first sort of a path', () => {
+	expect(parseSorts(['asc(createdAt)', 'desc(createdAt)'])).toStrictEqual([Sort.asc('createdAt')])
 })
 
-it('should take first when sort path is used twice', () => {
-	expect(parseSorts(['asc(createdAt)', 'desc(createdAt)'])).toEqual([Sort.asc('createdAt')])
+it('keeps the first sort only with getFirstOnly', () => {
+	expect(parseSorts(['id', 'desc(updatedAt)'], true)).toStrictEqual([Sort.asc('id')])
+})
+
+it('ignores an invalid sort', () => {
+	expect(parseSorts(['up(id)', 'desc(updatedAt)'])).toStrictEqual([Sort.desc('updatedAt')])
 })
