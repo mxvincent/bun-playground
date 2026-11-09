@@ -1,50 +1,23 @@
-import { describe, expect, it } from 'bun:test'
+import { expect, it } from 'bun:test'
 import { Pagination } from '@package/query-params'
-import type { QueryStringRecord } from '../types/query-string'
 import { parsePagination } from './parse'
 
-describe('should return pagination options', () => {
-	Pagination.DEFAULT_PAGE_SIZE = 10
-	it('no parameters', async () => {
-		expect(parsePagination({}, { defaultPageSize: 20 })).toStrictEqual(Pagination.take(20))
-	})
-	it.each<{ parameters: QueryStringRecord; pagination: Pagination }>([
-		{
-			parameters: { take: '2' },
-			pagination: Pagination.take(2)
-		},
-		{
-			parameters: { take: '2', after: 'cursor' },
-			pagination: Pagination.take(2, 'cursor')
-		},
-		{
-			parameters: { after: 'cursor' },
-			pagination: Pagination.take(Pagination.DEFAULT_PAGE_SIZE, 'cursor')
-		}
-	])('$parameters', ({ parameters, pagination }) => {
-		expect(parsePagination(parameters)).toStrictEqual(pagination)
-	})
+it('uses the take and after parameters', () => {
+	expect(parsePagination({ take: '2', after: 'cursor' })).toStrictEqual(Pagination.take(2, 'cursor'))
 })
 
-describe('should return first occurrence when a parameters is duplicated', () => {
-	it.each<{
-		parameters: Record<string, string | string[]>
-		pagination: Pagination
-	}>([
-		{
-			parameters: { take: '2', after: ['abc', 'def'] },
-			pagination: Pagination.take(2, 'abc')
-		},
-
-		{
-			parameters: { take: ['10', '50'] },
-			pagination: Pagination.take(10)
-		}
-	])('$parameters', ({ parameters, pagination }) => {
-		expect(parsePagination(parameters, { defaultPageSize: 10 })).toStrictEqual(pagination)
-	})
+it('uses the given default page size without take parameter', () => {
+	expect(parsePagination({}, { defaultPageSize: 20 })).toStrictEqual(Pagination.take(20))
 })
 
-it('should ignore cursor without value', () => {
+it('uses DEFAULT_PAGE_SIZE without take parameter nor default page size', () => {
+	expect(parsePagination({})).toStrictEqual(Pagination.take(Pagination.DEFAULT_PAGE_SIZE))
+})
+
+it('uses the first value of a repeated parameter', () => {
+	expect(parsePagination({ take: ['10', '50'], after: ['abc', 'def'] })).toStrictEqual(Pagination.take(10, 'abc'))
+})
+
+it('ignores an empty cursor', () => {
 	expect(parsePagination({ after: '' }, { defaultPageSize: 10 })).toStrictEqual(Pagination.take(10))
 })
