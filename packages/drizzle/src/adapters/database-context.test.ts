@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import pg from 'pg'
 import { getConnectionConfig, TEST_DATABASE } from '#test-helpers/database'
 import { DrizzleDatabaseContext } from './database-context'
@@ -18,6 +18,14 @@ beforeAll(async () => {
 	await client.query(`truncate ${TABLE}`)
 })
 
+// Runs even when a test fails: no open transaction or row leaks into the next test
+afterEach(async () => {
+	while (context.isTransactionActive) {
+		await context.rollbackTransaction()
+	}
+	await client.query(`truncate ${TABLE}`)
+})
+
 afterAll(async () => {
 	await client.query(`drop table if exists ${TABLE}`)
 	await client.end()
@@ -29,7 +37,6 @@ describe('DrizzleDatabaseContext', () => {
 		await insert('committed')
 		await context.commitTransaction()
 		expect(await values()).toEqual(['committed'])
-		await client.query(`truncate ${TABLE}`)
 	})
 
 	it('rolls back a transaction', async () => {
@@ -47,7 +54,6 @@ describe('DrizzleDatabaseContext', () => {
 		await context.rollbackTransaction()
 		await context.commitTransaction()
 		expect(await values()).toEqual(['outer'])
-		await client.query(`truncate ${TABLE}`)
 	})
 
 	it('is active between start and commit only', async () => {
@@ -66,6 +72,5 @@ describe('DrizzleDatabaseContext', () => {
 		await insert('after')
 		await context.commitTransaction()
 		expect([await values(), context.isTransactionActive]).toEqual([['after'], false])
-		await client.query(`truncate ${TABLE}`)
 	})
 })
