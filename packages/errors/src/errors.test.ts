@@ -68,6 +68,39 @@ describe('ResourceNotFoundError', () => {
 			'[RESOURCE_NOT_FOUND] Resource not found: key={"organizationId":"o"}'
 		)
 	})
+
+	test('toJSON() adds only the resource type when there is neither an id nor filters', () => {
+		expect(new ResourceNotFoundError('organization').toJSON()).toStrictEqual({
+			statusCode: 404,
+			message: 'Resource not found',
+			code: 'RESOURCE_NOT_FOUND',
+			resource: { type: 'organization' }
+		})
+	})
+
+	test('toString() appends nothing when there is neither an id nor filters', () => {
+		expect(new ResourceNotFoundError('organization').toString()).toBe('[RESOURCE_NOT_FOUND] Resource not found')
+	})
+
+	const filters = [{ toJSON: () => ({ type: 'comparison', operator: 'equal', path: 'name', value: 'aria' }) }]
+
+	test('toJSON() adds the resource type and the filters of a lookup by filters', () => {
+		expect(ResourceNotFoundError.fromFilters('organization', filters).toJSON()).toStrictEqual({
+			statusCode: 404,
+			message: 'Resource not found',
+			code: 'RESOURCE_NOT_FOUND',
+			resource: {
+				type: 'organization',
+				filters: [{ type: 'comparison', operator: 'equal', path: 'name', value: 'aria' }]
+			}
+		})
+	})
+
+	test('toString() appends the filters of a lookup by filters as JSON', () => {
+		expect(ResourceNotFoundError.fromFilters('organization', filters).toString()).toBe(
+			'[RESOURCE_NOT_FOUND] Resource not found: filters=[{"type":"comparison","operator":"equal","path":"name","value":"aria"}]'
+		)
+	})
 })
 
 test.each([
