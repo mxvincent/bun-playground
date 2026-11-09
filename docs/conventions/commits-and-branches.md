@@ -1,8 +1,9 @@
 # Commits and branches
 
-The unit of work is a **GitHub issue**. One issue produces one branch, one commit and one pull
-request. When a subject is too large for that, a parent issue documents it, and it is split into
-**sub-issues** whose branches form a **stack** when they depend on each other.
+The unit of work is a **GitHub issue**. One issue produces one branch, one pull request and, once
+squash-merged, one commit on `main`. When a subject is too large for that, a parent issue documents
+it, and it is split into **sub-issues** whose branches form a **stack** when they depend on each
+other.
 
 The tooling is `git`, the GitHub CLI and its `gh stack` extension. Nothing else, no custom wrapper.
 
@@ -31,7 +32,7 @@ to the change took place in another language.
     to it.
   - No issue documents it: open one.
 - The author of the work MUST assign themselves to the issue.
-- An issue MUST describe one task, sized so that its resolution fits in a single commit. If the
+- An issue MUST describe one task, sized so that its resolution fits in a single pull request. If the
   description needs the word "and" to hold together, it is two issues.
 - The title MUST state the outcome, not the implementation: *Cursor pagination drops rows with a
   null sort value*, not *Fix pagination*.
@@ -41,11 +42,11 @@ to the change took place in another language.
   ✅ `` `isSort` returns false for `Sort` instances ``, `` Rename `removeUndefined` to `stripUndefinedValues` ``
   ❌ `isSort returns false for Sort instances`, `query-params: isSort returns false`, `fix sort guard`
 - The issue MUST carry its labels. See [Labels](#labels).
-- A subject that cannot fit in one commit MUST be split with sub-issues, before any code is
+- A subject that cannot fit in one pull request MUST be split with sub-issues, before any code is
   written:
   - The **parent issue** documents the subject as a whole: the problem, the goal, the decisions. It
     stays the reference for the topic and carries no branch of its own.
-  - Each **sub-issue** is one step that fits in one commit, with its own branch, commit and pull
+  - Each **sub-issue** is one step that fits in one pull request, with its own branch and pull
     request, and follows every rule above. Steps that depend on each other form a stack, in the
     order of the sub-issues. See [Stacks](#stacks).
   - The parent issue MUST be closed by hand once its last sub-issue is done: no commit references it.
@@ -92,14 +93,16 @@ gh pr edit <pr> --add-label bug --add-label pkg/core
   git fetch origin && git rebase origin/main
   ```
 
-## One commit per branch
+## Commits on a branch
 
-A branch MUST contain exactly one commit at all times, including while the work is in progress. New
-work on the branch amends that commit rather than adding to it.
+A branch MAY hold several commits: the work in progress, then one commit per round of review. They
+never reach `main` as such, because the pull request is squash-merged into one commit (see
+[Merging](#merging)). Adding a commit rather than amending lets a reviewer see what changed since
+their last pass; amending stays allowed.
 
 ```bash
-git add -A
-git commit --amend --no-edit        # or --amend to revise the message
+git add <paths>
+git commit -m "fix(drizzle): roll back the levels a failing callback left open"
 
 # before pushing
 git fetch origin
@@ -113,30 +116,31 @@ git push --force-with-lease
   commits ahead and behind `origin/main`, and open pull requests that touch the same files. Before a
   push, the branch MUST also be rebased on an up-to-date `origin/main`, so a conflict is resolved
   locally, never discovered on the pull request.
-- Local commits and amends in between do not require the check.
+- Local commits in between do not require the check.
 - `--force-with-lease` MUST be used instead of `--force`. It refuses to overwrite commits pushed by
   someone else in the meantime.
-- Force-pushing a feature branch is expected and normal here. Force-pushing `main` is never
-  acceptable.
-- If a branch has accumulated several commits, squash before opening the pull request:
-  ```bash
-  git reset --soft origin/main && git commit
-  ```
-
-The single commit is the reason review is legible: the pull request diff, the commit diff and the
-change that lands on `main` are the same object.
+- Force-pushing a feature branch after a rebase or an amend is expected and normal here.
+  Force-pushing `main` is never acceptable.
+- The commits of a branch SHOULD follow the [commit message](#commit-messages) format, but only the
+  pull request title and body reach `main`.
 
 ## Commit messages
 
-Commits MUST follow [Conventional Commits](https://www.conventionalcommits.org/). `commitlint`
-enforces the format.
+The commit that lands on `main` MUST follow
+[Conventional Commits](https://www.conventionalcommits.org/). A squash merge builds it from the pull
+request: its title becomes the subject and its body the commit body (the repository sets
+`squash_merge_commit_title` to `PR_TITLE` and `squash_merge_commit_message` to `PR_BODY`). The rules
+below therefore apply to the pull request title and body, and SHOULD apply to the commits of the
+branch too.
 
 ```
 <type>(<scope>): <subject>
 
+Closes #<issue>
+
 <body>
 
-Closes #<issue>
+BREAKING CHANGE: <description>   # only for a breaking change
 ```
 
 ### Type
@@ -170,11 +174,13 @@ Closes #<issue>
 
 ### Footer
 
-- The commit MUST end with `Closes #<issue>`, referencing the issue it resolves.
-- A rebase lands this commit verbatim on `main`; a squash of a single-commit pull request keeps its
-  message and appends `(#<pr>)` to the subject. Either way the keyword reaches `main` and GitHub
-  closes the issue at that moment. The keyword in the commit is the source of truth; `gh stack submit` carries
-  it into the generated pull request body, where a reader sees it before the merge.
+- The pull request body MUST start with `Closes #<issue>`, referencing the issue it resolves. The
+  squash commit carries it to `main`, and GitHub closes the issue at that moment.
+- A breaking change MUST be declared with a `BREAKING CHANGE: <what breaks and what to change>`
+  footer at the end of the pull request body, never with a `!` after the type or scope. The changeset
+  still describes it for the changelog (see [versioning.md](./versioning.md)).
+  ✅ `build(typeorm): upgrade typeorm to 1.1` with a `BREAKING CHANGE: ...` footer
+  ❌ `build(typeorm)!: upgrade typeorm to 1.1`
 - In a stack, an upper pull request targets its parent branch rather than `main`, so its keyword
   does nothing on its own. Merging bottom to top — which `gh stack merge` enforces — retargets each
   pull request onto `main` as the one below it lands, and each issue closes in turn.
@@ -182,7 +188,10 @@ Closes #<issue>
 ## Pull requests
 
 - One pull request per branch, therefore one per issue.
-- The title MUST be the commit subject, unchanged.
+- The title MUST follow the [commit message](#commit-messages) format: it becomes the subject of the
+  commit on `main`.
+- The body MUST start with `Closes #<issue>` and explain *why*: it becomes the body of the commit on
+  `main`.
 - The person who opens the pull request MUST assign themselves to it. The assignee is the owner who
   takes it to merge.
 - The pull request MUST carry the labels of its issue. See [Labels](#labels).
@@ -203,30 +212,25 @@ gh stack submit --auto --open                    # same, ready for review instea
 
 ## Merging
 
-**Rebase is the default.** A branch holds exactly one commit, so rebasing lands it on `main`
-unchanged: the reviewed diff and the merged commit are the same object, and `main`'s history stays a
-linear sequence of single-commit changes, each traceable to an issue.
+**Squash is the merge method.** It turns each pull request into exactly one commit on `main`, built
+from the pull request title and body, whatever the number of commits on the branch: `main`'s
+history stays a linear sequence of one commit per pull request, each traceable to its issue.
 
 ```bash
-gh pr merge <pr> --rebase             # single branch
-gh stack merge <pr> --yes --rebase    # that PR and every unmerged PR below it
+gh pr merge <pr> --squash             # single branch
+gh stack merge <pr> --yes --squash    # that PR and every unmerged PR below it
 ```
 
-`gh stack merge` is all-or-nothing: if any pull request in the selected set cannot merge, none do.
-
-**A stack MUST land one commit per pull request.** Merge it with `gh stack merge`, by rebase or, as
-a fallback, by squash: `--squash` squashes each pull request on its own, so every layer still lands as
-its own commit traceable to its issue. A stack MUST NOT be collapsed into a single commit, for example
-by retargeting its top pull request onto `main` and squashing it.
-
-**Squash is kept enabled as a fallback**, for a branch that reached review with more than one
-commit. The fix is to squash locally (`git reset --soft origin/main && git commit`); squash-merging
-is the escape hatch when that did not happen. The squash commit is a new commit composed by GitHub:
-check in the merge dialog that its message keeps the `Closes #<issue>` line. The layers above a
-squashed pull request are based on commits that never reached `main`: run `gh stack sync` before
-touching the stack again, it rebases them with `--onto`.
-
-Merge commits are disabled at the repository level and MUST NOT be re-enabled.
+- `gh stack merge` is all-or-nothing: if any pull request in the selected set cannot merge, none do.
+- A stack squash-merges each pull request on its own: merging `n` pull requests creates `n` commits
+  on `main`. A stack MUST NOT be collapsed into a single commit, for example by retargeting its top
+  pull request onto `main` and squashing it.
+- Before confirming, check the title and body of each pull request: they become the commits on
+  `main`.
+- **Rebase is kept enabled as a fallback**, for when a squash is not possible. It replays every
+  commit of the branch, so the branch MUST first be reduced to one commit
+  (`git reset --soft origin/main && git commit`).
+- Merge commits are disabled at the repository level and MUST NOT be re-enabled.
 
 ## Stacks
 
@@ -241,7 +245,7 @@ Left is the bottom and merges first; right is the top.
 
 ### When to use one
 
-- Use a stack when a feature is too large for one reviewable commit. Splitting is the norm for
+- Use a stack when a feature is too large for one reviewable pull request. Splitting is the norm for
   anything crossing more than one workspace.
 - Do NOT build everything on one branch and split it afterwards. Decompose into sub-issues of a
   parent issue first, then create the layers as you go: one layer per sub-issue.
@@ -267,7 +271,7 @@ gh stack view --json               # inspect state; plain `view` opens a TUI
   branch above it:
   ```bash
   gh stack checkout 42-domain-schemas
-  git add -A && git commit --amend --no-edit
+  git add <paths> && git commit -m "..."
   gh stack rebase --upstack          # replay every branch above onto the change
   gh stack top
   gh stack push
