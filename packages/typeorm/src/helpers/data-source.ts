@@ -14,7 +14,7 @@ export type PostgresConnectionUriOptions = {
 }
 
 export function getPostgresConnectionUri(options: PostgresConnectionUriOptions) {
-	const credentials = `${options.username}:${options.password}`
+	const credentials = `${encodeURIComponent(options.username)}:${encodeURIComponent(options.password)}`
 	const host = `${options.host ?? 'localhost'}:${options.port ?? 5432}`
 	const database = options.database ?? options.username
 	return `postgres://${credentials}@${host}/${database}`
