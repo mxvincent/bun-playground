@@ -6,6 +6,7 @@ import {
 	getRetryAttemptRoutingKey,
 	getRetryExchangeConfig,
 	getRetryFailureQueueName,
+	isRetryQueue,
 	RETRY_EXCHANGE
 } from './retry'
 
@@ -62,5 +63,15 @@ describe('getRetryBinding()', () => {
 			exchange: RETRY_EXCHANGE,
 			routingKey: getRetryAttemptRoutingKey('sensor.measure-emitted')
 		})
+	})
+})
+
+describe('isRetryQueue()', () => {
+	it.each(['orders.retry-1', 'orders.retry-12', 'orders.retry-failure'])('is true for %p', (queue) => {
+		expect(isRetryQueue(queue)).toBe(true)
+	})
+
+	it.each(['orders', 'orders.unprocessable', 'retry-1'])('is false for %p', (queue) => {
+		expect(isRetryQueue(queue)).toBe(false)
 	})
 })
