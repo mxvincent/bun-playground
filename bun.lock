@@ -86,7 +86,6 @@
       "dependencies": {
         "@faker-js/faker": "^9.9.0",
         "@package/core": "workspace:",
-        "@package/errors": "workspace:",
         "@package/query-params": "workspace:",
         "es-toolkit": "^1.40.0",
       },

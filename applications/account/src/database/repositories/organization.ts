@@ -6,8 +6,8 @@ import {
 	type UpdateOrganization
 } from '@domain/account'
 import type { KeyOf } from '@package/core'
-import { EntityNotFoundError } from '@package/database'
 import { DrizzleCursorPager, transformFilters } from '@package/drizzle'
+import { ResourceNotFoundError } from '@package/errors'
 import type { ComparisonFilter, Page, PageQueryParameters } from '@package/query-params'
 import { logger } from '@package/telemetry'
 import { and } from 'drizzle-orm'
@@ -37,7 +37,7 @@ export class OrganizationPostgresRepository implements OrganizationRepository {
 	async findOneOrFail(filters: ComparisonFilter<OrganizationParameters>[]): Promise<Organization> {
 		const organization = await this.findOne(filters)
 		if (!organization) {
-			throw new EntityNotFoundError('Organization', filters)
+			throw ResourceNotFoundError.fromFilters('Organization', filters)
 		}
 		return organization
 	}

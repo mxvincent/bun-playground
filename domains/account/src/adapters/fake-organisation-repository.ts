@@ -69,7 +69,7 @@ export class FakeOrganisationRepository implements OrganizationRepository {
 		const item = await this.findOne(filters)
 
 		if (!item) {
-			throw new ResourceNotFoundError('organization', filters)
+			throw ResourceNotFoundError.fromFilters('organization', filters)
 		}
 		return item
 	}
