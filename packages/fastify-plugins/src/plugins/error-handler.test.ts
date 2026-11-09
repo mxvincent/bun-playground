@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, it } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import { ResourceNotFoundError } from '@package/errors'
 import Fastify from 'fastify'
 import { fastifyErrorHandler } from './error-handler'
@@ -53,5 +53,40 @@ it('keeps the response of a Fastify client error', async () => {
 	expect({ statusCode: response.statusCode, code: response.json<{ code: string }>().code }).toStrictEqual({
 		statusCode: 400,
 		code: 'FST_ERR_VALIDATION'
+	})
+})
+
+describe('logs', () => {
+	const errorLogSpy = spyOn(app.log, 'error')
+	const consoleLogSpy = spyOn(console, 'log')
+
+	beforeEach(() => {
+		errorLogSpy.mockClear()
+		consoleLogSpy.mockClear()
+	})
+
+	afterAll(() => {
+		errorLogSpy.mockRestore()
+		consoleLogSpy.mockRestore()
+	})
+
+	it('logs an unexpected error as an error', async () => {
+		await app.inject({ url: '/internal' })
+		expect(errorLogSpy).toHaveBeenCalledWith(expect.anything(), 'Unhandled error')
+	})
+
+	it('logs an error with a 4xx status code that Fastify did not produce as an error', async () => {
+		await app.inject({ url: '/upstream' })
+		expect(errorLogSpy).toHaveBeenCalledWith(expect.anything(), 'Unhandled error')
+	})
+
+	it('does not log an expected 4xx error as an error', async () => {
+		await app.inject({ url: '/missing' })
+		expect(errorLogSpy).not.toHaveBeenCalled()
+	})
+
+	it('does not print errors on the console', async () => {
+		await app.inject({ url: '/missing' })
+		expect(consoleLogSpy).not.toHaveBeenCalled()
 	})
 })
