@@ -22,3 +22,37 @@ export const decodeFilterValue = (encoded: string): string => {
 	}
 	return utf8Decoder.decode(bytes)
 }
+
+export type FilterValueEncoding = {
+	/** Encode a filter value: the result must hold none of `(`, `)` and `,` */
+	encode: (value: string) => string
+	/** Decode a filter value; throw when the value cannot be decoded */
+	decode: (encoded: string) => string
+}
+
+export const BASE64URL_FILTER_VALUE_ENCODING: FilterValueEncoding = Object.freeze({
+	encode: encodeFilterValue,
+	decode: decodeFilterValue
+})
+
+let filterValueEncoding: FilterValueEncoding = BASE64URL_FILTER_VALUE_ENCODING
+
+/**
+ * Configure, once for the whole process, how filter values are encoded by the serialize functions and decoded
+ * by the parse functions. Both sides of a query string must use the same encoding. Defaults to base64url.
+ */
+export const configureFilterValueEncoding = (encoding: FilterValueEncoding): void => {
+	filterValueEncoding = encoding
+}
+
+/**
+ * Restore the default base64url encoding
+ */
+export const resetFilterValueEncoding = (): void => {
+	filterValueEncoding = BASE64URL_FILTER_VALUE_ENCODING
+}
+
+/**
+ * Get the configured filter value encoding
+ */
+export const getFilterValueEncoding = (): FilterValueEncoding => filterValueEncoding

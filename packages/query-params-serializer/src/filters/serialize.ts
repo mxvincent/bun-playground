@@ -6,25 +6,29 @@ import {
 	isValueComparisonFilter
 } from '@package/query-params'
 import { encodeFilterOperator } from './transformers'
-import { encodeFilterValue } from './value-encoding'
+import { getFilterValueEncoding } from './value-encoding'
 
-export const serializeFilter = (filter: Filter, encodeParameter = encodeFilterValue): string => {
+/**
+ * Serialize a filter, encoding its values with the configured filter value encoding
+ */
+export const serializeFilter = (filter: Filter): string => {
+	const { encode } = getFilterValueEncoding()
 	if (isLogicalFilter(filter)) {
-		const innerFilters = filter.filters.map((filter) => serializeFilter(filter, encodeParameter)).join(',')
+		const innerFilters = filter.filters.map((filter) => serializeFilter(filter)).join(',')
 		return `${encodeFilterOperator(filter.operator)}(${innerFilters})`
 	}
 	if (isArrayComparisonFilter(filter)) {
-		return `${encodeFilterOperator(filter.operator)}(${filter.path},${filter.values.map((v) => encodeParameter(v)).join(',')})`
+		return `${encodeFilterOperator(filter.operator)}(${filter.path},${filter.values.map((value) => encode(value)).join(',')})`
 	}
 	if (isNullComparisonFilter(filter)) {
 		return `${encodeFilterOperator(filter.operator)}(${filter.path})`
 	}
 	if (isValueComparisonFilter(filter)) {
-		return `${encodeFilterOperator(filter.operator)}(${filter.path},${encodeParameter(filter.value)})`
+		return `${encodeFilterOperator(filter.operator)}(${filter.path},${encode(filter.value)})`
 	}
 	throw new TypeError('Invalid filter')
 }
 
-export const serializeFilters = (filters: Filter[], encode = encodeFilterValue): string[] => {
-	return filters.map((filter) => serializeFilter(filter, encode))
+export const serializeFilters = (filters: Filter[]): string[] => {
+	return filters.map((filter) => serializeFilter(filter))
 }
