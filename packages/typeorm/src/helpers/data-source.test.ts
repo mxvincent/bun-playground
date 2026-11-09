@@ -12,3 +12,9 @@ it('getPostgresConnectionUri() defaults to localhost:5432 and a database named a
 		'postgres://user:secret@localhost:5432/user'
 	)
 })
+
+it('getPostgresConnectionUri() encodes the credentials', () => {
+	expect(getPostgresConnectionUri({ username: 'us@r', password: 'p@ss:w/rd', host: 'db', database: 'app' })).toBe(
+		'postgres://us%40r:p%40ss%3Aw%2Frd@db:5432/app'
+	)
+})
