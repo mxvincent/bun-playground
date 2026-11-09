@@ -121,8 +121,11 @@ git push --force-with-lease
   someone else in the meantime.
 - Force-pushing a feature branch after a rebase or an amend is expected and normal here.
   Force-pushing `main` is never acceptable.
-- The commits of a branch SHOULD follow the [commit message](#commit-messages) format, but only the
-  pull request title and body reach `main`.
+- The commits of a branch SHOULD follow the [commit message](#commit-messages) format.
+- The **first commit** of a branch MUST carry the subject of the pull request title, `Closes #<issue>`
+  and, for a breaking change, the `BREAKING CHANGE:` footer. GitHub's atomic stack merge composes
+  the squash message itself, and may build it from the commit messages rather than from the pull
+  request: the first commit then still brings the issue link and the breaking change to `main`.
 
 ## Commit messages
 
@@ -172,7 +175,7 @@ BREAKING CHANGE: <description>   # only for a breaking change
 - The body SHOULD explain *why* when the reason is not evident from the diff. It is the only place
   that survives in `main`'s history — pull request comments do not.
 
-### Footer
+### Issue link and footer
 
 - The pull request body MUST start with `Closes #<issue>`, referencing the issue it resolves. The
   squash commit carries it to `main`, and GitHub closes the issue at that moment.
@@ -201,12 +204,13 @@ BREAKING CHANGE: <description>   # only for a breaking change
   [versioning.md](./versioning.md).
 
 ```bash
-gh pr create --fill --base main --assignee @me --label bug --label pkg/core   # single branch
+gh pr create --fill-first --base main --assignee @me --label bug --label pkg/core   # single branch
 gh stack submit --auto                           # stack: pushes every branch, opens draft PRs
 gh stack submit --auto --open                    # same, ready for review instead of draft
 ```
 
-`gh stack` generates pull request titles and bodies. Adjust them afterwards with `gh pr edit`.
+`--fill-first` and `gh stack` take the title and body from the first commit of the branch (plain
+`--fill` lists every commit once there are several). Adjust them afterwards with `gh pr edit`.
 `gh stack submit` sets neither an assignee nor labels: add them with
 `gh pr edit <pr> --add-assignee @me --add-label <label>`.
 
@@ -226,10 +230,14 @@ gh stack merge <pr> --yes --squash    # that PR and every unmerged PR below it
   on `main`. A stack MUST NOT be collapsed into a single commit, for example by retargeting its top
   pull request onto `main` and squashing it.
 - Before confirming, check the title and body of each pull request: they become the commits on
-  `main`.
+  `main`. `gh stack merge` cannot edit the squash message, so the first commit of each branch MUST
+  already carry what `main` needs (see [Commits on a branch](#commits-on-a-branch)).
+- After merging the lower part of a stack, the remaining layers are based on commits that never
+  reached `main`: run `gh stack sync` before working on them again. It rebases them onto the squash
+  commits and skips the merged layers.
 - **Rebase is kept enabled as a fallback**, for when a squash is not possible. It replays every
-  commit of the branch, so the branch MUST first be reduced to one commit
-  (`git reset --soft origin/main && git commit`).
+  commit of the branch, so the branch MUST first be reduced to one commit whose message is the pull
+  request title and body (`git reset --soft origin/main && git commit`).
 - Merge commits are disabled at the repository level and MUST NOT be re-enabled.
 
 ## Stacks
