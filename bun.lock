@@ -118,7 +118,6 @@
       "version": "1.0.0",
       "dependencies": {
         "@fastify/type-provider-typebox": "^6.1.0",
-        "@package/core": "workspace:*",
         "@package/errors": "workspace:*",
         "fastify-plugin": "^5.1.0",
       },
