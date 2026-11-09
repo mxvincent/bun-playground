@@ -171,8 +171,9 @@ Closes #<issue>
 ### Footer
 
 - The commit MUST end with `Closes #<issue>`, referencing the issue it resolves.
-- Because branches are merged by rebase, this commit lands verbatim on `main` and GitHub closes the
-  issue at that moment. The keyword in the commit is the source of truth; `gh stack submit` carries
+- A rebase lands this commit verbatim on `main`; a squash of a single-commit pull request keeps its
+  message and appends `(#<pr>)` to the subject. Either way the keyword reaches `main` and GitHub
+  closes the issue at that moment. The keyword in the commit is the source of truth; `gh stack submit` carries
   it into the generated pull request body, where a reader sees it before the merge.
 - In a stack, an upper pull request targets its parent branch rather than `main`, so its keyword
   does nothing on its own. Merging bottom to top — which `gh stack merge` enforces — retargets each
@@ -213,32 +214,19 @@ gh stack merge <pr> --yes --rebase    # that PR and every unmerged PR below it
 
 `gh stack merge` is all-or-nothing: if any pull request in the selected set cannot merge, none do.
 
-**Squash is kept enabled as a fallback**, for two cases and no others:
+**A stack MUST land one commit per pull request.** Merge it with `gh stack merge`, by rebase or, as
+a fallback, by squash: `--squash` squashes each pull request on its own, so every layer still lands as
+its own commit traceable to its issue. A stack MUST NOT be collapsed into a single commit, for example
+by retargeting its top pull request onto `main` and squashing it.
 
-1. **A branch that reached review with more than one commit.** The fix is to squash locally
-   (`git reset --soft origin/main && git commit`); squash-merging is the escape hatch when that did
-   not happen.
-2. **Collapsing an entire stack into one change**, when the layers only ever made sense together and
-   splitting the history on `main` buys nothing. Retarget the top pull request onto `main` and
-   squash it — its diff then covers every layer below:
-   ```bash
-   gh pr edit <top-pr> --base main
-   gh pr merge <top-pr> --squash
-   ```
+**Squash is kept enabled as a fallback**, for a branch that reached review with more than one
+commit. The fix is to squash locally (`git reset --soft origin/main && git commit`); squash-merging
+is the escape hatch when that did not happen. The squash commit is a new commit composed by GitHub:
+check in the merge dialog that its message keeps the `Closes #<issue>` line. The layers above a
+squashed pull request are based on commits that never reached `main`: run `gh stack sync` before
+touching the stack again, it rebases them with `--onto`.
 
 Merge commits are disabled at the repository level and MUST NOT be re-enabled.
-
-### Consequences of a squash
-
-- The squash commit is a **new** commit; the branch's originals never reach `main`. Any stack layer
-  above it is now based on commits that no longer exist upstream. `gh stack sync` detects exactly
-  this, rebases with `--onto` against the right target and skips the merged branch — run it before
-  touching the stack again. No manual fix-up is needed.
-- A squash message is composed by GitHub from the commits it absorbs. When collapsing a stack, that
-  message MUST carry the `Closes #<issue>` line of **every** layer it absorbs, otherwise those
-  issues stay open. Check the message in the merge dialog before confirming.
-- The lower pull requests of a collapsed stack do not close by themselves — what landed no longer
-  matches their commits — and MUST be closed by hand once the squash is merged.
 
 ## Stacks
 
