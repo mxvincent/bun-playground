@@ -45,7 +45,10 @@ describe('parseFilters()', () => {
 		['a filter without path', `equal(,${v('a')})`],
 		['a value filter without value', 'equal(a)'],
 		['a logical filter with unbalanced parentheses', `or(equal(a,${v('a')})`],
-		['a logical filter cut by a raw parenthesis in a value', 'or(equal(a,x)y),null(b))']
+		['a logical filter cut by a raw parenthesis in a value', 'or(equal(a,x)y),null(b))'],
+		['a value that is not base64url', 'equal(a,YQ==)'],
+		['an array value that is not base64url', `in(a,${v('b')},YQ==)`],
+		['a value that is not UTF-8 text', `equal(a,${Buffer.from([0xff]).toString('base64url')})`]
 	])('rejects %s', (_case, queryStringParameter) => {
 		expect(() => parseFilters(queryStringParameter)).toThrow(QueryStringParameterValidationError)
 	})
