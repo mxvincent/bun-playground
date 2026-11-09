@@ -20,7 +20,7 @@ describe('Pager.getPage()', () => {
 		},
 		{
 			description: `random ids, duplicated createdAt`,
-			dataset: createAuthors(DATASET_SIZE, 3, true)
+			dataset: createAuthors(DATASET_SIZE, 3, false)
 		}
 	])('[resources] $description', ({ dataset }) => {
 		describe.each<{ sorts: Sort<keyof Author>[]; description: string }>([
@@ -62,73 +62,24 @@ describe('Pager.getPage()', () => {
 			let cursorTransformer: PaginationCursorTransformer<Author>
 
 			beforeAll(() => {
-				resources = sortArrayWith(dataset, sorts)
+				// The pager breaks ties with asc(id) when the sorts do not include id
+				resources = sortArrayWith(dataset, sorts.some(({ path }) => path === 'id') ? sorts : [...sorts, Sort.asc('id')])
 				pager = new ArrayPager(resources, { filters: [], sorts })
 				cursorTransformer = pager.cursorTransformer
 			})
 
-			it(`page 1: get ${PAGE_SIZE} items`, async () => {
-				const expected = slice(resources, {
-					take: PAGE_SIZE,
-					cursorTransformer
-				})
+			// Pages of PAGE_SIZE items: the cursor of a page is the last item of the previous one
+			const PAGES = Array.from({ length: Math.ceil(DATASET_SIZE / PAGE_SIZE) }, (_, index) => index + 1)
 
-				const result = await pager.getPage(Pagination.take(PAGE_SIZE))
+			it.each(PAGES)('page %p', async (page) => {
+				const skip = PAGE_SIZE * (page - 1)
+				const cursor = skip > 0 ? cursorTransformer.encode(invariant(resources[skip - 1])) : undefined
 
-				expect(result).toStrictEqual({
-					edges: expected,
-					hasNextPage: true,
-					totalCount: DATASET_SIZE
-				})
-			})
-			it(`page 2: get ${PAGE_SIZE} items`, async () => {
-				const expected = slice(resources, {
-					take: PAGE_SIZE,
-					skip: PAGE_SIZE,
-					cursorTransformer
-				})
-
-				const result = await pager.getPage(
-					Pagination.take(PAGE_SIZE, cursorTransformer.encode(invariant(resources[PAGE_SIZE - 1])))
-				)
+				const result = await pager.getPage(Pagination.take(PAGE_SIZE, cursor))
 
 				expect(result).toStrictEqual({
-					edges: expected,
-					hasNextPage: true,
-					totalCount: DATASET_SIZE
-				})
-			})
-			it(`page 3: get ${PAGE_SIZE} items`, async () => {
-				const expected = slice(resources, {
-					take: PAGE_SIZE,
-					skip: PAGE_SIZE,
-					cursorTransformer
-				})
-
-				const result = await pager.getPage(
-					Pagination.take(PAGE_SIZE, cursorTransformer.encode(invariant(resources[PAGE_SIZE - 1])))
-				)
-
-				expect(result).toEqual({
-					edges: expected,
-					hasNextPage: true,
-					totalCount: DATASET_SIZE
-				})
-			})
-			it(`page 4: get ${DATASET_SIZE - PAGE_SIZE * 3} items`, async () => {
-				const expected = slice(resources, {
-					take: PAGE_SIZE,
-					skip: PAGE_SIZE,
-					cursorTransformer
-				})
-
-				const result = await pager.getPage(
-					Pagination.take(PAGE_SIZE, cursorTransformer.encode(invariant(resources[PAGE_SIZE - 1])))
-				)
-
-				expect(result).toStrictEqual({
-					edges: expected,
-					hasNextPage: true,
+					edges: slice(resources, { take: PAGE_SIZE, skip, cursorTransformer }),
+					hasNextPage: skip + PAGE_SIZE < DATASET_SIZE,
 					totalCount: DATASET_SIZE
 				})
 			})

@@ -88,6 +88,20 @@ describe('comparison filters', () => {
 		expect(result.map((r) => r.name)).toEqual(['Charlie', 'Eve'])
 	})
 
+	it('greater than or equal filter', () => {
+		const filters = [ComparisonFilter.greaterThanOrEqual('age', '35')]
+		const result = filterArrayWith(resources, filters)
+
+		expect(result.map((r) => r.name)).toEqual(['Charlie', 'Eve'])
+	})
+
+	it('less than filter', () => {
+		const filters = [ComparisonFilter.lessThan('age', '30')]
+		const result = filterArrayWith(resources, filters)
+
+		expect(result.map((r) => r.name)).toEqual(['Alice', 'David'])
+	})
+
 	it('less than or equal filter', () => {
 		const filters = [ComparisonFilter.lessThanOrEqual('age', '30')]
 		const result = filterArrayWith(resources, filters)
@@ -102,6 +116,13 @@ describe('comparison filters', () => {
 
 		expect(result).toHaveLength(2)
 		expect(result.map((r) => r.name)).toEqual(['Charlie', 'David'])
+	})
+
+	it('not like filter', () => {
+		const filters = [ComparisonFilter.notLike('name', 'a')]
+		const result = filterArrayWith(resources, filters)
+
+		expect(result.map((r) => r.name)).toEqual(['Alice', 'Bob', 'Eve'])
 	})
 
 	it('match filter (regex)', () => {
