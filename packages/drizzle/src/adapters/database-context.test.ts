@@ -1,4 +1,5 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import { afterAll, afterEach, beforeAll, describe, expect, it, spyOn } from 'bun:test'
+import { logger } from '@package/telemetry'
 import pg from 'pg'
 import { getConnectionConfig, TEST_DATABASE } from '#test-helpers/database'
 import { DrizzleDatabaseContext } from './database-context'
@@ -102,5 +103,17 @@ describe('DrizzleDatabaseContext', () => {
 		await client.query(`insert into ${TABLE} (value) values (null)`).catch(() => undefined)
 		await expect(context.commitTransaction()).rejects.toThrow('Transaction rolled back')
 		expect([await values(), context.isTransactionActive]).toEqual([[], false])
+	})
+
+	it('logs a failed rollback instead of throwing, and leaves the level', async () => {
+		const errorLogSpy = spyOn(logger, 'error')
+		await context.startTransaction()
+		await context.startTransaction()
+		// The savepoint no longer exists: rolling back to it fails
+		await client.query('RELEASE SAVEPOINT sp_1')
+		await context.rollbackTransaction()
+		const loggedMessage = errorLogSpy.mock.lastCall?.at(1)
+		errorLogSpy.mockRestore()
+		expect([context.isTransactionActive, loggedMessage]).toEqual([true, 'Transaction rollback failed.'])
 	})
 })

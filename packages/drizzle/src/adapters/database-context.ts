@@ -1,4 +1,5 @@
 import type { DatabaseContext } from '@package/database'
+import { logger } from '@package/telemetry'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import type pg from 'pg'
 
@@ -32,11 +33,15 @@ export class DrizzleDatabaseContext implements DatabaseContext {
 		if (!this.isTransactionActive) {
 			return
 		}
-		this.transactionDepth--
-		if (this.transactionDepth === 0) {
-			await this.client.query('ROLLBACK')
-		} else {
-			await this.client.query(`ROLLBACK TO SAVEPOINT sp_${this.transactionDepth}`)
+		const depth = this.transactionDepth - 1
+		try {
+			await this.client.query(depth === 0 ? 'ROLLBACK' : `ROLLBACK TO SAVEPOINT sp_${depth}`)
+		} catch (error) {
+			// Rollbacks run in error handlers: a failure is logged, so it does not replace the original error
+			logger.error({ error, transactionDepth: depth }, 'Transaction rollback failed.')
+		} finally {
+			// The level is left whether the rollback succeeded or not
+			this.transactionDepth = depth
 		}
 	}
 
