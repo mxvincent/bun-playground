@@ -27,10 +27,12 @@ export class DrizzleDatabaseContext implements DatabaseContext {
 	}
 
 	/**
-	 * Roll back the current transaction, or its last savepoint; without transaction, do nothing
+	 * Roll back the current transaction, or its last savepoint; without transaction, log a warning
 	 */
 	async rollbackTransaction() {
 		if (!this.isTransactionActive) {
+			// A rollback without transaction reveals unbalanced calls: warn, since debug logs are off in production
+			logger.warn('There is no transaction to rollback.')
 			return
 		}
 		const depth = this.transactionDepth - 1
@@ -46,10 +48,12 @@ export class DrizzleDatabaseContext implements DatabaseContext {
 	}
 
 	/**
-	 * Commit the current transaction, or release its last savepoint; without transaction, do nothing
+	 * Commit the current transaction, or release its last savepoint; without transaction, log a warning
 	 */
 	async commitTransaction() {
 		if (!this.isTransactionActive) {
+			// A commit without transaction reveals unbalanced calls: warn, since debug logs are off in production
+			logger.warn('There is no transaction to commit.')
 			return
 		}
 		const depth = this.transactionDepth - 1

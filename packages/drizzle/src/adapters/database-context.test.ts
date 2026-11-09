@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it, spyOn } from 'bun:test'
+import { afterAll, afterEach, beforeAll, describe, expect, it, mock, spyOn } from 'bun:test'
 import { logger } from '@package/telemetry'
 import pg from 'pg'
 import { getConnectionConfig, TEST_DATABASE } from '#test-helpers/database'
@@ -19,8 +19,9 @@ beforeAll(async () => {
 	await client.query(`truncate ${TABLE}`)
 })
 
-// Runs even when a test fails: no open transaction or row leaks into the next test
+// Runs even when a test fails: no spy, open transaction or row leaks into the next test
 afterEach(async () => {
+	mock.restore()
 	while (context.isTransactionActive) {
 		await context.rollbackTransaction()
 	}
@@ -113,7 +114,16 @@ describe('DrizzleDatabaseContext', () => {
 		await client.query('RELEASE SAVEPOINT sp_1')
 		await context.rollbackTransaction()
 		const loggedMessage = errorLogSpy.mock.lastCall?.at(1)
-		errorLogSpy.mockRestore()
 		expect([context.isTransactionActive, loggedMessage]).toEqual([true, 'Transaction rollback failed.'])
+	})
+
+	it.each([
+		['commitTransaction', 'There is no transaction to commit.'],
+		['rollbackTransaction', 'There is no transaction to rollback.']
+	] as const)('warns about %s without transaction', async (method, message) => {
+		const warnLogSpy = spyOn(logger, 'warn')
+		await context[method]()
+		const loggedMessage = warnLogSpy.mock.lastCall?.at(0)
+		expect(loggedMessage).toBe(message)
 	})
 })
