@@ -17,6 +17,7 @@ const normalizeValue = (value: unknown): string | undefined => {
 			return value
 		case 'number':
 		case 'bigint':
+		case 'boolean':
 			return String(value)
 		case 'object':
 			if (value instanceof Date) {
@@ -30,7 +31,7 @@ const normalizeValue = (value: unknown): string | undefined => {
 
 /**
  * Compare an item value with a filter value, by the type of the item value:
- * numbers as numbers, dates as timestamps, strings as strings.
+ * numbers as numbers, dates as timestamps, booleans as `true`/`false`, strings as strings.
  * Returns undefined when the values cannot be compared (missing value, unparsable filter value).
  */
 const compareValues = (value: unknown, filterValue: string): number | undefined => {
@@ -48,6 +49,11 @@ const compareValues = (value: unknown, filterValue: string): number | undefined 
 			} catch {
 				return undefined
 			}
+		case 'boolean':
+			// false < true, like PostgreSQL
+			return filterValue === 'true' || filterValue === 'false'
+				? order(Number(value), Number(filterValue === 'true'))
+				: undefined
 		case 'object':
 			if (value instanceof Date) {
 				const parsed = Date.parse(filterValue)

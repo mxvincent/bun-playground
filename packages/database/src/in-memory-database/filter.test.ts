@@ -314,3 +314,22 @@ describe('typed comparisons', () => {
 		expect(ids(ComparisonFilter.lessThan('age', 'abc'))).toEqual([])
 	})
 })
+
+describe('boolean values', () => {
+	const items = [
+		{ id: '1', active: true },
+		{ id: '2', active: false },
+		{ id: '3', active: null }
+	]
+
+	it('notNull keeps true and false', () => {
+		expect(filterArrayWith(items, [ComparisonFilter.notNull('active')]).map(({ id }) => id)).toEqual(['1', '2'])
+	})
+
+	it.each([
+		['true', ['1']],
+		['false', ['2']]
+	])('equal matches %p', (value, expected) => {
+		expect(filterArrayWith(items, [ComparisonFilter.equal('active', value)]).map(({ id }) => id)).toEqual(expected)
+	})
+})
