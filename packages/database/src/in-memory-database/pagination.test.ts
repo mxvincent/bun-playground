@@ -156,3 +156,23 @@ describe('should allow pagination when sort is done with a field that contain nu
 		})
 	})
 })
+
+describe('page after the last item', () => {
+	const resources = createAuthors(DATASET_SIZE)
+	const pager = new ArrayPager(resources, { filters: [], sorts: [Sort.asc('id')] })
+	const cursor = pager.cursorTransformer.encode(invariant(resources.at(-1)))
+
+	it('returns no edge and the total count', async () => {
+		expect(await pager.getPage(Pagination.take(PAGE_SIZE, cursor))).toStrictEqual({
+			edges: [],
+			hasNextPage: false,
+			totalCount: DATASET_SIZE
+		})
+	})
+
+	it('returns a null total count when the count is not requested', async () => {
+		const pagination = Pagination.take(PAGE_SIZE, cursor)
+		pagination.isCountRequested = false
+		expect((await pager.getPage(pagination)).totalCount).toBeNull()
+	})
+})
