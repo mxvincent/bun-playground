@@ -15,10 +15,13 @@ const isFastifyClientError = (error: FastifyError): boolean =>
 export const fastifyErrorHandler: FastifyPluginAsync = plugin(
 	async (app: FastifyInstance): Promise<void> => {
 		app.setErrorHandler(async (error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {
-			app.log.error({ error, request }, 'Unhandled error')
+			// Expected errors (4xx) are logged with the response by fastifyRequestLogger: only log the others
+			const isExpected = (error instanceof BaseError && error.statusCode < 500) || isFastifyClientError(error)
+			if (!isExpected) {
+				app.log.error({ error, request }, 'Unhandled error')
+			}
 
 			if (error instanceof BaseError) {
-				console.log(error.toJSON())
 				reply.statusCode = error.statusCode
 				return error.toJSON()
 			}
