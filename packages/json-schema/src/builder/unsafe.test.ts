@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'bun:test'
-import { Kind, Type } from '@sinclair/typebox'
+import { Type } from 'typebox'
 import { Nullable, StringEnum } from './unsafe'
 
 describe('Nullable()', () => {
 	it('makes the schema nullable', () => {
-		expect(Nullable(Type.String())).toMatchObject({ nullable: true, type: 'string', [Kind]: 'String' })
+		expect(Nullable(Type.String())).toMatchObject({ nullable: true, type: 'string' })
 	})
 
 	it('keeps the default value of the base schema', () => {
@@ -18,7 +18,7 @@ describe('Nullable()', () => {
 
 describe('StringEnum()', () => {
 	it('creates a string enum', () => {
-		expect(StringEnum(['alice', 'bob'])).toMatchObject({ enum: ['alice', 'bob'], type: 'string', [Kind]: 'Unsafe' })
+		expect(StringEnum(['alice', 'bob'])).toMatchObject({ enum: ['alice', 'bob'], type: 'string' })
 	})
 
 	it('sets the given default value', () => {

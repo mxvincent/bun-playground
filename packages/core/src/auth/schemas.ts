@@ -1,4 +1,4 @@
-import { type Static, Type } from '@sinclair/typebox'
+import { type Static, Type } from 'typebox'
 import { JWTAlgorithm, JWTAsymmetricAlgorithm, JWTSymmetricAlgorithm } from './types'
 
 const commonProperties = {

@@ -1,4 +1,4 @@
-import { type SchemaOptions, type Static, type TSchema, type TUnsafe, Type } from '@sinclair/typebox'
+import { type Static, type TSchema, type TSchemaOptions, type TUnsafe, Type } from 'typebox'
 
 /**
  * Creates a nullable version of the given schema.
@@ -9,14 +9,14 @@ export const Nullable = <T extends TSchema>(
 	schema: T,
 	options?: { default?: null | Static<T> }
 ): TUnsafe<Static<T> | null> => {
-	const unsafeSchemaOptions: SchemaOptions = {
+	const nullableSchema: TSchema & { nullable: true; default?: unknown } = {
 		...schema,
 		nullable: true
 	}
 	if (options?.default !== undefined) {
-		unsafeSchemaOptions.default = options.default
+		nullableSchema.default = options.default
 	}
-	return Type.Unsafe(unsafeSchemaOptions)
+	return Type.Unsafe(nullableSchema)
 }
 
 /**
@@ -29,7 +29,7 @@ export const StringEnum = <T extends ReadonlyArray<string>>(
 	values: readonly [...T],
 	options?: { default?: T[number] }
 ): TUnsafe<T[number]> => {
-	const unsafeSchemaOptions: SchemaOptions = {
+	const unsafeSchemaOptions: TSchemaOptions = {
 		type: 'string',
 		enum: values
 	}

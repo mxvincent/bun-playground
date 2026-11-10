@@ -1,4 +1,4 @@
-import { type TSchema, Type } from '@sinclair/typebox'
+import { type TSchema, Type } from 'typebox'
 
 export const PageSchema = <T extends TSchema>(NodeSchema: T) => {
 	return Type.Object({

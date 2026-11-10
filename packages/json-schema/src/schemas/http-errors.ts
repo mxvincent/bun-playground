@@ -1,8 +1,8 @@
-import type { ObjectOptions, TProperties } from '@sinclair/typebox'
+import type { TObjectOptions, TProperties } from 'typebox'
 import { Schema } from '../builder'
 
 export const HttpErrorSchema = (
-	options: Pick<ObjectOptions, 'description' | '$id'> & Partial<{ withProperties: TProperties }>
+	options: Pick<TObjectOptions, 'description' | '$id'> & Partial<{ withProperties: TProperties }>
 ) => {
 	return Schema.Object(
 		{

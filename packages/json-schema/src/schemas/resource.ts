@@ -1,4 +1,4 @@
-import { type ObjectOptions, type TObject, type TProperties, type TString, Type } from '@sinclair/typebox'
+import { type TObject, type TObjectOptions, type TProperties, type TString, Type } from 'typebox'
 import { DateTime, UUID } from '../builder/formats'
 
 export type ResourceProperties = {
@@ -19,7 +19,7 @@ export const getResourceProperties = (): ResourceProperties => ({
 
 export const ResourceSchema = <T extends TProperties>(
 	properties: T,
-	options?: ObjectOptions
+	options?: TObjectOptions
 ): TObject<ResourceProperties & T> => {
 	return Type.Object(Object.assign(getResourceProperties(), properties), options)
 }

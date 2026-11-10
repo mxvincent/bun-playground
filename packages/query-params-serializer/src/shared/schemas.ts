@@ -1,6 +1,6 @@
-import { type SchemaOptions, Type } from '@package/json-schema'
+import { type TSchemaOptions, Type } from '@package/json-schema'
 
-export const QueryStringParameterSchema = (options?: SchemaOptions) => {
+export const QueryStringParameterSchema = (options?: TSchemaOptions) => {
 	return Type.Union([Type.String(), Type.Array(Type.String())], options)
 }
 
