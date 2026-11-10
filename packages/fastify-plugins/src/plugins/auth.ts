@@ -7,19 +7,21 @@ export type Actor = {
 
 declare module 'fastify' {
 	interface FastifyRequest {
+		/**
+		 * Authenticated actor of the request, `null` for an anonymous request
+		 */
 		actor: Actor | null
 	}
 }
 
+/**
+ * Declare the actor of every request.
+ * No authentication is implemented yet: every request is anonymous (`actor` is `null`).
+ * An authentication sets `request.actor` in an `onRequest` hook.
+ */
 export const fastifyAuth = plugin(
 	async (instance) => {
-		instance.decorateRequest('auth', null)
-		instance.addHook('onRequest', async (request) => {
-			request.actor = {
-				type: 'user',
-				id: '123'
-			}
-		})
+		instance.decorateRequest('actor', null)
 	},
 	{
 		fastify: '5.x'
