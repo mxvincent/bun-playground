@@ -34,6 +34,23 @@ it('logs the start of a request', async () => {
 	expect(requestLogger.info).toHaveBeenCalledWith(expect.anything(), 'Request started')
 })
 
+it('logs the actor set by a hook registered after the logger plugin', async () => {
+	const authenticatedApp = Fastify()
+	await authenticatedApp.register(fastifyRequestContext)
+	await authenticatedApp.register(fastifyRequestLogger)
+	authenticatedApp.decorateRequest('actor', null)
+	authenticatedApp.addHook('onRequest', async (request) => {
+		request.actor = { type: 'service', id: 'billing' }
+	})
+	authenticatedApp.get('/actor', async () => 'ok')
+	await authenticatedApp.inject({ url: '/actor' })
+	await authenticatedApp.close()
+	expect(requestLogger.info).toHaveBeenCalledWith(
+		expect.objectContaining({ actor: { type: 'service', id: 'billing' } }),
+		'Request started'
+	)
+})
+
 it.each([
 	[200, 'info'],
 	[404, 'warn'],

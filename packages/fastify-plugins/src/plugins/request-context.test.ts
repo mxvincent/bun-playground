@@ -23,3 +23,16 @@ it('returns the request id in the x-request-id header', async () => {
 	const response = await app.inject({ url: '/organizations/1' })
 	expect(response.headers['x-request-id']).toBe(response.json().id)
 })
+
+it('reads the actor set by a hook registered after the context plugin', async () => {
+	const authenticatedApp = Fastify()
+	await authenticatedApp.register(fastifyRequestContext)
+	authenticatedApp.decorateRequest('actor', null)
+	authenticatedApp.addHook('onRequest', async (request) => {
+		request.actor = { type: 'service', id: 'billing' }
+	})
+	authenticatedApp.get('/actor', async () => ({ actor: requestContext.getStore()?.actor }))
+	const response = await authenticatedApp.inject({ url: '/actor' })
+	await authenticatedApp.close()
+	expect(response.json<unknown>()).toStrictEqual({ actor: { type: 'service', id: 'billing' } })
+})
