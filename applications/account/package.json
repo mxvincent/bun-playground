@@ -17,7 +17,7 @@
 	},
 	"dependencies": {
 		"@domain/account": "workspace:",
-		"@fastify/type-provider-typebox": "^5.2.0",
+		"@fastify/type-provider-typebox": "^6.1.0",
 		"@package/core": "workspace:*",
 		"@package/database": "workspace:*",
 		"@package/drizzle": "workspace:*",

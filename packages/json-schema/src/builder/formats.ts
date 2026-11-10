@@ -1,4 +1,4 @@
-import { type TString, Type } from '@sinclair/typebox'
+import { type TString, Type } from 'typebox'
 
 /**
  * ISO 8601 date

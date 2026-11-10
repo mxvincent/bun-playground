@@ -2,8 +2,8 @@
  * Validation
  */
 
-export * from '@sinclair/typebox'
-export { Value } from '@sinclair/typebox/value'
+export * from 'typebox'
+export { Value } from 'typebox/value'
 /**
  * Schema
  */
