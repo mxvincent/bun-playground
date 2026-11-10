@@ -156,9 +156,12 @@ BREAKING CHANGE: <description>   # only for a breaking change
 | `perf` | A change made for performance, with a measurable effect |
 | `test` | Adding or reworking tests only |
 | `docs` | Documentation only |
-| `build` | Build tooling, Docker, CI |
-| `chore` | Dependency upgrades, and everything else, nothing a reader of the changelog cares about |
+| `style` | Formatting only, no change to the code meaning |
+| `ci` | CI workflows and actions |
+| `chore` | Dependency upgrades, build tooling, Docker, and everything else a reader of the changelog does not care about |
 | `release` | Reserved for the automated release commit. MUST NOT be used by hand |
+
+No other type is allowed: `build` MUST NOT be used.
 
 ### Scope
 
