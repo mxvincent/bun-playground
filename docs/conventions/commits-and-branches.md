@@ -156,8 +156,8 @@ BREAKING CHANGE: <description>   # only for a breaking change
 | `perf` | A change made for performance, with a measurable effect |
 | `test` | Adding or reworking tests only |
 | `docs` | Documentation only |
-| `build` | Build tooling, Docker, CI, dependencies |
-| `chore` | Everything else, and nothing a reader of the changelog cares about |
+| `build` | Build tooling, Docker, CI |
+| `chore` | Dependency upgrades, and everything else, nothing a reader of the changelog cares about |
 | `release` | Reserved for the automated release commit. MUST NOT be used by hand |
 
 ### Scope
@@ -182,8 +182,8 @@ BREAKING CHANGE: <description>   # only for a breaking change
 - A breaking change MUST be declared with a `BREAKING CHANGE: <what breaks and what to change>`
   footer at the end of the pull request body, never with a `!` after the type or scope. The changeset
   still describes it for the changelog (see [versioning.md](./versioning.md)).
-  ✅ `build(typeorm): upgrade typeorm to 1.1` with a `BREAKING CHANGE: ...` footer
-  ❌ `build(typeorm)!: upgrade typeorm to 1.1`
+  ✅ `chore(typeorm): upgrade typeorm to 1.1` with a `BREAKING CHANGE: ...` footer
+  ❌ `chore(typeorm)!: upgrade typeorm to 1.1`
 - In a stack, an upper pull request targets its parent branch rather than `main`, so its keyword
   does nothing on its own. Merging bottom to top — which `gh stack merge` enforces — retargets each
   pull request onto `main` as the one below it lands, and each issue closes in turn.
