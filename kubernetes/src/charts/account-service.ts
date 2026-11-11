@@ -1,6 +1,6 @@
 import { CONFIG_FILE_NAME } from '#/components/shared'
 import { WebService } from '#/components/workload/web-service'
-import { node } from '#/helpers/command'
+import { bun } from '#/helpers/command'
 import { PostgresConfig } from '#/helpers/config'
 import { defineNamespace } from '#/helpers/namespace'
 import { IMAGE_REGISTRY } from '#/helpers/registry'
@@ -36,7 +36,7 @@ export const accountService = defineNamespace({
 	components: [
 		new WebService({
 			name: 'app-server',
-			command: node('app-server.js'),
+			command: bun('applications/account/src/commands/start-api-server.ts'),
 			config: {
 				[CONFIG_FILE_NAME]: {
 					server: {
