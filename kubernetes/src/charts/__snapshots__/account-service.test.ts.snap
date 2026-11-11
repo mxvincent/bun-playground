@@ -103,7 +103,7 @@ spec:
     cdk8s.io/metadata.addr: production-account-service-app-server-deployment-c82692ec
   type: ClusterIP
 ---
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   labels:
@@ -274,7 +274,7 @@ spec:
     cdk8s.io/metadata.addr: development-account-service-app-server-deployment-c896b293
   type: ClusterIP
 ---
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   labels:
@@ -445,7 +445,7 @@ spec:
     cdk8s.io/metadata.addr: staging-account-service-app-server-deployment-c8ee2527
   type: ClusterIP
 ---
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   labels:

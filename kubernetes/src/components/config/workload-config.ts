@@ -2,9 +2,9 @@ import { join } from 'node:path'
 import { type AbstractPod, type Container, type ISecret, Secret, Volume } from 'cdk8s-plus-33'
 import type { Context } from '#/helpers/context'
 import {
-	ExternalSecretV1Beta1,
-	ExternalSecretV1Beta1SpecTargetCreationPolicy,
-	ExternalSecretV1Beta1SpecTargetTemplateEngineVersion
+	ExternalSecret,
+	ExternalSecretSpecTargetCreationPolicy,
+	ExternalSecretSpecTargetTemplateEngineVersion
 } from '#/imports/external-secrets.io'
 import { EXTERNAL_SECRET_REFRESH_INTERVAL, ExternalSecretRef, SCALEWAY_SECRET_STORE } from '#/plugins/external-secret'
 
@@ -105,16 +105,16 @@ export class WorkloadConfig {
 		}
 
 		const secret = Secret.fromSecretName(this.context.chart, `${this.name}-secret`, this.name)
-		new ExternalSecretV1Beta1(this.context.chart, `${this.name}-external-secret`, {
+		new ExternalSecret(this.context.chart, `${this.name}-external-secret`, {
 			metadata: metadata,
 			spec: {
 				refreshInterval: EXTERNAL_SECRET_REFRESH_INTERVAL,
 				secretStoreRef: SCALEWAY_SECRET_STORE,
 				target: {
 					name: secret.name,
-					creationPolicy: ExternalSecretV1Beta1SpecTargetCreationPolicy.OWNER,
+					creationPolicy: ExternalSecretSpecTargetCreationPolicy.OWNER,
 					template: {
-						engineVersion: ExternalSecretV1Beta1SpecTargetTemplateEngineVersion.V2,
+						engineVersion: ExternalSecretSpecTargetTemplateEngineVersion.V2,
 						data: stringData,
 						metadata
 					}
