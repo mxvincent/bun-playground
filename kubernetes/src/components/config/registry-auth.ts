@@ -1,4 +1,3 @@
-import { Names } from 'cdk8s'
 import { type ISecret, Secret } from 'cdk8s-plus-33'
 import type { Context } from '#/helpers/context'
 import {
@@ -30,13 +29,11 @@ export class ImageRegistryAuth {
 
 	constructor(context: Context, auth: ExternalSecret) {
 		const { chart } = context
-		const resourceId = 'docker-auth'
-		const secretName = Names.toDnsLabel(chart, {
-			extra: [resourceId],
-			includeHash: false
-		})
-		this.secret = Secret.fromSecretName(chart, resourceId, secretName)
-		new ExternalSecretResource(chart, `${resourceId}-secret`, {
+		// The Kubernetes namespace already scopes the secret to its application and environment
+		const secretName = 'docker-auth'
+		this.secret = Secret.fromSecretName(chart, secretName, secretName)
+		new ExternalSecretResource(chart, `${secretName}-secret`, {
+			metadata: { name: secretName },
 			spec: {
 				secretStoreRef: SCALEWAY_SECRET_STORE,
 				refreshInterval: EXTERNAL_SECRET_REFRESH_INTERVAL,
