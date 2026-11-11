@@ -1,32 +1,13 @@
 import { describe, expect, test } from 'bun:test'
 import { App } from 'cdk8s/lib/app'
-import { Chart } from 'cdk8s/lib/chart'
-import { ImageRegistryAuth } from '#/components/config/registry-auth'
-import { type EnvironmentVariables, WorkloadEnvironment } from '#/components/config/workload-environment'
+import type { EnvironmentVariables } from '#/components/config/workload-environment'
 import { WebService } from '#/components/workload/web-service'
-import { ComponentContext, Context } from '#/helpers/context'
+import { defineNamespace } from '#/helpers/namespace'
+import { pinRevision } from '#/helpers/revision.testing'
 import { Application } from '#/interfaces/application'
 import { Environment } from '#/interfaces/environment'
 import { ExternalSecret } from '#/plugins/external-secret'
 import type { IngressConfig } from '#/plugins/ingress'
-
-/**
- * Application context bound to a standalone chart, so that the fixture does not share a scope with real charts
- */
-class FixtureContext extends Context {
-	constructor(chart: Chart) {
-		super(Environment.DEVELOPMENT, Application.ACCOUNT, {
-			name: 'fixture',
-			namespace: 'development-fixture',
-			revision: '0.0.0-snapshot',
-			chart
-		})
-	}
-
-	component(component: string) {
-		return new ComponentContext(this, component)
-	}
-}
 
 interface FixtureOptions {
 	ingress?: IngressConfig
@@ -36,18 +17,19 @@ interface FixtureOptions {
 
 const synthesize = ({ ingress, environment, registryAuth }: FixtureOptions = {}): string => {
 	const app = new App()
-	const context = new FixtureContext(new Chart(app, 'fixture', { disableResourceNameHashes: true }))
-	const component = new WebService({ name: 'app-server', command: ['node', 'app-server.js'], ingress })
-	const componentContext = context.component(component.name)
-	component.generate(componentContext, {
-		image: 'ghcr.io/mxvincent/account-service:0.0.0-snapshot',
-		imagePullSecret: registryAuth && new ImageRegistryAuth(context, registryAuth).secret,
-		environment: environment && new WorkloadEnvironment(componentContext, environment)
-	})
+	defineNamespace({
+		name: 'fixture',
+		application: Application.ACCOUNT,
+		imageRegistry: { url: 'ghcr.io/mxvincent', auth: registryAuth },
+		environment,
+		components: [new WebService({ name: 'app-server', command: ['node', 'app-server.js'], ingress })]
+	}).generate(Environment.DEVELOPMENT, { scope: app })
 	return app.synthYaml()
 }
 
 describe('WebService', () => {
+	pinRevision(Application.ACCOUNT)
+
 	test('exposes the service with the default ingress annotations', () => {
 		expect(synthesize({ ingress: { host: 'fixture.example.com' } })).toMatchSnapshot()
 	})
