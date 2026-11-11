@@ -1,4 +1,5 @@
 import { Chart as CDKChart } from 'cdk8s/lib/chart'
+import type { Construct } from 'constructs'
 import { LABEL_COMPONENT, LABEL_INSTANCE, LABEL_NAME, LABEL_VERSION } from '#/helpers/labels'
 import { getRevision } from '#/helpers/revision'
 import { getApplicationScope } from '#/helpers/scope'
@@ -11,7 +12,10 @@ export type ContextOptions = {
 	/** Kubernetes namespace of every resource of the chart */
 	namespace: string
 	revision?: string
+	/** Chart holding the resources, created in `scope` when omitted */
 	chart?: CDKChart
+	/** Scope of the chart, the global scope of the application when omitted */
+	scope?: Construct
 }
 
 export abstract class Context {
@@ -31,7 +35,7 @@ export abstract class Context {
 		this.revision = options?.revision ?? getRevision(application, environment)
 		this.chart =
 			options.chart ??
-			new CDKChart(getApplicationScope(application), this.environment, {
+			new CDKChart(options.scope ?? getApplicationScope(application), this.environment, {
 				labels: this.labels,
 				namespace: this.namespace,
 				disableResourceNameHashes: true
@@ -55,10 +59,11 @@ export abstract class Context {
 }
 
 export class ApplicationContext extends Context {
-	constructor(environment: Environment, application: Application, namespace: string) {
+	constructor(environment: Environment, application: Application, namespace: string, scope?: Construct) {
 		super(environment, application, {
 			name: application,
-			namespace: `${environment}-${namespace}`
+			namespace: `${environment}-${namespace}`,
+			scope
 		})
 	}
 
