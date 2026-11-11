@@ -41,6 +41,10 @@ spec:
             - /nodejs/bin/node
             - /app/dist/app-server.js
           env:
+            - name: CONFIG_FILE_PATH
+              value: /app/config/config.json
+            - name: NODE_ENV
+              value: production
             - name: AUTH_CLIENT_ID
               value: account-service
           image: ghcr.io/mxvincent/account-service:0.0.0-snapshot
@@ -208,6 +212,10 @@ spec:
             - /nodejs/bin/node
             - /app/dist/app-server.js
           env:
+            - name: CONFIG_FILE_PATH
+              value: /app/config/config.json
+            - name: NODE_ENV
+              value: production
             - name: AUTH_CLIENT_ID
               value: account-service
           image: ghcr.io/mxvincent/account-service:0.0.0-snapshot
@@ -375,6 +383,10 @@ spec:
             - /nodejs/bin/node
             - /app/dist/app-server.js
           env:
+            - name: CONFIG_FILE_PATH
+              value: /app/config/config.json
+            - name: NODE_ENV
+              value: production
             - name: AUTH_CLIENT_ID
               value: account-service
           image: ghcr.io/mxvincent/account-service:0.0.0-snapshot
