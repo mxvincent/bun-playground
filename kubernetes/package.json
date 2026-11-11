@@ -5,6 +5,7 @@
 	"private": true,
 	"scripts": {
 		"debug": "bun src/main.ts",
+		"test": "bun test",
 		"tsc:check": "tsc --noEmit --skipLibCheck",
 		"tsc:check:watch": "tsc --noEmit --watch --skipLibCheck",
 		"lint:check": "biome lint .",
