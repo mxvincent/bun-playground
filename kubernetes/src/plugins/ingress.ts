@@ -7,13 +7,10 @@ export type IngressAnnotations = {
 export type IngressConfig = {
 	host: string
 	path?: string
-	annotations?: IngressAnnotations
-}
-
-export enum IngressAnnotation {
-	SSL_REDIRECT = 'ingress.kubernetes.io/ssl-redirect'
+	annotations?: Partial<IngressAnnotations>
 }
 
 export enum NginxIngressAnnotation {
-	PROXY_BODY_SIZE = 'nginx.ingress.kubernetes.io/proxy-body-size'
+	PROXY_BODY_SIZE = 'nginx.ingress.kubernetes.io/proxy-body-size',
+	SSL_REDIRECT = 'nginx.ingress.kubernetes.io/ssl-redirect'
 }
