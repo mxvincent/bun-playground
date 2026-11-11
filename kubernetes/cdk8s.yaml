@@ -1,5 +1,3 @@
 app: bun src/main.ts
 language: typescript
-imports:
-  - k8s
-  - crd.yaml
+# imports/ is generated from pinned sources by scripts/import-crds.ts (bun run import-api-resources)
