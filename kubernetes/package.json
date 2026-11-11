@@ -1,7 +1,7 @@
 {
 	"name": "kubernetes",
-	"main": "main.ts",
-	"types": "main.ts",
+	"main": "src/main.ts",
+	"types": "src/main.ts",
 	"private": true,
 	"scripts": {
 		"debug": "bun src/main.ts",
@@ -9,7 +9,7 @@
 		"tsc:check": "tsc --noEmit --skipLibCheck",
 		"tsc:check:watch": "tsc --noEmit --watch --skipLibCheck",
 		"lint:check": "biome lint .",
-		"import-api-resources": "kubectl get crds -o yaml > crd.yaml;pnpm cdk8s import --output imports;rm crd.yaml",
+		"import-api-resources": "kubectl get crds -o yaml > crd.yaml;bunx cdk8s import --output imports;rm crd.yaml",
 		"generate-manifests": "cdk8s synth --output manifests --check-upgrade=false"
 	},
 	"devDependencies": {
