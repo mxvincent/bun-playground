@@ -1,5 +1,10 @@
 import { Deployment, Ingress, IngressBackend, Secret } from 'cdk8s-plus-33'
-import { WorkloadComponent, type WorkloadComponentOptions } from '#/components/workload-component'
+import {
+	WorkloadComponent,
+	type WorkloadComponentOptions,
+	type WorkloadSettings
+} from '#/components/workload-component'
+import type { ComponentContext } from '#/helpers/context'
 import { CertManagerAnnotation } from '#/plugins/cert-manager'
 import { type IngressAnnotations, type IngressConfig, NginxIngressAnnotation } from '#/plugins/ingress'
 
@@ -11,17 +16,14 @@ export interface WebServiceOptions extends WorkloadComponentOptions {
 export class WebService extends WorkloadComponent<WebServiceOptions> {
 	static readonly HTTP_PORT = 4000
 
-	name(suffix?: string) {
-		return suffix ? `${this.context.name}-${suffix}` : this.context.name
-	}
-
-	generate() {
-		const { context, options } = this
+	generate(context: ComponentContext, settings: WorkloadSettings) {
+		const { options } = this
+		const name = (suffix: string) => `${context.name}-${suffix}`
 
 		// Configure deployment
-		const deployment = new Deployment(context.chart, this.name('deployment'), {
+		const deployment = new Deployment(context.chart, name('deployment'), {
 			metadata: context.metadata,
-			dockerRegistryAuth: options.imageRegistryAuth?.secret,
+			dockerRegistryAuth: settings.imagePullSecret,
 			replicas: options.replicas ?? 1,
 			podMetadata: context.metadata,
 			securityContext: this.securityContext
@@ -29,12 +31,12 @@ export class WebService extends WorkloadComponent<WebServiceOptions> {
 
 		// Configure deployment container
 		const container = deployment.addContainer({
-			...this.containerProps,
+			...this.containerProps(context, settings),
 			ports: [{ name: 'http', number: WebService.HTTP_PORT }]
 		})
 
 		// Inject configuration
-		this.mountConfiguration(deployment, container)
+		this.mountConfiguration(deployment, container, settings)
 
 		// Expose application with a service
 		const service = deployment.exposeViaService({
@@ -43,11 +45,11 @@ export class WebService extends WorkloadComponent<WebServiceOptions> {
 
 		// Expose application with and ingress (optional)
 		if (options.ingress) {
-			const certSecret = Secret.fromSecretName(context.chart, this.name('ingress-cert'), `${context.name}-cert`)
+			const certSecret = Secret.fromSecretName(context.chart, name('ingress-cert'), `${context.name}-cert`)
 			const annotation = (key: keyof IngressAnnotations, defaultValue: unknown): string => {
 				return String(options.ingress?.annotations?.[key] ?? defaultValue)
 			}
-			const ingress = new Ingress(context.chart, this.name('ingress'), {
+			const ingress = new Ingress(context.chart, name('ingress'), {
 				tls: [
 					{
 						hosts: [options.ingress.host],

@@ -7,30 +7,36 @@ import {
 	ExternalSecretV1Beta1SpecDataRemoteRefDecodingStrategy,
 	ExternalSecretV1Beta1SpecTargetCreationPolicy
 } from '#/imports/external-secrets.io'
-import { EXTERNAL_SECRET_REFRESH_INTERVAL, SCALEWAY_SECRET_STORE } from '#/plugins/external-secret'
+import { EXTERNAL_SECRET_REFRESH_INTERVAL, type ExternalSecret, SCALEWAY_SECRET_STORE } from '#/plugins/external-secret'
 
+/**
+ * Registry the images of a namespace are pulled from
+ */
+export interface ImageRegistry {
+	/** Registry and owner of the images, e.g. `ghcr.io/mxvincent` */
+	readonly url: string
+	/** Secret holding a complete `dockerconfigjson` for the registry; images are pulled anonymously when omitted */
+	readonly auth?: ExternalSecret
+}
+
+/**
+ * Pull secret of an image registry
+ *
+ * The remote secret must already hold a complete `dockerconfigjson`: it is copied as is into a
+ * `kubernetes.io/dockerconfigjson` secret.
+ */
 export class ImageRegistryAuth {
-	context: Context
-	secret: ISecret
-	resourceId = 'docker-auth'
-	externalSecretName = 'image-registry-auth'
+	readonly secret: ISecret
 
-	constructor(context: Context) {
-		this.context = context
-		this.secret = this.createDockerRegistryAuthSecret()
-	}
-
-	/**
-	 * Create docker registry auth secret
-	 */
-	private createDockerRegistryAuthSecret(): ISecret {
-		const { chart } = this.context
+	constructor(context: Context, auth: ExternalSecret) {
+		const { chart } = context
+		const resourceId = 'docker-auth'
 		const secretName = Names.toDnsLabel(chart, {
-			extra: ['docker-auth'],
+			extra: [resourceId],
 			includeHash: false
 		})
-		const secret = Secret.fromSecretName(chart, this.resourceId, secretName)
-		new ExternalSecretV1Beta1(chart, `${this.resourceId}-secret`, {
+		this.secret = Secret.fromSecretName(chart, resourceId, secretName)
+		new ExternalSecretV1Beta1(chart, `${resourceId}-secret`, {
 			spec: {
 				secretStoreRef: SCALEWAY_SECRET_STORE,
 				refreshInterval: EXTERNAL_SECRET_REFRESH_INTERVAL,
@@ -50,13 +56,12 @@ export class ImageRegistryAuth {
 						remoteRef: {
 							conversionStrategy: ExternalSecretV1Beta1SpecDataRemoteRefConversionStrategy.DEFAULT,
 							decodingStrategy: ExternalSecretV1Beta1SpecDataRemoteRefDecodingStrategy.NONE,
-							key: `name:${this.externalSecretName}`,
+							key: `name:${auth.name}`,
 							version: 'latest'
 						}
 					}
 				]
 			}
 		})
-		return secret
 	}
 }
