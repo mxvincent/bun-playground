@@ -85,14 +85,11 @@ export abstract class WorkloadComponent<Options extends WorkloadComponentOptions
 	abstract generate(): void
 
 	protected mountConfiguration(pod: AbstractPod, container: Container) {
-		if (!this.config) {
-			return
-		}
-		// Inject configuration
-		this.config.mount(pod, { container, path: CONFIG_DIRECTORY })
 		// Handle application reload on secret change
 		const secrets: string[] = []
 		if (this.config) {
+			// Inject configuration
+			this.config.mount(pod, { container, path: CONFIG_DIRECTORY })
 			secrets.push(this.config.secret.name)
 		}
 		if (this.environment?.secret) {
