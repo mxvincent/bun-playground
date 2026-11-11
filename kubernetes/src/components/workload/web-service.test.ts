@@ -17,6 +17,7 @@ class FixtureContext extends Context {
 	constructor(chart: Chart) {
 		super(Environment.DEVELOPMENT, Application.ACCOUNT, {
 			name: 'fixture',
+			namespace: 'development-fixture',
 			revision: '0.0.0-snapshot',
 			chart
 		})

@@ -8,6 +8,8 @@ import type { Environment } from '#/interfaces/environment'
 
 export type ContextOptions = {
 	name: string
+	/** Kubernetes namespace of every resource of the chart */
+	namespace: string
 	revision?: string
 	chart?: CDKChart
 }
@@ -18,16 +20,20 @@ export abstract class Context {
 	readonly revision: string
 	readonly chart: CDKChart
 	readonly name: string
+	/** Kubernetes namespace of every resource of the chart */
+	readonly namespace: string
 
 	constructor(environment: Environment, application: Application, options: ContextOptions) {
 		this.application = application
 		this.environment = environment
 		this.name = options.name
+		this.namespace = options.namespace
 		this.revision = options?.revision ?? getRevision(application, environment)
 		this.chart =
 			options.chart ??
 			new CDKChart(getApplicationScope(application), this.environment, {
 				labels: this.labels,
+				namespace: this.namespace,
 				disableResourceNameHashes: true
 			})
 	}
@@ -49,9 +55,10 @@ export abstract class Context {
 }
 
 export class ApplicationContext extends Context {
-	constructor(environment: Environment, application: Application) {
+	constructor(environment: Environment, application: Application, namespace: string) {
 		super(environment, application, {
-			name: application
+			name: application,
+			namespace: `${environment}-${namespace}`
 		})
 	}
 
@@ -68,6 +75,7 @@ export class ComponentContext extends Context {
 		super(parent.environment, parent.application, {
 			chart: parent.chart,
 			name: component,
+			namespace: parent.namespace,
 			revision: parent.revision
 		})
 		this.parent = parent
