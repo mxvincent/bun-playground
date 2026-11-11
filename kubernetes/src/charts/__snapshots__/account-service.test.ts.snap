@@ -157,7 +157,7 @@ spec:
   refreshInterval: 1h
   secretStoreRef:
     kind: ClusterSecretStore
-    name: gcp
+    name: scaleway
   target:
     creationPolicy: Owner
     name: account-service-app-server-config
@@ -328,7 +328,7 @@ spec:
   refreshInterval: 1h
   secretStoreRef:
     kind: ClusterSecretStore
-    name: gcp
+    name: scaleway
   target:
     creationPolicy: Owner
     name: account-service-app-server-config
@@ -499,7 +499,7 @@ spec:
   refreshInterval: 1h
   secretStoreRef:
     kind: ClusterSecretStore
-    name: gcp
+    name: scaleway
   target:
     creationPolicy: Owner
     name: account-service-app-server-config

@@ -5,10 +5,9 @@ import {
 	ExternalSecretV1Beta1,
 	ExternalSecretV1Beta1SpecDataRemoteRefConversionStrategy,
 	ExternalSecretV1Beta1SpecDataRemoteRefDecodingStrategy,
-	ExternalSecretV1Beta1SpecSecretStoreRefKind,
 	ExternalSecretV1Beta1SpecTargetCreationPolicy
 } from '#/imports/external-secrets.io'
-import { EXTERNAL_SECRET_REFRESH_INTERVAL } from '#/plugins/external-secret'
+import { EXTERNAL_SECRET_REFRESH_INTERVAL, SCALEWAY_SECRET_STORE } from '#/plugins/external-secret'
 
 export class ImageRegistryAuth {
 	context: Context
@@ -33,10 +32,7 @@ export class ImageRegistryAuth {
 		const secret = Secret.fromSecretName(chart, this.resourceId, secretName)
 		new ExternalSecretV1Beta1(chart, `${this.resourceId}-secret`, {
 			spec: {
-				secretStoreRef: {
-					kind: ExternalSecretV1Beta1SpecSecretStoreRefKind.CLUSTER_SECRET_STORE,
-					name: 'scaleway'
-				},
+				secretStoreRef: SCALEWAY_SECRET_STORE,
 				refreshInterval: EXTERNAL_SECRET_REFRESH_INTERVAL,
 				target: {
 					name: secretName,

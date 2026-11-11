@@ -6,7 +6,7 @@ import {
 	ExternalSecretV1Beta1SpecTargetCreationPolicy,
 	ExternalSecretV1Beta1SpecTargetTemplateEngineVersion
 } from '#/imports/external-secrets.io'
-import { EXTERNAL_SECRET_REFRESH_INTERVAL, EXTERNAL_SECRET_STORE, ExternalSecretRef } from '#/plugins/external-secret'
+import { EXTERNAL_SECRET_REFRESH_INTERVAL, ExternalSecretRef, SCALEWAY_SECRET_STORE } from '#/plugins/external-secret'
 import { findOrCreate } from '#helpers/misc'
 
 export type JSONLike<T> = T | { [x: string]: JSONLike<T> } | Array<JSONLike<T>>
@@ -83,7 +83,7 @@ export class WorkloadConfig {
 			metadata: metadata,
 			spec: {
 				refreshInterval: EXTERNAL_SECRET_REFRESH_INTERVAL,
-				secretStoreRef: EXTERNAL_SECRET_STORE,
+				secretStoreRef: SCALEWAY_SECRET_STORE,
 				target: {
 					name: secret.name,
 					creationPolicy: ExternalSecretV1Beta1SpecTargetCreationPolicy.OWNER,
