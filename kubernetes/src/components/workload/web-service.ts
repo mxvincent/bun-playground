@@ -1,12 +1,7 @@
 import { Deployment, Ingress, IngressBackend, Secret } from 'cdk8s-plus-33'
 import { WorkloadComponent, type WorkloadComponentOptions } from '#/components/workload-component'
 import { CertManagerAnnotation } from '#/plugins/cert-manager'
-import {
-	IngressAnnotation,
-	type IngressAnnotations,
-	type IngressConfig,
-	NginxIngressAnnotation
-} from '#/plugins/ingress'
+import { type IngressAnnotations, type IngressConfig, NginxIngressAnnotation } from '#/plugins/ingress'
 
 export interface WebServiceOptions extends WorkloadComponentOptions {
 	readonly replicas?: number
@@ -63,7 +58,7 @@ export class WebService extends WorkloadComponent<WebServiceOptions> {
 					...context.metadata,
 					annotations: {
 						[CertManagerAnnotation.CERT_ISSUER]: annotation('certIssuer', 'acme-http'),
-						[IngressAnnotation.SSL_REDIRECT]: annotation('sslRedirect', true)
+						[NginxIngressAnnotation.SSL_REDIRECT]: annotation('sslRedirect', true)
 					}
 				}
 			})
