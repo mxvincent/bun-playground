@@ -39,8 +39,8 @@ spec:
       automountServiceAccountToken: false
       containers:
         - command:
-            - /nodejs/bin/node
-            - /app/dist/app-server.js
+            - /usr/local/bin/bun
+            - /app/applications/account/src/commands/start-api-server.ts
           env:
             - name: CONFIG_FILE_PATH
               value: /app/config/config.json
@@ -213,8 +213,8 @@ spec:
       automountServiceAccountToken: false
       containers:
         - command:
-            - /nodejs/bin/node
-            - /app/dist/app-server.js
+            - /usr/local/bin/bun
+            - /app/applications/account/src/commands/start-api-server.ts
           env:
             - name: CONFIG_FILE_PATH
               value: /app/config/config.json
@@ -387,8 +387,8 @@ spec:
       automountServiceAccountToken: false
       containers:
         - command:
-            - /nodejs/bin/node
-            - /app/dist/app-server.js
+            - /usr/local/bin/bun
+            - /app/applications/account/src/commands/start-api-server.ts
           env:
             - name: CONFIG_FILE_PATH
               value: /app/config/config.json
