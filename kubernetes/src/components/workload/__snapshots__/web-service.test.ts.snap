@@ -228,7 +228,7 @@ spec:
 `;
 
 exports[`WebService reloads the workload when the environment secret changes without a config file 1`] = `
-"apiVersion: external-secrets.io/v1beta1
+"apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   labels:
@@ -347,7 +347,7 @@ spec:
 `;
 
 exports[`WebService pulls the image with the registry pull secret 1`] = `
-"apiVersion: external-secrets.io/v1beta1
+"apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: fixture-docker-auth-secret
