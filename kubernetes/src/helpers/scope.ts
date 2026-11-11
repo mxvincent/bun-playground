@@ -24,10 +24,10 @@ export const getEnvironmentScope = (environment: Environment): CDKScope => {
 }
 
 export const synthesizeAllResources = () => {
-	for (const applicationScope of Object.values(applicationScopes)) {
+	for (const applicationScope of applicationScopes.values()) {
 		applicationScope.synth()
 	}
-	for (const environmentScope of Object.values(environmentScopes)) {
+	for (const environmentScope of environmentScopes.values()) {
 		environmentScope.synth()
 	}
 }
