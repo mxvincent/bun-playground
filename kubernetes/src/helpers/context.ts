@@ -1,15 +1,10 @@
 import { Chart as CDKChart } from 'cdk8s/lib/chart'
-import { type IServiceAccount, ServiceAccount } from 'cdk8s-plus-33'
 import { LABEL_COMPONENT, LABEL_INSTANCE, LABEL_NAME, LABEL_VERSION } from '#/helpers/labels'
 import { getRevision } from '#/helpers/revision'
 import { getApplicationScope } from '#/helpers/scope'
 import type { ObjectMeta } from '#/imports/k8s'
-import { ExternalSecret } from '#/plugins/external-secret'
-import { findOrCreate } from '#helpers/misc'
-import type { Application } from '#interfaces/application'
-import type { Environment } from '#interfaces/environment'
-
-const serviceAccounts = new Map<`${Environment}-${Application}`, IServiceAccount>()
+import type { Application } from '#/interfaces/application'
+import type { Environment } from '#/interfaces/environment'
 
 export type ContextOptions = {
 	name: string
@@ -37,13 +32,6 @@ export abstract class Context {
 			})
 	}
 
-	get secrets() {
-		return {
-			environment: new ExternalSecret(this.environment),
-			application: new ExternalSecret(`${this.environment}-${this.application}`)
-		}
-	}
-
 	get labels(): Record<string, string> {
 		return {
 			[LABEL_NAME]: this.application,
@@ -57,12 +45,6 @@ export abstract class Context {
 			name: this.name,
 			labels: this.labels
 		} satisfies ObjectMeta
-	}
-
-	get serviceAccount(): IServiceAccount | undefined {
-		return findOrCreate(serviceAccounts, `${this.environment}-${this.application}`, () => {
-			return ServiceAccount.fromServiceAccountName(this.chart, 'application-service-account', this.application)
-		})
 	}
 }
 
@@ -92,13 +74,6 @@ export class ComponentContext extends Context {
 		this.component = component
 	}
 
-	override get secrets() {
-		return {
-			...this.parent.secrets,
-			component: new ExternalSecret(`${this.environment}-${this.application}-${this.component}`)
-		}
-	}
-
 	override get labels() {
 		return {
 			...super.labels,
@@ -106,5 +81,3 @@ export class ComponentContext extends Context {
 		}
 	}
 }
-
-export type Provider<Value, Context = ApplicationContext | ComponentContext> = (context: Context) => Value

@@ -1,7 +1,6 @@
 import { App as CDKScope } from 'cdk8s/lib/app'
-import { findOrCreate } from '#helpers/misc'
-import type { Application } from '#interfaces/application'
-import type { Environment } from '#interfaces/environment'
+import { findOrCreate } from '#/helpers/misc'
+import type { Application } from '#/interfaces/application'
 
 const applicationScopes = new Map<string, CDKScope>()
 export const getApplicationScope = (application: Application): CDKScope => {
@@ -13,21 +12,8 @@ export const getApplicationScope = (application: Application): CDKScope => {
 	})
 }
 
-const environmentScopes = new Map<string, CDKScope>()
-export const getEnvironmentScope = (environment: Environment): CDKScope => {
-	return findOrCreate(environmentScopes, environment, () => {
-		return new CDKScope({
-			outdir: `manifests/${environment}`,
-			outputFileExtension: '.yaml'
-		})
-	})
-}
-
 export const synthesizeAllResources = () => {
 	for (const applicationScope of applicationScopes.values()) {
 		applicationScope.synth()
-	}
-	for (const environmentScope of environmentScopes.values()) {
-		environmentScope.synth()
 	}
 }
