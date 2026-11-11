@@ -1,8 +1,11 @@
 import { describe, expect, test } from 'bun:test'
 import { App } from 'cdk8s/lib/app'
 import { Chart } from 'cdk8s/lib/chart'
+import { WorkloadEnvironment } from '#/components/config/workload-environment'
+import type { ConfigProviders } from '#/components/shared'
 import { WebService } from '#/components/workload/web-service'
 import { ComponentContext, Context } from '#/helpers/context'
+import { ExternalSecret } from '#/plugins/external-secret'
 import type { IngressConfig } from '#/plugins/ingress'
 import { Application } from '#interfaces/application'
 import { Environment } from '#interfaces/environment'
@@ -24,10 +27,12 @@ class FixtureContext extends Context {
 	}
 }
 
-const synthesize = (ingress: IngressConfig): string => {
+const synthesize = (ingress?: IngressConfig, providers: ConfigProviders = {}): string => {
 	const app = new App()
 	const context = new FixtureContext(new Chart(app, 'fixture', { disableResourceNameHashes: true }))
-	new WebService(context.component('app-server'), { command: ['node', 'app-server.js'], ingress }).generate()
+	const component = new WebService(context.component('app-server'), { command: ['node', 'app-server.js'], ingress })
+	component.configure(providers)
+	component.generate()
 	return app.synthYaml()
 }
 
@@ -38,5 +43,11 @@ describe('WebService', () => {
 
 	test('accepts a subset of the ingress annotations', () => {
 		expect(synthesize({ host: 'fixture.example.com', annotations: { proxyBodySize: '10m' } })).toMatchSnapshot()
+	})
+
+	test('reloads the workload when the environment secret changes without a config file', () => {
+		const secrets = new ExternalSecret('fixture-secrets')
+		const environment = (context: Context) => WorkloadEnvironment.register(context, { API_KEY: secrets.ref('API_KEY') })
+		expect(synthesize(undefined, { environment })).toMatchSnapshot()
 	})
 })
