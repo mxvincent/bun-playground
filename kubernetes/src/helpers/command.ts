@@ -11,5 +11,5 @@ export const node = (main: string, options: CommandOptions = {}) => {
 
 export const bun = (main: string, options: CommandOptions = {}) => {
 	options.rootDir ??= '/app/src'
-	return ['/nodejs/bin/node', join(options.rootDir, main)]
+	return ['/usr/local/bin/bun', join(options.rootDir, main)]
 }
