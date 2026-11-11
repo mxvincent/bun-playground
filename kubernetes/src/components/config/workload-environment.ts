@@ -3,10 +3,13 @@ import type { Context } from '#/helpers/context'
 import {
 	ExternalSecretV1Beta1,
 	type ExternalSecretV1Beta1SpecDataRemoteRef,
-	ExternalSecretV1Beta1SpecSecretStoreRefKind,
 	ExternalSecretV1Beta1SpecTargetCreationPolicy
 } from '#/imports/external-secrets.io'
-import { EXTERNAL_SECRET_REFRESH_INTERVAL, type ExternalSecretRef } from '#/plugins/external-secret'
+import {
+	EXTERNAL_SECRET_REFRESH_INTERVAL,
+	type ExternalSecretRef,
+	SCALEWAY_SECRET_STORE
+} from '#/plugins/external-secret'
 import { findOrCreate } from '#helpers/misc'
 
 export type EnvironmentValue = string | ExternalSecretRef
@@ -74,10 +77,7 @@ export class WorkloadEnvironment {
 			},
 			spec: {
 				refreshInterval: EXTERNAL_SECRET_REFRESH_INTERVAL,
-				secretStoreRef: {
-					kind: ExternalSecretV1Beta1SpecSecretStoreRefKind.CLUSTER_SECRET_STORE,
-					name: 'scaleway'
-				},
+				secretStoreRef: SCALEWAY_SECRET_STORE,
 				target: {
 					name: secret.name,
 					creationPolicy: ExternalSecretV1Beta1SpecTargetCreationPolicy.OWNER
