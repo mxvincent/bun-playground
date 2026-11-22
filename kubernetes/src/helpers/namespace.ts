@@ -12,7 +12,7 @@ import type { Environment } from '#/interfaces/environment'
  * Declaration of a workload namespace
  */
 export interface WorkloadNamespaceOptions {
-	/** Name of the namespace */
+	/** Name of the namespace, prefixed by the environment for the Kubernetes namespace */
 	readonly name: string
 	/** Application providing the image and the revision run by every component */
 	readonly application: Application
@@ -54,7 +54,7 @@ export const defineNamespace = (options: WorkloadNamespaceOptions): WorkloadName
 		name: options.name,
 		application: options.application,
 		generate(environment) {
-			const context = new ApplicationContext(environment, options.application)
+			const context = new ApplicationContext(environment, options.application, options.name)
 			const { url, auth } = options.imageRegistry
 			const image = `${url}/${context.application}:${context.revision}`
 			const imagePullSecret = auth && new ImageRegistryAuth(context, auth).secret

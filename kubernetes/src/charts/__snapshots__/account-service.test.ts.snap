@@ -12,6 +12,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: production-account-service
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -93,6 +94,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: production-account-service
 spec:
   externalIPs: []
   ports:
@@ -112,6 +114,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server-config
+  namespace: production-account-service
 spec:
   data:
     - remoteRef:
@@ -183,6 +186,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: development-account-service
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -264,6 +268,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: development-account-service
 spec:
   externalIPs: []
   ports:
@@ -283,6 +288,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server-config
+  namespace: development-account-service
 spec:
   data:
     - remoteRef:
@@ -354,6 +360,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: staging-account-service
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -435,6 +442,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: staging-account-service
 spec:
   externalIPs: []
   ports:
@@ -454,6 +462,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server-config
+  namespace: staging-account-service
 spec:
   data:
     - remoteRef:
