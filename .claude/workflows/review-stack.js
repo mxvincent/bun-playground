@@ -263,7 +263,7 @@ Do not change files.`,
 const handBack = []
 let pending = new Map() // round 1 reviews the whole pull requests; later rounds verify the findings of the re-review
 let openThreads = new Map() // unresolved threads per pull request after the last re-review
-let leftover = [] // non-blocker findings of the last re-review: they start no round, so the result carries them
+let leftover = [] // non-blocker findings of the last re-review: they start no round; when no round follows, the result carries them
 let clean = false
 
 for (let round = 1; round <= MAX_ROUNDS && !clean; round++) {
