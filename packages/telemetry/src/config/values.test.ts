@@ -1,4 +1,5 @@
 import { afterEach, expect, it } from 'bun:test'
+import { AssertionError } from 'node:assert'
 import { TelemetryConfigKey } from './enums'
 import { getConfigValue } from './values'
 
@@ -30,6 +31,9 @@ it('falls back to the default value', () => {
 it('throws when a value without default is missing', () => {
 	delete process.env[TelemetryConfigKey.SERVICE_NAME]
 	expect(() => getConfigValue(TelemetryConfigKey.SERVICE_NAME)).toThrow(
-		'Environment variable is missing: TELEMETRY_SERVICE_NAME'
+		expect.objectContaining({
+			constructor: AssertionError,
+			message: 'Environment variable is missing: TELEMETRY_SERVICE_NAME'
+		})
 	)
 })
