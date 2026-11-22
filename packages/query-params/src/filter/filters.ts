@@ -70,6 +70,13 @@ export abstract class ComparisonFilter<T extends string = string> {
 		this.path = path
 	}
 
+	/**
+	 * The operator and the path, like `equal:name`. The values are left out: they may be long or sensitive.
+	 */
+	toString(): string {
+		return `${this.operator}:${this.path}`
+	}
+
 	toJSON() {
 		return { type: this.type, operator: this.operator, path: this.path }
 	}
@@ -86,6 +93,13 @@ export class LogicalFilter<T extends string = string> {
 	constructor(operator: LogicalOperator, filters: Filter<T>[]) {
 		this.operator = operator
 		this.filters = filters
+	}
+
+	/**
+	 * The operator and the nested filters, like `or(equal:name,null:email)`
+	 */
+	toString(): string {
+		return `${this.operator}(${this.filters.map((filter) => filter.toString()).join(',')})`
 	}
 
 	toJSON(): JsonObject {
