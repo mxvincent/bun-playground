@@ -39,19 +39,46 @@ describe('parseFilters()', () => {
 	})
 
 	it.each([
-		['a malformed filter', 'equal'],
-		['an unknown operator', 'unknown(a,b)'],
-		['a logical filter without filters', 'or()'],
-		['a filter without path', `equal(,${v('a')})`],
-		['a value filter without value', 'equal(a)'],
-		['a logical filter with unbalanced parentheses', `or(equal(a,${v('a')})`],
-		['a logical filter cut by a raw parenthesis in a value', 'or(equal(a,x)y),null(b))'],
-		['a value that is not base64url', 'equal(a,YQ==)'],
-		['an array value that is not base64url', `in(a,${v('b')},YQ==)`],
-		['a value that is not UTF-8 text', `equal(a,${Buffer.from([0xff]).toString('base64url')})`],
-		['a value filter with several values', `equal(a,${v('b')},${v('c')})`],
-		['a null filter with a value', `null(a,${v('b')})`]
-	])('rejects %s', (_case, queryStringParameter) => {
-		expect(() => parseFilters(queryStringParameter)).toThrow(QueryStringParameterValidationError)
+		['a malformed filter', 'equal', 'Malformed filter', ['equal']],
+		['an unknown operator', 'unknown(a,b)', 'Invalid filter', ['unknown is not a valid filter operator']],
+		['a logical filter without filters', 'or()', 'Can not extract parameters', ['or()']],
+		['a filter without path', `equal(,${v('a')})`, 'Can not extract filter path', [`equal(,${v('a')})`]],
+		['a value filter without value', 'equal(a)', 'Can not extract filter value', ['equal(a)']],
+		[
+			'a logical filter with unbalanced parentheses',
+			`or(equal(a,${v('a')})`,
+			'Malformed filter',
+			[`equal(a,${v('a')}`]
+		],
+		[
+			'a logical filter cut by a raw parenthesis in a value',
+			'or(equal(a,x)y),null(b))',
+			'Malformed filter',
+			['equal(a,x)y),null(b)']
+		],
+		['a value that is not base64url', 'equal(a,YQ==)', 'Can not decode filter value', ['equal(a,YQ==)']],
+		[
+			'an array value that is not base64url',
+			`in(a,${v('b')},YQ==)`,
+			'Can not decode filter value',
+			[`in(a,${v('b')},YQ==)`]
+		],
+		[
+			'a value that is not UTF-8 text',
+			`equal(a,${Buffer.from([0xff]).toString('base64url')})`,
+			'Can not decode filter value',
+			[`equal(a,${Buffer.from([0xff]).toString('base64url')})`]
+		],
+		[
+			'a value filter with several values',
+			`equal(a,${v('b')},${v('c')})`,
+			'A value filter takes one value',
+			[`equal(a,${v('b')},${v('c')})`]
+		],
+		['a null filter with a value', `null(a,${v('b')})`, 'A null filter takes no value', [`null(a,${v('b')})`]]
+	])('rejects %s', (_case, queryStringParameter, message, errors) => {
+		expect(() => parseFilters(queryStringParameter)).toThrow(
+			expect.objectContaining({ constructor: QueryStringParameterValidationError, message, errors })
+		)
 	})
 })
