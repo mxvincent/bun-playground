@@ -1,5 +1,20 @@
 # @package/rabbitmq
 
+## 0.3.0
+
+### Minor Changes
+
+- [#360](https://github.com/mxvincent/bun-playground/pull/360) [`6af3748`](https://github.com/mxvincent/bun-playground/commit/6af3748e2666d503d6d7f24464d895142b78f492) Thanks [@mxvincent](https://github.com/mxvincent)! - Throw the existing typed errors instead of a plain `Error`: `AmqpClientError` when `getDefaultChannel()` or `getConnectionManager()` is called before the client is initialized, `AmqpConfigError` when `AmqpQueue.argumentEquals()` compares queues with different names, and `RabbitMQManagementAPIError` (with the response status) when `getQueue()` receives a status other than 200 or 404. Messages do not change.
+
+### Patch Changes
+
+- [#345](https://github.com/mxvincent/bun-playground/pull/345) [`689346a`](https://github.com/mxvincent/bun-playground/commit/689346a75743a2e3a52fad974bec57f5d254d7e8) Thanks [@mxvincent](https://github.com/mxvincent)! - Align the code with the code-style rules that Biome now enforces: exported functions are arrow functions assigned to a `const`, non-null assertions are replaced by narrowing, and Node.js builtins are imported with the `node:` prefix. No export is renamed or removed, and behavior does not change.
+
+- Updated dependencies [[`689346a`](https://github.com/mxvincent/bun-playground/commit/689346a75743a2e3a52fad974bec57f5d254d7e8), [`607bb09`](https://github.com/mxvincent/bun-playground/commit/607bb09cbff3f25d557b839f08050ba716c958e9)]:
+  - @package/core@0.3.0
+  - @package/json-schema@0.2.1
+  - @package/telemetry@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes

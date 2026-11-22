@@ -1,5 +1,15 @@
 # @package/core
 
+## 0.3.0
+
+### Minor Changes
+
+- [#356](https://github.com/mxvincent/bun-playground/pull/356) [`607bb09`](https://github.com/mxvincent/bun-playground/commit/607bb09cbff3f25d557b839f08050ba716c958e9) Thanks [@mxvincent](https://github.com/mxvincent)! - Throw typed errors that extend `BaseError`, each with its own `code`: `MissingEnvironmentVariableError` (`EnvValue`), `ContextNotInitializedError` (`AsyncStore`), `InvalidRandomStringParameterError` (`RandomStringGenerator`), `PackageRootNotFoundError` (`getPackageRootPath`) and `FileNotReadableError` (`readJsonFileSync`). Messages do not change, and the errors are still instances of `Error`.
+
+### Patch Changes
+
+- [#345](https://github.com/mxvincent/bun-playground/pull/345) [`689346a`](https://github.com/mxvincent/bun-playground/commit/689346a75743a2e3a52fad974bec57f5d254d7e8) Thanks [@mxvincent](https://github.com/mxvincent)! - Align the code with the code-style rules that Biome now enforces: exported functions are arrow functions assigned to a `const`, non-null assertions are replaced by narrowing, and Node.js builtins are imported with the `node:` prefix. No export is renamed or removed, and behavior does not change.
+
 ## 0.2.0
 
 ### Minor Changes
