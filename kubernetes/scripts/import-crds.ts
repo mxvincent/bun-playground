@@ -12,9 +12,9 @@ await importCrds({
 	kubernetesApi: false,
 	sources: {
 		'argoproj.io': [
-			'https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.6/manifests/crds/application-crd.yaml',
-			'https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.6/manifests/crds/applicationset-crd.yaml',
-			'https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.6/manifests/crds/appproject-crd.yaml'
+			'https://raw.githubusercontent.com/argoproj/argo-cd/v3.6.2/manifests/crds/application-crd.yaml',
+			'https://raw.githubusercontent.com/argoproj/argo-cd/v3.6.2/manifests/crds/applicationset-crd.yaml',
+			'https://raw.githubusercontent.com/argoproj/argo-cd/v3.6.2/manifests/crds/appproject-crd.yaml'
 		],
 		'acme.cert-manager.io': [
 			'https://github.com/cert-manager/cert-manager/releases/download/v1.21.3/cert-manager.crds.yaml'
