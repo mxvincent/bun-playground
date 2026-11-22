@@ -55,23 +55,41 @@ describe.each(
 
 	test('rejects a token with another audience', async () => {
 		await expect(verify(signToken({ audience: 'https://not.valid.com' }))).rejects.toThrow(
-			new AuthTokenError('Token invalid')
+			expect.objectContaining({
+				constructor: AuthTokenError,
+				message: 'Token invalid',
+				details: { reason: expect.any(String) }
+			})
 		)
 	})
 
 	test('rejects a token with another issuer', async () => {
 		await expect(verify(signToken({ issuer: 'https://not.valid.com' }))).rejects.toThrow(
-			new AuthTokenError('Token invalid')
+			expect.objectContaining({
+				constructor: AuthTokenError,
+				message: 'Token invalid',
+				details: { reason: expect.any(String) }
+			})
 		)
 	})
 
 	test('rejects an expired token', async () => {
-		await expect(verify(signToken({ expiresIn: '-1h' }))).rejects.toThrow(new AuthTokenError('This token is expired'))
+		await expect(verify(signToken({ expiresIn: '-1h' }))).rejects.toThrow(
+			expect.objectContaining({
+				constructor: AuthTokenError,
+				message: 'This token is expired',
+				details: { expiredAt: expect.any(String) }
+			})
+		)
 	})
 
 	test('rejects a token that is not active yet', async () => {
 		await expect(verify(signToken({ notBefore: '1h', expiresIn: '2h' }))).rejects.toThrow(
-			new AuthTokenError('This token cannot yet be used')
+			expect.objectContaining({
+				constructor: AuthTokenError,
+				message: 'This token cannot yet be used',
+				details: { notBefore: expect.any(String) }
+			})
 		)
 	})
 })
@@ -82,6 +100,8 @@ describe('getKeyIdHeader()', () => {
 	})
 
 	test('throws when the kid header is missing', () => {
-		expect(() => getKeyIdHeader(sign({}, SECRET))).toThrow(new AuthTokenError('Key id header is missing'))
+		expect(() => getKeyIdHeader(sign({}, SECRET))).toThrow(
+			expect.objectContaining({ constructor: AuthTokenError, message: 'Key id header is missing' })
+		)
 	})
 })

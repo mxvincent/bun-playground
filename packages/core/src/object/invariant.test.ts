@@ -6,9 +6,13 @@ test.each([0, '', false])('returns the falsy value %p', (value) => {
 })
 
 test.each([undefined, null])('throws on %p', (value) => {
-	expect(() => invariant(value)).toThrow(TypeError)
+	expect(() => invariant(value)).toThrow(
+		expect.objectContaining({ constructor: TypeError, message: 'Value can not be undefined.' })
+	)
 })
 
 test('throws with the given message', () => {
-	expect(() => invariant(undefined, 'missing')).toThrow('missing')
+	expect(() => invariant(undefined, 'missing')).toThrow(
+		expect.objectContaining({ constructor: TypeError, message: 'missing' })
+	)
 })

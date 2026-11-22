@@ -28,6 +28,12 @@ describe('getKeyAndVerify()', () => {
 
 	test('rejects a token without kid header that no key verifies', async () => {
 		const token = sign({ key: 'value' }, 'unknown-secret')
-		await expect(verify(token)).rejects.toThrow(new AuthTokenError('Token invalid'))
+		await expect(verify(token)).rejects.toThrow(
+			expect.objectContaining({
+				constructor: AuthTokenError,
+				message: 'Token invalid',
+				details: { reason: expect.any(String) }
+			})
+		)
 	})
 })

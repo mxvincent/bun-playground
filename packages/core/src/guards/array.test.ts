@@ -1,4 +1,5 @@
 import { expect, it } from 'bun:test'
+import { AssertionError } from 'node:assert'
 import { assertArray, isArray } from './array'
 
 it('should return true', () => {
@@ -15,5 +16,7 @@ it('assertArray returns the array', () => {
 })
 
 it('assertArray throws when the value is not an array', () => {
-	expect(() => assertArray('123')).toThrow('Value should be an array')
+	expect(() => assertArray('123')).toThrow(
+		expect.objectContaining({ constructor: AssertionError, message: 'Value should be an array', actual: '123' })
+	)
 })
