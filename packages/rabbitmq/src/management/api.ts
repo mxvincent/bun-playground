@@ -21,15 +21,17 @@ export class RabbitMQManagementAPI {
 	}
 
 	async listQueues(): Promise<ManagementApiQueue[]> {
-		const response = await fetch(`${this.apiBaseUrl}/api/queues/${encodeURIComponent(this.config.connection.vhost)}`, {
+		const url = `${this.apiBaseUrl}/api/queues/${this.encodedVhost}`
+		const response = await fetch(url, {
 			headers: new Headers({
 				Authorization: getManagementApiAuthorizationHeader(this.config)
 			})
 		})
 		if (response.status !== 200) {
 			throw new RabbitMQManagementAPIError('[RabbitMQ] List queues query failed.', {
-				statusCode: response.status,
-				statusText: response.statusText
+				requestUrl: url,
+				responseStatus: response.status,
+				responseStatusText: response.statusText
 			})
 		}
 		return (await response.json()) as Array<ManagementApiQueue>
@@ -49,25 +51,25 @@ export class RabbitMQManagementAPI {
 				return (await response.json()) as ManagementApiQueue
 			default:
 				throw new RabbitMQManagementAPIError(`Unexpected response status ${response.status} for ${url}.`, {
-					statusCode: response.status,
-					statusText: response.statusText
+					requestUrl: url,
+					responseStatus: response.status,
+					responseStatusText: response.statusText
 				})
 		}
 	}
 
 	async listQueueBindings(queue: string): Promise<TopicBinding[]> {
-		const response = await fetch(
-			`${this.apiBaseUrl}/api/queues/${this.encodedVhost}/${encodeURIComponent(queue)}/bindings`,
-			{
-				headers: new Headers({
-					Authorization: getManagementApiAuthorizationHeader(this.config)
-				})
-			}
-		)
+		const url = `${this.apiBaseUrl}/api/queues/${this.encodedVhost}/${encodeURIComponent(queue)}/bindings`
+		const response = await fetch(url, {
+			headers: new Headers({
+				Authorization: getManagementApiAuthorizationHeader(this.config)
+			})
+		})
 		if (response.status !== 200) {
 			throw new RabbitMQManagementAPIError('[RabbitMQ] List queue bindings query failed.', {
-				statusCode: response.status,
-				statusText: response.statusText
+				requestUrl: url,
+				responseStatus: response.status,
+				responseStatusText: response.statusText
 			})
 		}
 		const apiResponse = (await response.json()) as Array<ManagementApiQueueBinding>
@@ -85,7 +87,8 @@ export class RabbitMQManagementAPI {
 	}
 
 	async listShovels(): Promise<Record<string, unknown>[]> {
-		const response = await fetch(`${this.apiBaseUrl}/api/parameters/shovel/${this.encodedVhost}`, {
+		const url = `${this.apiBaseUrl}/api/parameters/shovel/${this.encodedVhost}`
+		const response = await fetch(url, {
 			headers: new Headers({
 				Authorization: getManagementApiAuthorizationHeader(this.config),
 				'Content-Type': 'application/json'
@@ -93,8 +96,9 @@ export class RabbitMQManagementAPI {
 		})
 		if (response.status !== 200) {
 			throw new RabbitMQManagementAPIError('[RabbitMQ] List shovels query failed.', {
-				statusCode: response.status,
-				statusText: response.statusText
+				requestUrl: url,
+				responseStatus: response.status,
+				responseStatusText: response.statusText
 			})
 		}
 		return (await response.json()) as Record<string, unknown>[]
@@ -117,7 +121,8 @@ export class RabbitMQManagementAPI {
 			'dest-queue': options.destinationQueue,
 			'src-consumer-args': {}
 		}
-		const response = await fetch(`${this.apiBaseUrl}/api/parameters/shovel/${encodeURIComponent(vhost)}/${id}`, {
+		const url = `${this.apiBaseUrl}/api/parameters/shovel/${encodeURIComponent(vhost)}/${id}`
+		const response = await fetch(url, {
 			method: 'PUT',
 			body: JSON.stringify({ value }),
 			headers: new Headers({
@@ -128,8 +133,9 @@ export class RabbitMQManagementAPI {
 		// A shovel that is not created never drains its source queue: moveMessages would wait forever
 		if (!response.ok) {
 			throw new RabbitMQManagementAPIError('[RabbitMQ] Create shovel query failed.', {
-				statusCode: response.status,
-				statusText: response.statusText
+				requestUrl: url,
+				responseStatus: response.status,
+				responseStatusText: response.statusText
 			})
 		}
 		return { id, value }
@@ -137,7 +143,8 @@ export class RabbitMQManagementAPI {
 
 	async deleteShovel(id: string) {
 		const { vhost } = this.config.connection
-		const response = await fetch(`${this.apiBaseUrl}/api/parameters/shovel/${encodeURIComponent(vhost)}/${id}`, {
+		const url = `${this.apiBaseUrl}/api/parameters/shovel/${encodeURIComponent(vhost)}/${id}`
+		const response = await fetch(url, {
 			method: 'DELETE',
 			headers: new Headers({
 				Authorization: getManagementApiAuthorizationHeader(this.config),
@@ -146,8 +153,9 @@ export class RabbitMQManagementAPI {
 		})
 		if (!response.ok) {
 			throw new RabbitMQManagementAPIError('[RabbitMQ] Delete shovel query failed.', {
-				statusCode: response.status,
-				statusText: response.statusText
+				requestUrl: url,
+				responseStatus: response.status,
+				responseStatusText: response.statusText
 			})
 		}
 	}

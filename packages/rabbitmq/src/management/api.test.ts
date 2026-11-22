@@ -15,6 +15,7 @@ afterAll(() => {
 })
 
 const api = new RabbitMQManagementAPI(config)
+const encodedVhost = encodeURIComponent(config.connection.vhost)
 
 describe('RabbitMQManagementApi.getQueueBindings()', () => {
 	it('should map RabbitMQ management API response', async () => {
@@ -58,7 +59,8 @@ describe('shovels', () => {
 			expect.objectContaining({
 				constructor: RabbitMQManagementAPIError,
 				message: '[RabbitMQ] Create shovel query failed.',
-				statusCode: 400
+				requestUrl: expect.stringContaining(`https://localhost/api/parameters/shovel/${encodedVhost}/`),
+				responseStatus: 400
 			})
 		)
 	})
@@ -69,7 +71,8 @@ describe('shovels', () => {
 			expect.objectContaining({
 				constructor: RabbitMQManagementAPIError,
 				message: '[RabbitMQ] Delete shovel query failed.',
-				statusCode: 404
+				requestUrl: `https://localhost/api/parameters/shovel/${encodedVhost}/id`,
+				responseStatus: 404
 			})
 		)
 	})
@@ -87,8 +90,9 @@ describe('RabbitMQManagementApi.getQueue()', () => {
 		await expect(api.getQueue('orders')).rejects.toThrow(
 			expect.objectContaining({
 				constructor: RabbitMQManagementAPIError,
-				message: expect.stringContaining('Unexpected response status 500 for'),
-				statusCode: 500
+				message: `Unexpected response status 500 for https://localhost/api/queues/${encodedVhost}/orders.`,
+				requestUrl: `https://localhost/api/queues/${encodedVhost}/orders`,
+				responseStatus: 500
 			})
 		)
 	})
