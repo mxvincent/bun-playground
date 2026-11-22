@@ -14,19 +14,26 @@ describe('validate()', () => {
 	})
 
 	it.each([0, NaN, {}, null, undefined, true])('throws a JsonSchemaValidationError for %p', (value) => {
-		expect(() => validate(Type.String(), value)).toThrowError(JsonSchemaValidationError)
+		expect(() => validate(Type.String(), value)).toThrow(
+			expect.objectContaining({
+				constructor: JsonSchemaValidationError,
+				message: 'JSON schema validation failed',
+				payload: value,
+				errors: [expect.objectContaining({ keyword: 'type' })]
+			})
+		)
 	})
 
 	it('attaches the ajv errors and the payload to the error', () => {
 		const payload = { name: 1 }
-		const error = (() => {
-			try {
-				validate(Type.Object({ name: Type.String() }), payload)
-			} catch (error) {
-				return error
-			}
-		})()
-		expect(error).toMatchObject({ payload, errors: [{ instancePath: '/name', keyword: 'type' }] })
+		expect(() => validate(Type.Object({ name: Type.String() }), payload)).toThrow(
+			expect.objectContaining({
+				constructor: JsonSchemaValidationError,
+				message: 'JSON schema validation failed',
+				payload: payload,
+				errors: [expect.objectContaining({ keyword: 'type', instancePath: '/name' })]
+			})
+		)
 	})
 
 	it('applies the default values', () => {
@@ -41,7 +48,14 @@ describe('validate()', () => {
 	})
 
 	it('does not coerce types by default', () => {
-		expect(() => validate(Type.Number(), '123')).toThrowError(JsonSchemaValidationError)
+		expect(() => validate(Type.Number(), '123')).toThrow(
+			expect.objectContaining({
+				constructor: JsonSchemaValidationError,
+				message: 'JSON schema validation failed',
+				payload: '123',
+				errors: [expect.objectContaining({ keyword: 'type' })]
+			})
+		)
 	})
 
 	it('coerces types when coerce is enabled', () => {
@@ -57,7 +71,14 @@ describe('Schema.Nullable()', () => {
 	})
 
 	it('rejects another type', () => {
-		expect(() => validate(schema, 123)).toThrowError(JsonSchemaValidationError)
+		expect(() => validate(schema, 123)).toThrow(
+			expect.objectContaining({
+				constructor: JsonSchemaValidationError,
+				message: 'JSON schema validation failed',
+				payload: 123,
+				errors: [expect.objectContaining({ keyword: 'type', params: { type: 'string' } })]
+			})
+		)
 	})
 })
 
@@ -67,7 +88,14 @@ describe('Schema.DateTime()', () => {
 	})
 
 	it('rejects a date without time', () => {
-		expect(() => validate(Schema.DateTime(), '2026-01-01')).toThrowError(JsonSchemaValidationError)
+		expect(() => validate(Schema.DateTime(), '2026-01-01')).toThrow(
+			expect.objectContaining({
+				constructor: JsonSchemaValidationError,
+				message: 'JSON schema validation failed',
+				payload: '2026-01-01',
+				errors: [expect.objectContaining({ keyword: 'format', params: { format: 'iso-date-time' } })]
+			})
+		)
 	})
 })
 
@@ -78,7 +106,14 @@ describe('Schema.UUID()', () => {
 	})
 
 	it('rejects another string', () => {
-		expect(() => validate(Schema.UUID(), 'not-a-uuid')).toThrowError(JsonSchemaValidationError)
+		expect(() => validate(Schema.UUID(), 'not-a-uuid')).toThrow(
+			expect.objectContaining({
+				constructor: JsonSchemaValidationError,
+				message: 'JSON schema validation failed',
+				payload: 'not-a-uuid',
+				errors: [expect.objectContaining({ keyword: 'format', params: { format: 'uuid' } })]
+			})
+		)
 	})
 })
 
