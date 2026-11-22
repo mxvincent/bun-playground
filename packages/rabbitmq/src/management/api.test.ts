@@ -65,6 +65,19 @@ describe('shovels', () => {
 	})
 })
 
+describe('RabbitMQManagementApi.getQueue()', () => {
+	afterEach(() => {
+		managementApiServer.resetHandlers()
+	})
+
+	it('throws on a status other than 200 and 404', async () => {
+		managementApiServer.use(
+			http.get('https://localhost/api/queues/:vhost/:queue', () => new Response(null, { status: 500 }))
+		)
+		await expect(api.getQueue('orders')).rejects.toThrow(RabbitMQManagementAPIError)
+	})
+})
+
 describe('queue names in URLs', () => {
 	afterEach(() => {
 		managementApiServer.resetHandlers()

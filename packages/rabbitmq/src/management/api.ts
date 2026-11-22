@@ -48,7 +48,10 @@ export class RabbitMQManagementAPI {
 			case 200:
 				return (await response.json()) as ManagementApiQueue
 			default:
-				throw new Error(`Unexpected response status ${response.status} for ${url}.`)
+				throw new RabbitMQManagementAPIError(`Unexpected response status ${response.status} for ${url}.`, {
+					statusCode: response.status,
+					statusText: response.statusText
+				})
 		}
 	}
 
