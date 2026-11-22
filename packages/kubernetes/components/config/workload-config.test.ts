@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { App } from 'cdk8s/lib/app'
 import { Pod } from 'cdk8s-plus-37'
+import { KubernetesConfigAlreadyGeneratedError } from '../../errors/config-already-generated'
 import { ApplicationContext, type ComponentContext } from '../../helpers/context'
 import { DEFAULT_SECRET_STORE, ExternalSecret } from '../../plugins/external-secret'
 import { pinRevision } from '../../testing'
@@ -102,7 +103,7 @@ describe('WorkloadConfig', () => {
 		const config = new WorkloadConfig(context, files)
 		const secret = config.secret
 		expect(config.secret).toBe(secret)
-		expect(() => config.generate()).toThrow('ConfigFile.createManifests() should be called exactly once.')
+		expect(() => config.generate()).toThrow(KubernetesConfigAlreadyGeneratedError)
 		expect(manifestsOf(context)).toHaveLength(1)
 	})
 

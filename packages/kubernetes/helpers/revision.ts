@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { KubernetesRevisionNotFoundError } from '../errors/revision-not-found'
 import { getRepositoryRootDirectory } from './misc'
 
 /**
@@ -23,7 +24,7 @@ export const packageVersion = (path: string): string => {
 	if (packageJson?.version) {
 		return packageJson.version
 	}
-	throw new Error(`Failed to load revision from ${packageJsonPath}`)
+	throw new KubernetesRevisionNotFoundError(packageJsonPath)
 }
 
 /**

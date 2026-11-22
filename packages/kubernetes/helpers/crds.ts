@@ -1,6 +1,9 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+import { KubernetesCrdDownloadFailedError } from '../errors/crd-download-failed'
+import { KubernetesCrdImportFailedError } from '../errors/crd-import-failed'
+import { KubernetesCrdNotFoundError } from '../errors/crd-not-found'
 
 export interface ImportCrdsOptions {
 	/** Directory the classes are generated in */
@@ -32,7 +35,7 @@ export const extractCrds = (manifest: string, group: string): string[] => {
 async function download(url: string): Promise<string> {
 	const response = await fetch(url)
 	if (!response.ok) {
-		throw new Error(`Failed to download ${url}: ${response.status} ${response.statusText}`)
+		throw new KubernetesCrdDownloadFailedError(url, response)
 	}
 	return response.text()
 }
@@ -47,7 +50,7 @@ async function cdk8sImport(source: string, output: string, cwd: string) {
 		stderr: 'inherit'
 	})
 	if ((await child.exited) !== 0) {
-		throw new Error(`cdk8s import ${source} failed`)
+		throw new KubernetesCrdImportFailedError(source)
 	}
 }
 
@@ -68,7 +71,7 @@ export const importCrds = async ({ output, sources, kubernetesApi = 'k8s@1.37.0'
 			const manifests = await Promise.all(urls.map(download))
 			const crds = manifests.flatMap((manifest) => extractCrds(manifest, group))
 			if (crds.length === 0) {
-				throw new Error(`No CustomResourceDefinition found for ${group}`)
+				throw new KubernetesCrdNotFoundError(group)
 			}
 			const file = join(directory, `${group}.yaml`)
 			await writeFile(file, crds.join('\n---\n'))

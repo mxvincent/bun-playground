@@ -5,6 +5,7 @@ import { type ConfigFiles, mergeConfigFiles, WorkloadConfig } from '../component
 import { type EnvironmentVariables, WorkloadEnvironment } from '../components/config/workload-environment'
 import type { WorkloadComponent } from '../components/workload-component'
 import type { ExternalSecretSpecSecretStoreRef } from '../crds/external-secrets.io'
+import { KubernetesDuplicateComponentNameError } from '../errors/duplicate-component-name'
 import { ApplicationContext } from './context'
 import { DEFAULT_IMAGE_REGISTRY } from './registry'
 import { type Resolvable, resolve } from './resolvable'
@@ -60,7 +61,7 @@ export const defineNamespace = (options: WorkloadNamespaceOptions): WorkloadName
 	const names = new Set<string>()
 	for (const component of options.components) {
 		if (names.has(component.name)) {
-			throw new Error(`Duplicate component name in namespace ${options.name}: ${component.name}`)
+			throw new KubernetesDuplicateComponentNameError(options.name, component.name)
 		}
 		names.add(component.name)
 	}
