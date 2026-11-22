@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { generateKeyPairSync, type KeyObject, randomBytes } from 'node:crypto'
 import { type SignOptions, sign } from 'jsonwebtoken'
-import { AuthTokenError } from './errors'
+import { AuthTokenError } from '../errors/auth-token'
 import { getKeyIdHeader, verifyToken } from './jwt'
 import { JWTAlgorithm } from './types'
 
@@ -57,6 +57,8 @@ describe.each(
 		await expect(verify(signToken({ audience: 'https://not.valid.com' }))).rejects.toThrow(
 			expect.objectContaining({
 				constructor: AuthTokenError,
+				code: 'INVALID_TOKEN',
+				statusCode: 401,
 				message: 'Token invalid',
 				details: { reason: expect.any(String) }
 			})
@@ -67,6 +69,8 @@ describe.each(
 		await expect(verify(signToken({ issuer: 'https://not.valid.com' }))).rejects.toThrow(
 			expect.objectContaining({
 				constructor: AuthTokenError,
+				code: 'INVALID_TOKEN',
+				statusCode: 401,
 				message: 'Token invalid',
 				details: { reason: expect.any(String) }
 			})
@@ -77,6 +81,8 @@ describe.each(
 		await expect(verify(signToken({ expiresIn: '-1h' }))).rejects.toThrow(
 			expect.objectContaining({
 				constructor: AuthTokenError,
+				code: 'INVALID_TOKEN',
+				statusCode: 401,
 				message: 'This token is expired',
 				details: { expiredAt: expect.any(String) }
 			})
@@ -87,6 +93,8 @@ describe.each(
 		await expect(verify(signToken({ notBefore: '1h', expiresIn: '2h' }))).rejects.toThrow(
 			expect.objectContaining({
 				constructor: AuthTokenError,
+				code: 'INVALID_TOKEN',
+				statusCode: 401,
 				message: 'This token cannot yet be used',
 				details: { notBefore: expect.any(String) }
 			})
@@ -101,7 +109,12 @@ describe('getKeyIdHeader()', () => {
 
 	test('throws when the kid header is missing', () => {
 		expect(() => getKeyIdHeader(sign({}, SECRET))).toThrow(
-			expect.objectContaining({ constructor: AuthTokenError, message: 'Key id header is missing' })
+			expect.objectContaining({
+				constructor: AuthTokenError,
+				code: 'INVALID_TOKEN',
+				statusCode: 401,
+				message: 'Key id header is missing'
+			})
 		)
 	})
 })

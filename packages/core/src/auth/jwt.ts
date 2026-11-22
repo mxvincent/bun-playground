@@ -1,6 +1,6 @@
 import * as jwt from 'jsonwebtoken'
 import type { JwksClient } from 'jwks-rsa'
-import { AuthTokenError } from './errors'
+import { AuthTokenError } from '../errors/auth-token'
 
 /**
  * Decode token to get signing key id from headers

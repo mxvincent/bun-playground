@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { sign } from 'jsonwebtoken'
 import type { JwksClient, SigningKey } from 'jwks-rsa'
-import { AuthTokenError } from './errors'
+import { AuthTokenError } from '../errors/auth-token'
 import { getKeyAndVerify } from './jwt'
 
 const KEYS = { 'key-1': 'secret-1', 'key-2': 'secret-2' } as const
@@ -31,6 +31,8 @@ describe('getKeyAndVerify()', () => {
 		await expect(verify(token)).rejects.toThrow(
 			expect.objectContaining({
 				constructor: AuthTokenError,
+				code: 'INVALID_TOKEN',
+				statusCode: 401,
 				message: 'Token invalid',
 				details: { reason: expect.any(String) }
 			})
