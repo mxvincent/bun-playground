@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, mock, spyOn } from 'bun:test'
 import { logger } from '@package/telemetry'
-import pg from 'pg'
+import pg, { DatabaseError } from 'pg'
 import { getConnectionConfig, TEST_DATABASE } from '#test-helpers/database'
 import { DrizzleTransactionRolledBackError } from '../errors/transaction-rolled-back'
 import { DrizzleDatabaseContext } from './database-context'
@@ -84,7 +84,13 @@ describe('DrizzleDatabaseContext', () => {
 		await insert('inner')
 		// A failing statement aborts the transaction: releasing the savepoint then fails
 		await client.query(`insert into ${TABLE} (value) values (null)`).catch(() => undefined)
-		await expect(context.commitTransaction()).rejects.toThrow()
+		await expect(context.commitTransaction()).rejects.toThrow(
+			expect.objectContaining({
+				constructor: DatabaseError,
+				code: '25P02',
+				message: 'current transaction is aborted, commands ignored until end of transaction block'
+			})
+		)
 		await context.rollbackTransaction()
 		await context.commitTransaction()
 		expect(await values()).toEqual(['outer'])
@@ -95,7 +101,13 @@ describe('DrizzleDatabaseContext', () => {
 		// A deferred unique constraint is only checked by the COMMIT
 		await client.query('create temp table deferred_unique (value int unique deferrable initially deferred)')
 		await client.query('insert into deferred_unique values (1), (1)')
-		await expect(context.commitTransaction()).rejects.toThrow()
+		await expect(context.commitTransaction()).rejects.toThrow(
+			expect.objectContaining({
+				constructor: DatabaseError,
+				code: '23505',
+				message: 'duplicate key value violates unique constraint "deferred_unique_value_key"'
+			})
+		)
 		expect(context.isTransactionActive).toBe(false)
 	})
 
@@ -148,7 +160,7 @@ describe('DrizzleDatabaseContext.transaction()', () => {
 			await insert('rolled back')
 			throw new Error('failure')
 		})
-		await expect(failure).rejects.toThrow('failure')
+		await expect(failure).rejects.toThrow(expect.objectContaining({ constructor: Error, message: 'failure' }))
 		expect([await values(), context.isTransactionActive]).toEqual([[], false])
 	})
 
@@ -158,7 +170,7 @@ describe('DrizzleDatabaseContext.transaction()', () => {
 			await context.startTransaction()
 			throw new Error('failure')
 		})
-		await expect(failure).rejects.toThrow('failure')
+		await expect(failure).rejects.toThrow(expect.objectContaining({ constructor: Error, message: 'failure' }))
 		expect([await values(), context.isTransactionActive]).toEqual([[], false])
 	})
 

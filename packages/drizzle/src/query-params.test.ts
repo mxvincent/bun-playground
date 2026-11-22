@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { ComparisonFilter, type Filter, LogicalFilter, Pagination, Sort } from '@package/query-params'
+import { QueryStringParameterValidationError } from '@package/query-params-serializer'
 import { integer, PgDialect, pgTable, text, uuid } from 'drizzle-orm/pg-core'
 import { DrizzleUnsupportedFilterError } from './errors/unsupported-filter'
 import type { ColumnMapping } from './query-params'
@@ -41,7 +42,13 @@ describe('validateSort()', () => {
 		expect(validateSort(sort, columnMapping)).toBe(sort)
 	})
 	it('should throw when path is not mapped', () => {
-		expect(() => validateSort(Sort.asc('unknown'), columnMapping)).toThrow('Invalid sort')
+		expect(() => validateSort(Sort.asc('unknown'), columnMapping)).toThrow(
+			expect.objectContaining({
+				constructor: QueryStringParameterValidationError,
+				message: 'Invalid sort',
+				errors: ['asc:unknown']
+			})
+		)
 	})
 })
 
@@ -52,11 +59,23 @@ describe('validateSorts()', () => {
 	})
 	it('should throw when any path is not mapped', () => {
 		const sorts = [Sort.asc('id'), Sort.asc('unknown')]
-		expect(() => validateSorts(sorts, columnMapping)).toThrow('Invalid sort')
+		expect(() => validateSorts(sorts, columnMapping)).toThrow(
+			expect.objectContaining({
+				constructor: QueryStringParameterValidationError,
+				message: 'Invalid sort',
+				errors: ['asc:unknown']
+			})
+		)
 	})
 	it('should collect all invalid sorts before throwing', () => {
 		const sorts = [Sort.asc('unknown'), Sort.desc('invalid')]
-		expect(() => validateSorts(sorts, columnMapping)).toThrow()
+		expect(() => validateSorts(sorts, columnMapping)).toThrow(
+			expect.objectContaining({
+				constructor: QueryStringParameterValidationError,
+				message: 'Invalid sort',
+				errors: ['asc:unknown', 'desc:invalid']
+			})
+		)
 	})
 })
 
@@ -185,10 +204,17 @@ describe('parseAndValidateQueryParameters()', () => {
 					columnMapping
 				}
 			)
-		).toThrow('Invalid sort')
+		).toThrow(
+			expect.objectContaining({
+				constructor: QueryStringParameterValidationError,
+				message: 'Invalid sort',
+				errors: ['asc:unknown']
+			})
+		)
 	})
 
 	it('should throw for invalid filter paths', () => {
+		// The reason is '[object Object]' until #380 gives filters a string form
 		expect(() =>
 			parseAndValidateQueryParameters(
 				{ filters: 'equal(unknown,dmFsdWU)' },
@@ -198,6 +224,12 @@ describe('parseAndValidateQueryParameters()', () => {
 					columnMapping
 				}
 			)
-		).toThrow('Invalid filter')
+		).toThrow(
+			expect.objectContaining({
+				constructor: QueryStringParameterValidationError,
+				message: 'Invalid filter',
+				errors: [expect.any(String)]
+			})
+		)
 	})
 })
