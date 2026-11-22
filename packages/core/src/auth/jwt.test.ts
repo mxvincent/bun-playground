@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { generateKeyPairSync, type KeyObject, randomBytes } from 'node:crypto'
-import { type SignOptions, sign } from 'jsonwebtoken'
+import { createHmac, generateKeyPairSync, type KeyObject, randomBytes } from 'node:crypto'
+import { type SignOptions, sign, type VerifyOptions } from 'jsonwebtoken'
 import { AuthTokenError } from '../errors/auth-token'
 import { getKeyIdHeader, verifyToken } from './jwt'
 import { JWTAlgorithm } from './types'
@@ -103,35 +103,70 @@ describe.each(
 })
 
 describe('verifyToken() reason', () => {
-	const verify = (token: string, key = SECRET) => verifyToken(token, key, { algorithms: [JWTAlgorithm.HS256] })
+	/** A HS256 token with any payload, even one that jsonwebtoken refuses to sign */
+	const signRaw = (payload: Record<string, unknown>): string => {
+		const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString('base64url')
+		const content = `${encode({ alg: JWTAlgorithm.HS256, typ: 'JWT' })}.${encode(payload)}`
+		return `${content}.${createHmac('sha256', SECRET).update(content).digest('base64url')}`
+	}
 
-	test('is malformed for a value that is not a token', async () => {
-		await expect(verify('not-a-token')).rejects.toThrow(
-			expect.objectContaining({
-				constructor: AuthTokenError,
-				message: 'Token invalid',
-				details: { reason: 'malformed' }
-			})
-		)
-	})
-
-	test('is invalid-signature for a token signed with another key', async () => {
-		await expect(verify(sign({}, SECRET), 'another-secret')).rejects.toThrow(
-			expect.objectContaining({
-				constructor: AuthTokenError,
-				message: 'Token invalid',
-				details: { reason: 'invalid-signature' }
-			})
-		)
-	})
-
-	test('is invalid-algorithm for a token signed with an algorithm that is not allowed', async () => {
-		await expect(verify(sign({}, SECRET, { algorithm: JWTAlgorithm.HS512 }))).rejects.toThrow(
-			expect.objectContaining({
-				constructor: AuthTokenError,
-				message: 'Token invalid',
-				details: { reason: 'invalid-algorithm' }
-			})
+	test.each<{ description: string; token: string; options?: VerifyOptions; key?: string; reason: string }>([
+		{ description: 'a value that is not a token', token: 'not-a-token', reason: 'malformed' },
+		{ description: 'an empty token', token: '', reason: 'malformed' },
+		{ description: 'a token whose header is not JSON', token: 'a.b.c', reason: 'malformed' },
+		{
+			description: 'a token signed with another key',
+			token: sign({}, SECRET),
+			key: 'another-secret',
+			reason: 'invalid-signature'
+		},
+		{ description: 'an unsigned token', token: sign({}, '', { algorithm: 'none' }), reason: 'invalid-signature' },
+		{
+			description: 'an algorithm that is not allowed',
+			token: sign({}, SECRET, { algorithm: JWTAlgorithm.HS512 }),
+			reason: 'invalid-algorithm'
+		},
+		{
+			description: 'another audience',
+			token: sign({ aud: 'a' }, SECRET),
+			options: { audience: 'b' },
+			reason: 'invalid-audience'
+		},
+		{
+			description: 'another issuer',
+			token: sign({ iss: 'a' }, SECRET),
+			options: { issuer: 'b' },
+			reason: 'invalid-issuer'
+		},
+		{
+			description: 'another subject',
+			token: sign({ sub: 'a' }, SECRET),
+			options: { subject: 'b' },
+			reason: 'invalid-subject'
+		},
+		{
+			description: 'another jwt id',
+			token: sign({ jti: 'a' }, SECRET),
+			options: { jwtid: 'b' },
+			reason: 'invalid-jwt-id'
+		},
+		{
+			description: 'another nonce',
+			token: sign({ nonce: 'a' }, SECRET),
+			options: { nonce: 'b' },
+			reason: 'invalid-nonce'
+		},
+		{ description: 'an exp claim that is not a number', token: signRaw({ exp: 'soon' }), reason: 'invalid-claims' },
+		{ description: 'an nbf claim that is not a number', token: signRaw({ nbf: 'soon' }), reason: 'invalid-claims' },
+		{
+			description: 'a maxAge check on a token without iat',
+			token: sign({}, SECRET, { noTimestamp: true }),
+			options: { maxAge: '1h' },
+			reason: 'invalid-claims'
+		}
+	])('is $reason for $description', async ({ token, options, key = SECRET, reason }) => {
+		await expect(verifyToken(token, key, { algorithms: [JWTAlgorithm.HS256], ...options })).rejects.toThrow(
+			expect.objectContaining({ constructor: AuthTokenError, message: 'Token invalid', details: { reason } })
 		)
 	})
 })
