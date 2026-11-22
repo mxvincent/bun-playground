@@ -52,7 +52,7 @@ truth. The rules worth reading are the ones no tool can enforce: naming, layerin
 
 Claude Code sessions load these documents from `.claude/`:
 
-- This index, in every session, through `.claude/rules/conventions.md`.
+- This index, in every session, through an `@import` in the root `CLAUDE.md`.
 - Each code document, only when the session works on a file it governs. The document is
   symlinked into `.claude/rules/`, and its `paths` frontmatter lists the matching globs. An
   `@import` would not work here: Claude Code loads imports at startup, whatever `paths` says.

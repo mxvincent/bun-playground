@@ -59,7 +59,5 @@ config.*.json
 /**/node_modules/**
 /**/.pnpm-store/**
 
-# IA
-claude.md
 # Worktrees created by Claude Code (workflow agents, parallel sessions)
 /.claude/worktrees/
