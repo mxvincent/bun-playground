@@ -15,6 +15,7 @@ import * as SQLCondition from 'drizzle-orm/sql/expressions/conditions'
 import { database } from '#database/client'
 import { organization, organizationParameters } from '#database/schemas/organizations'
 import { tables } from '#database/tables'
+import { ResourceNotWrittenError } from '../../errors'
 
 type OrganizationParameters = KeyOf<typeof organizationParameters>
 
@@ -46,7 +47,11 @@ export class OrganizationPostgresRepository implements OrganizationRepository {
 		const organization = factories.organization(values)
 		const result = await database.insert(tables.organization).values(organization)
 		if (result.rowCount !== 1) {
-			throw new Error('Organization not created')
+			throw new ResourceNotWrittenError(
+				{ type: 'Organization', id: organization.id },
+				'create',
+				'Organization not created'
+			)
 		}
 		return organization
 	}
@@ -58,7 +63,11 @@ export class OrganizationPostgresRepository implements OrganizationRepository {
 			.set(changes)
 			.where(SQLCondition.eq(tables.organization.id, organization.id))
 		if (result.rowCount !== 1) {
-			throw new Error('Organization not updated')
+			throw new ResourceNotWrittenError(
+				{ type: 'Organization', id: organization.id },
+				'update',
+				'Organization not updated'
+			)
 		}
 		return Object.assign(organization, changes)
 	}
@@ -66,7 +75,7 @@ export class OrganizationPostgresRepository implements OrganizationRepository {
 	async delete(entity: Organization): Promise<Organization> {
 		const result = await database.delete(tables.organization).where(SQLCondition.eq(tables.organization.id, entity.id))
 		if (result.rowCount !== 1) {
-			throw new Error('Organization not deleted')
+			throw new ResourceNotWrittenError({ type: 'Organization', id: entity.id }, 'delete', 'Organization not deleted')
 		} else {
 			return entity
 		}
