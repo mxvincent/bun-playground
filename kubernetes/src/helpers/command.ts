@@ -4,12 +4,11 @@ export interface CommandOptions {
 	rootDir?: string
 }
 
-export const node = (main: string, options: CommandOptions = {}) => {
-	options.rootDir ??= '/app/dist'
-	return ['/nodejs/bin/node', join(options.rootDir, main)]
-}
-
+/**
+ * Bun images run applications from source and keep the monorepo layout under `/app` (see the root dockerfile), so
+ * `main` is relative to the workspace root, e.g. `applications/account/src/commands/start-api-server.ts`.
+ */
 export const bun = (main: string, options: CommandOptions = {}) => {
-	options.rootDir ??= '/app/src'
+	options.rootDir ??= '/app'
 	return ['/usr/local/bin/bun', join(options.rootDir, main)]
 }
