@@ -59,7 +59,7 @@
       "devDependencies": {
         "cdk8s": "^2.70.33",
         "cdk8s-cli": "^2.200.150",
-        "constructs": "^10.4.4",
+        "constructs": "^10.8.1",
       },
     },
     "packages/core": {
@@ -147,7 +147,7 @@
         "cdk8s": "^2.70.33",
         "cdk8s-cli": "^2.200.150",
         "cdk8s-plus-33": "^2.4.10",
-        "constructs": "^10.4.4",
+        "constructs": "^10.8.1",
         "es-toolkit": "^1.53.2",
       },
       "devDependencies": {
@@ -710,7 +710,7 @@
 
     "concat-map": ["concat-map@0.0.1", "", {}, "sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg=="],
 
-    "constructs": ["constructs@10.4.5", "", {}, "sha512-fOoP70YLevMZr5avJHx2DU3LNYmC6wM8OwdrNewMZou1kZnPGOeVzBrRjZNgFDHUlulYUjkpFRSpTE3D+n+ZSg=="],
+    "constructs": ["constructs@10.8.1", "", {}, "sha512-98yGXYyhePqPYh3cYu8nzBERmAhC0DONe3UD03okK0nehZ7hYP4wgZuf02a04+uOWxnTJ5Rpp5m0GRNpwyLGGA=="],
 
     "conventional-changelog-angular": ["conventional-changelog-angular@8.1.0", "", { "dependencies": { "compare-func": "^2.0.0" } }, "sha512-GGf2Nipn1RUCAktxuVauVr1e3r8QrLP/B0lEUsFktmGqc3ddbQkhoJZHJctVU829U1c6mTSWftrVOCHaL85Q3w=="],
 

@@ -33,7 +33,7 @@
 		"cdk8s": "^2.70.33",
 		"cdk8s-cli": "^2.200.150",
 		"cdk8s-plus-33": "^2.4.10",
-		"constructs": "^10.4.4",
+		"constructs": "^10.8.1",
 		"es-toolkit": "^1.53.2"
 	},
 	"devDependencies": {
