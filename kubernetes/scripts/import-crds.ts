@@ -27,8 +27,8 @@ await importCrds({
 			'https://github.com/cloudnative-pg/cloudnative-pg/releases/download/v1.30.2/cnpg-1.30.2.yaml'
 		],
 		'rabbitmq.com': [
-			'https://github.com/rabbitmq/cluster-operator/releases/download/v2.23.2/cluster-operator.yml',
-			'https://github.com/rabbitmq/messaging-topology-operator/releases/download/v1.20.5/messaging-topology-operator.yaml'
+			'https://github.com/rabbitmq/cluster-operator/releases/download/v2.23.3/cluster-operator.yml',
+			'https://github.com/rabbitmq/messaging-topology-operator/releases/download/v1.20.6/messaging-topology-operator.yaml'
 		]
 	}
 })
