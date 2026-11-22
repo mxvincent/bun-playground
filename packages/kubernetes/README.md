@@ -176,7 +176,7 @@ await importCrds({
 ```
 
 - `sources` maps an API group to the manifests that hold its CRDs. Only the CRDs of that group are kept; to generate several groups of one bundle, list the bundle under each group.
-- `kubernetesApi` is the Kubernetes API to import, `k8s@1.25.0` by default. Pass `false` to reuse the classes of the package.
+- `kubernetesApi` is the Kubernetes API to import, `k8s@1.37.0` by default. Pass `false` to reuse the classes of the package.
 
 To update the classes of the package, bump a version in `scripts/import-crds.ts` and run `bun run import-api-resources`.
 

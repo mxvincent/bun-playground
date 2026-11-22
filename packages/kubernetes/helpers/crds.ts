@@ -7,7 +7,7 @@ export interface ImportCrdsOptions {
 	readonly output: string
 	/** Pinned manifests holding the CustomResourceDefinitions, by API group; CRDs of other groups are dropped */
 	readonly sources: Readonly<Record<string, readonly string[]>>
-	/** Kubernetes API to import, `k8s@1.25.0` when omitted, not imported when `false` */
+	/** Kubernetes API to import, `k8s@1.37.0` when omitted, not imported when `false` */
 	readonly kubernetesApi?: string | false
 }
 
@@ -58,7 +58,7 @@ async function cdk8sImport(source: string, output: string, cwd: string) {
  * Each repository calls it with the CRDs it renders. Bump a version in the sources and run it again to update the
  * classes.
  */
-export async function importCrds({ output, sources, kubernetesApi = 'k8s@1.25.0' }: ImportCrdsOptions) {
+export async function importCrds({ output, sources, kubernetesApi = 'k8s@1.37.0' }: ImportCrdsOptions) {
 	const directory = await mkdtemp(join(tmpdir(), 'import-crds-'))
 	try {
 		if (kubernetesApi) {
