@@ -18,8 +18,7 @@ test.each<{ size: number; take: number; option: string; message: string; descrip
 	{ size: 3, take: 0, option: 'take', message: 'take parameter should be >= 1', description: 'a take below 1' }
 ])('slice() rejects $description', ({ size, take, option, message }) => {
 	const cursorTransformer = new PaginationCursorTransformer<Author>(['id'])
-	const call = () => slice(createAuthors(size), { take, cursorTransformer })
-	expect(call).toThrow(InvalidSliceOptionError)
-	expect(call).toThrow(expect.objectContaining({ option }))
-	expect(call).toThrow(message)
+	expect(() => slice(createAuthors(size), { take, cursorTransformer })).toThrow(
+		expect.objectContaining({ constructor: InvalidSliceOptionError, option, message })
+	)
 })
