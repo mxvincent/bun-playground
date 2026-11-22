@@ -55,13 +55,23 @@ describe('shovels', () => {
 	it('putShovel() throws when the shovel is not created', async () => {
 		respondToShovels(400)
 		await expect(api.putShovel({ sourceQueue: 'source', destinationQueue: 'destination' })).rejects.toThrow(
-			RabbitMQManagementAPIError
+			expect.objectContaining({
+				constructor: RabbitMQManagementAPIError,
+				message: '[RabbitMQ] Create shovel query failed.',
+				statusCode: 400
+			})
 		)
 	})
 
 	it('deleteShovel() throws when the shovel is not deleted', async () => {
 		respondToShovels(404)
-		await expect(api.deleteShovel('id')).rejects.toThrow(RabbitMQManagementAPIError)
+		await expect(api.deleteShovel('id')).rejects.toThrow(
+			expect.objectContaining({
+				constructor: RabbitMQManagementAPIError,
+				message: '[RabbitMQ] Delete shovel query failed.',
+				statusCode: 404
+			})
+		)
 	})
 })
 
