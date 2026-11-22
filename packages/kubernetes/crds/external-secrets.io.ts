@@ -6147,7 +6147,7 @@ export interface ClusterSecretStoreSpecProvider {
   readonly kubernetes?: ClusterSecretStoreSpecProviderKubernetes;
 
   /**
-   * NebiusMysterybox configures this store to sync secrets using NebiusMysterybox provider
+   * NebiusMysterybox configures this store to sync secrets using the Nebius SecretStash provider
    *
    * @schema ClusterSecretStoreSpecProvider#nebiusmysterybox
    */
@@ -7862,27 +7862,27 @@ export function toJson_ClusterSecretStoreSpecProviderKubernetes(obj: ClusterSecr
 /* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 
 /**
- * NebiusMysterybox configures this store to sync secrets using NebiusMysterybox provider
+ * NebiusMysterybox configures this store to sync secrets using the Nebius SecretStash provider
  *
  * @schema ClusterSecretStoreSpecProviderNebiusmysterybox
  */
 export interface ClusterSecretStoreSpecProviderNebiusmysterybox {
   /**
-   * NebiusMysterybox API endpoint
+   * Nebius SecretStash API endpoint
    *
    * @schema ClusterSecretStoreSpecProviderNebiusmysterybox#apiDomain
    */
   readonly apiDomain: string;
 
   /**
-   * Auth defines parameters to authenticate in MysteryBox
+   * Auth defines parameters to authenticate in SecretStash
    *
    * @schema ClusterSecretStoreSpecProviderNebiusmysterybox#auth
    */
   readonly auth: ClusterSecretStoreSpecProviderNebiusmysteryboxAuth;
 
   /**
-   * The provider for the CA bundle to use to validate NebiusMysterybox server certificate.
+   * The provider for the CA bundle to use to validate Nebius SecretStash server certificate.
    *
    * @schema ClusterSecretStoreSpecProviderNebiusmysterybox#caProvider
    */
@@ -11317,7 +11317,7 @@ export function toJson_ClusterSecretStoreSpecProviderKubernetesServer(obj: Clust
 /* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 
 /**
- * Auth defines parameters to authenticate in MysteryBox
+ * Auth defines parameters to authenticate in SecretStash
  *
  * @schema ClusterSecretStoreSpecProviderNebiusmysteryboxAuth
  */
@@ -11342,7 +11342,7 @@ export interface ClusterSecretStoreSpecProviderNebiusmysteryboxAuth {
   readonly serviceAccountCredsSecretRef?: ClusterSecretStoreSpecProviderNebiusmysteryboxAuthServiceAccountCredsSecretRef;
 
   /**
-   * Token authenticates with Nebius Mysterybox by presenting a token.
+   * Token authenticates with Nebius SecretStash by presenting a token.
    *
    * @schema ClusterSecretStoreSpecProviderNebiusmysteryboxAuth#tokenSecretRef
    */
@@ -11373,7 +11373,7 @@ export function toJson_ClusterSecretStoreSpecProviderNebiusmysteryboxAuth(obj: C
 /* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 
 /**
- * The provider for the CA bundle to use to validate NebiusMysterybox server certificate.
+ * The provider for the CA bundle to use to validate Nebius SecretStash server certificate.
  *
  * @schema ClusterSecretStoreSpecProviderNebiusmysteryboxCaProvider
  */
@@ -15720,7 +15720,7 @@ export function toJson_ClusterSecretStoreSpecProviderNebiusmysteryboxAuthService
 /* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 
 /**
- * Token authenticates with Nebius Mysterybox by presenting a token.
+ * Token authenticates with Nebius SecretStash by presenting a token.
  *
  * @schema ClusterSecretStoreSpecProviderNebiusmysteryboxAuthTokenSecretRef
  */
@@ -39767,7 +39767,7 @@ export interface SecretStoreSpecProvider {
   readonly kubernetes?: SecretStoreSpecProviderKubernetes;
 
   /**
-   * NebiusMysterybox configures this store to sync secrets using NebiusMysterybox provider
+   * NebiusMysterybox configures this store to sync secrets using the Nebius SecretStash provider
    *
    * @schema SecretStoreSpecProvider#nebiusmysterybox
    */
@@ -41482,27 +41482,27 @@ export function toJson_SecretStoreSpecProviderKubernetes(obj: SecretStoreSpecPro
 /* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 
 /**
- * NebiusMysterybox configures this store to sync secrets using NebiusMysterybox provider
+ * NebiusMysterybox configures this store to sync secrets using the Nebius SecretStash provider
  *
  * @schema SecretStoreSpecProviderNebiusmysterybox
  */
 export interface SecretStoreSpecProviderNebiusmysterybox {
   /**
-   * NebiusMysterybox API endpoint
+   * Nebius SecretStash API endpoint
    *
    * @schema SecretStoreSpecProviderNebiusmysterybox#apiDomain
    */
   readonly apiDomain: string;
 
   /**
-   * Auth defines parameters to authenticate in MysteryBox
+   * Auth defines parameters to authenticate in SecretStash
    *
    * @schema SecretStoreSpecProviderNebiusmysterybox#auth
    */
   readonly auth: SecretStoreSpecProviderNebiusmysteryboxAuth;
 
   /**
-   * The provider for the CA bundle to use to validate NebiusMysterybox server certificate.
+   * The provider for the CA bundle to use to validate Nebius SecretStash server certificate.
    *
    * @schema SecretStoreSpecProviderNebiusmysterybox#caProvider
    */
@@ -44937,7 +44937,7 @@ export function toJson_SecretStoreSpecProviderKubernetesServer(obj: SecretStoreS
 /* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 
 /**
- * Auth defines parameters to authenticate in MysteryBox
+ * Auth defines parameters to authenticate in SecretStash
  *
  * @schema SecretStoreSpecProviderNebiusmysteryboxAuth
  */
@@ -44962,7 +44962,7 @@ export interface SecretStoreSpecProviderNebiusmysteryboxAuth {
   readonly serviceAccountCredsSecretRef?: SecretStoreSpecProviderNebiusmysteryboxAuthServiceAccountCredsSecretRef;
 
   /**
-   * Token authenticates with Nebius Mysterybox by presenting a token.
+   * Token authenticates with Nebius SecretStash by presenting a token.
    *
    * @schema SecretStoreSpecProviderNebiusmysteryboxAuth#tokenSecretRef
    */
@@ -44993,7 +44993,7 @@ export function toJson_SecretStoreSpecProviderNebiusmysteryboxAuth(obj: SecretSt
 /* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 
 /**
- * The provider for the CA bundle to use to validate NebiusMysterybox server certificate.
+ * The provider for the CA bundle to use to validate Nebius SecretStash server certificate.
  *
  * @schema SecretStoreSpecProviderNebiusmysteryboxCaProvider
  */
@@ -49340,7 +49340,7 @@ export function toJson_SecretStoreSpecProviderNebiusmysteryboxAuthServiceAccount
 /* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 
 /**
- * Token authenticates with Nebius Mysterybox by presenting a token.
+ * Token authenticates with Nebius SecretStash by presenting a token.
  *
  * @schema SecretStoreSpecProviderNebiusmysteryboxAuthTokenSecretRef
  */
