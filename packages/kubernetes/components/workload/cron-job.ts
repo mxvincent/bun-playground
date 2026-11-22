@@ -1,5 +1,5 @@
 import type { Cron } from 'cdk8s'
-import { CronJob as CDKCronJob, ConcurrencyPolicy, RestartPolicy } from 'cdk8s-plus-33'
+import { CronJob as CDKCronJob, ConcurrencyPolicy, RestartPolicy } from 'cdk8s-plus-37'
 import type { ComponentContext } from '../../helpers/context'
 import { WorkloadComponent, type WorkloadComponentOptions, type WorkloadSettings } from '../workload-component'
 

@@ -5,7 +5,7 @@ import {
 	EnvValue,
 	type ISecret,
 	type PodSecurityContextProps
-} from 'cdk8s-plus-33'
+} from 'cdk8s-plus-37'
 import type { ComponentContext } from '../helpers/context'
 import type { Resolvable } from '../helpers/resolvable'
 import { getContainerResources } from '../helpers/resources'

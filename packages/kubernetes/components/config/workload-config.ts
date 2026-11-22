@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { type AbstractPod, type Container, type ISecret, Secret, Volume } from 'cdk8s-plus-33'
+import { type AbstractPod, type Container, type ISecret, Secret, Volume } from 'cdk8s-plus-37'
 import {
 	ExternalSecret,
 	ExternalSecretSpecTargetCreationPolicy,

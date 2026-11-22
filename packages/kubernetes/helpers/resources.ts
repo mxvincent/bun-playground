@@ -1,5 +1,5 @@
 import { Size } from 'cdk8s'
-import { type ContainerResources, Cpu } from 'cdk8s-plus-33'
+import { type ContainerResources, Cpu } from 'cdk8s-plus-37'
 
 export const getContainerResources = (options?: Partial<ContainerResources>): ContainerResources => {
 	return {

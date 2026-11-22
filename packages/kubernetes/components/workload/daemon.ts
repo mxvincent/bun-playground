@@ -1,4 +1,4 @@
-import { Deployment } from 'cdk8s-plus-33'
+import { Deployment } from 'cdk8s-plus-37'
 import type { ComponentContext } from '../../helpers/context'
 import { WorkloadComponent, type WorkloadComponentOptions, type WorkloadSettings } from '../workload-component'
 

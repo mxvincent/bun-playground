@@ -1,4 +1,4 @@
-import { type ISecret, Secret } from 'cdk8s-plus-33'
+import { type ISecret, Secret } from 'cdk8s-plus-37'
 import {
 	ExternalSecret as ExternalSecretResource,
 	ExternalSecretSpecDataRemoteRefConversionStrategy,

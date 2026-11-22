@@ -1,4 +1,4 @@
-import { Deployment, Ingress, IngressBackend, Secret } from 'cdk8s-plus-33'
+import { Deployment, Ingress, IngressBackend, Secret } from 'cdk8s-plus-37'
 import type { ComponentContext } from '../../helpers/context'
 import { CertManagerAnnotation } from '../../plugins/cert-manager'
 import { type IngressAnnotations, type IngressConfig, NginxIngressAnnotation } from '../../plugins/ingress'
