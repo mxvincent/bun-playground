@@ -22,8 +22,10 @@ jobs:
         uses: ./.github/actions/setup-bun
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: 'Lint sources'
-        run: bun run turbo:lint
+      # One run at the root covers formatting, linting and import order for every path of
+      # biome.json, including scripts/, which is not a workspace.
+      - name: 'Check formatting, lint and import order'
+        run: bunx biome ci .
   test:
     runs-on: ubuntu-latest
     services:

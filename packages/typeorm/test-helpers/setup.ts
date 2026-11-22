@@ -1,7 +1,7 @@
-import { TEST_DATABASE, testDataSource } from '#test-helpers/data-source'
+import { beforeAll } from 'bun:test'
 import { EnvValue } from '@package/core'
 import { SQL } from 'bun'
-import { beforeAll } from 'bun:test'
+import { TEST_DATABASE, testDataSource } from '#test-helpers/data-source'
 import { getPostgresConnectionUri, initializeDataSource, teardownDataSource } from '../src'
 
 beforeAll(async () => {

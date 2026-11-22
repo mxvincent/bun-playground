@@ -1,5 +1,5 @@
-import { EnvValue } from '@package/core'
 import { beforeAll } from 'bun:test'
+import { EnvValue } from '@package/core'
 import { SQL } from 'bun'
 import { getConnectionConfig, TEST_DATABASE } from './database'
 
