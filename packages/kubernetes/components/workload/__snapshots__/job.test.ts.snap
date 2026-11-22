@@ -1,0 +1,154 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`Job generates a job with its config, environment secret and registry credentials 1`] = `
+"apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  labels:
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: docker-auth
+  namespace: development-fixture
+spec:
+  data:
+    - remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: name:image-registry-auth
+        version: latest
+      secretKey: secret
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: scaleway
+  target:
+    creationPolicy: Owner
+    name: docker-auth
+    template:
+      data:
+        .dockerconfigjson: "{{ .secret | toString }}"
+      type: kubernetes.io/dockerconfigjson
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  labels:
+    app.kubernetes.io/component: migrate
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: migrate-env
+  namespace: development-fixture
+spec:
+  data:
+    - remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: name:fixture-secrets
+        metadataPolicy: None
+        property: API_KEY
+        version: latest
+      secretKey: API_KEY
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: scaleway
+  target:
+    creationPolicy: Owner
+    name: migrate-env
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-options: Replace=true
+    secret.reloader.stakater.com/reload: migrate-config,migrate-env
+  labels:
+    app.kubernetes.io/component: migrate
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: migrate
+  namespace: development-fixture
+spec:
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: migrate
+        app.kubernetes.io/instance: development
+        app.kubernetes.io/name: fixture
+        app.kubernetes.io/version: 0.0.0-snapshot
+        cdk8s.io/metadata.addr: development-migrate-c87c9fcd
+      name: migrate
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - command:
+            - bun
+            - migrate.ts
+          env:
+            - name: CONFIG_FILE_PATH
+              value: /app/config/config.json
+            - name: NODE_ENV
+              value: production
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: API_KEY
+                  name: migrate-env
+          image: registry.example.com/fixture/fixture:0.0.0-snapshot
+          imagePullPolicy: Always
+          name: migrate
+          resources:
+            limits:
+              memory: 250Mi
+            requests:
+              cpu: 50m
+              memory: 100Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          volumeMounts:
+            - mountPath: /app/config/config.json
+              name: config
+              subPath: config.json
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      imagePullSecrets:
+        - name: docker-auth
+      restartPolicy: OnFailure
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: Always
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      setHostnameAsFQDN: false
+      shareProcessNamespace: false
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: config
+          secret:
+            secretName: migrate-config
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/component: migrate
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: migrate-config
+  namespace: development-fixture
+immutable: false
+stringData:
+  config.json: '{"level":"info"}'
+"
+`;
