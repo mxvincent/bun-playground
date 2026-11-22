@@ -10,10 +10,14 @@ it.each(['', 'a', 'a,b (c)%2C', 'é 🙂'])('decodes back the encoded value %p',
 })
 
 it.each([
-	['a character outside the base64url alphabet', 'YQ=='],
-	['a non canonical encoding', 'YR'],
-	['an impossible length', 'Y'],
-	['bytes that are not UTF-8', Buffer.from([0xff]).toString('base64url')]
-])('rejects %s', (_case, encoded) => {
-	expect(() => decodeFilterValue(encoded)).toThrow(TypeError)
+	['a character outside the base64url alphabet', 'YQ==', 'Filter value is not base64url: YQ=='],
+	['a non canonical encoding', 'YR', 'Filter value is not base64url: YR'],
+	['an impossible length', 'Y', 'Filter value is not base64url: Y'],
+	[
+		'bytes that are not UTF-8',
+		Buffer.from([0xff]).toString('base64url'),
+		'The encoded data was not valid for encoding utf-8'
+	]
+])('rejects %s', (_case, encoded, message) => {
+	expect(() => decodeFilterValue(encoded)).toThrow(expect.objectContaining({ constructor: TypeError, message }))
 })

@@ -41,7 +41,13 @@ it('parses the values with the configured encoding', () => {
 
 it('turns a failure of the configured decoder into a validation error', () => {
 	configureFilterValueEncoding(hexEncoding)
-	expect(() => parseFilters('equal(a,zz)')).toThrow(QueryStringParameterValidationError)
+	expect(() => parseFilters('equal(a,zz)')).toThrow(
+		expect.objectContaining({
+			constructor: QueryStringParameterValidationError,
+			message: 'Can not decode filter value',
+			errors: ['equal(a,zz)']
+		})
+	)
 })
 
 it('restores base64url', () => {
