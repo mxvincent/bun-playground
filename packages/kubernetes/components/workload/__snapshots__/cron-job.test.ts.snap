@@ -1,0 +1,65 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`CronJob renders the cron job of a namespace 1`] = `
+"apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    app.kubernetes.io/component: cleanup
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: cleanup
+  namespace: development-fixture
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/component: cleanup
+            app.kubernetes.io/instance: development
+            app.kubernetes.io/name: fixture
+            app.kubernetes.io/version: 0.0.0-snapshot
+            cdk8s.io/metadata.addr: development-cleanup-c8c9a85a
+          name: cleanup
+        spec:
+          automountServiceAccountToken: false
+          containers:
+            - command:
+                - node
+                - cleanup.js
+              image: ghcr.io/mxvincent/fixture:0.0.0-snapshot
+              imagePullPolicy: Always
+              name: cleanup
+              resources:
+                limits:
+                  memory: 250Mi
+                requests:
+                  cpu: 50m
+                  memory: 100Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                privileged: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+          dnsPolicy: ClusterFirst
+          hostNetwork: false
+          restartPolicy: OnFailure
+          securityContext:
+            fsGroup: 1000
+            fsGroupChangePolicy: Always
+            runAsGroup: 1000
+            runAsNonRoot: true
+            runAsUser: 1000
+          setHostnameAsFQDN: false
+          shareProcessNamespace: false
+          terminationGracePeriodSeconds: 30
+  schedule: 0 0 * * *
+  startingDeadlineSeconds: 10
+  successfulJobsHistoryLimit: 3
+  suspend: false
+"
+`;
