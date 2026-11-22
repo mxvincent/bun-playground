@@ -1,7 +1,36 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
 exports[`AccountService synthesizes the manifests of production 1`] = `
-"apiVersion: apps/v1
+"apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  labels:
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/name: account-service
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: docker-auth
+  namespace: production-account-service
+spec:
+  data:
+    - remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: name:image-registry-auth
+        version: latest
+      secretKey: secret
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: scaleway
+  target:
+    creationPolicy: Owner
+    name: docker-auth
+    template:
+      data:
+        .dockerconfigjson: "{{ .secret | toString }}"
+      type: kubernetes.io/dockerconfigjson
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -71,6 +100,8 @@ spec:
               subPath: config.json
       dnsPolicy: ClusterFirst
       hostNetwork: false
+      imagePullSecrets:
+        - name: docker-auth
       restartPolicy: Always
       securityContext:
         fsGroup: 1000
@@ -178,7 +209,36 @@ spec:
 `;
 
 exports[`AccountService synthesizes the manifests of development 1`] = `
-"apiVersion: apps/v1
+"apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  labels:
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: account-service
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: docker-auth
+  namespace: development-account-service
+spec:
+  data:
+    - remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: name:image-registry-auth
+        version: latest
+      secretKey: secret
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: scaleway
+  target:
+    creationPolicy: Owner
+    name: docker-auth
+    template:
+      data:
+        .dockerconfigjson: "{{ .secret | toString }}"
+      type: kubernetes.io/dockerconfigjson
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -248,6 +308,8 @@ spec:
               subPath: config.json
       dnsPolicy: ClusterFirst
       hostNetwork: false
+      imagePullSecrets:
+        - name: docker-auth
       restartPolicy: Always
       securityContext:
         fsGroup: 1000
@@ -355,7 +417,36 @@ spec:
 `;
 
 exports[`AccountService synthesizes the manifests of staging 1`] = `
-"apiVersion: apps/v1
+"apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  labels:
+    app.kubernetes.io/instance: staging
+    app.kubernetes.io/name: account-service
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: docker-auth
+  namespace: staging-account-service
+spec:
+  data:
+    - remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: name:image-registry-auth
+        version: latest
+      secretKey: secret
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: scaleway
+  target:
+    creationPolicy: Owner
+    name: docker-auth
+    template:
+      data:
+        .dockerconfigjson: "{{ .secret | toString }}"
+      type: kubernetes.io/dockerconfigjson
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -425,6 +516,8 @@ spec:
               subPath: config.json
       dnsPolicy: ClusterFirst
       hostNetwork: false
+      imagePullSecrets:
+        - name: docker-auth
       restartPolicy: Always
       securityContext:
         fsGroup: 1000
