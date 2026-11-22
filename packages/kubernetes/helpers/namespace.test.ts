@@ -142,8 +142,14 @@ describe('defineNamespace', () => {
 					new Daemon({ name: 'server', command: ['daemon'] })
 				]
 			})
-		expect(call).toThrow(KubernetesDuplicateComponentNameError)
-		expect(call).toThrow('Duplicate component name in namespace fixture: server')
+		expect(call).toThrow(
+			expect.objectContaining({
+				constructor: KubernetesDuplicateComponentNameError,
+				message: 'Duplicate component name in namespace fixture: server',
+				namespace: 'fixture',
+				component: 'server'
+			})
+		)
 	})
 })
 

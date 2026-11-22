@@ -103,8 +103,12 @@ describe('WorkloadConfig', () => {
 		const config = new WorkloadConfig(context, files)
 		const secret = config.secret
 		expect(config.secret).toBe(secret)
-		expect(() => config.generate()).toThrow(KubernetesConfigAlreadyGeneratedError)
-		expect(() => config.generate()).toThrow('ConfigFile.createManifests() should be called exactly once.')
+		expect(() => config.generate()).toThrow(
+			expect.objectContaining({
+				constructor: KubernetesConfigAlreadyGeneratedError,
+				message: 'ConfigFile.createManifests() should be called exactly once.'
+			})
+		)
 		expect(manifestsOf(context)).toHaveLength(1)
 	})
 
