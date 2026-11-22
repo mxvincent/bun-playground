@@ -11,4 +11,5 @@ test('returns the closest directory holding a package.json', () => {
 
 test('throws when no parent directory holds a package.json', () => {
 	expect(() => getPackageRootPath('/no-package/file.ts')).toThrow(PackageRootNotFoundError)
+	expect(() => getPackageRootPath('/no-package/file.ts')).toThrow('Failed to find package root directory.')
 })

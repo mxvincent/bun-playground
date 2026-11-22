@@ -19,12 +19,25 @@ test('should generate custom alphabet', () => {
 	expect(result).toMatch(new RegExp(`^[${Alphabet.CROCKFORD}]{256}$`))
 })
 
-test.each<{ alphabet?: string; length: number; parameter: string; description: string }>([
-	{ alphabet: '', length: 8, parameter: 'alphabet', description: 'an empty alphabet' },
-	{ alphabet: 'a'.repeat(257), length: 8, parameter: 'alphabet', description: 'an alphabet over 256 characters' },
-	{ length: 0, parameter: 'length', description: 'a length that is not positive' }
-])('rejects $description', ({ alphabet, length, parameter }) => {
+test.each<{ alphabet?: string; length: number; parameter: string; message: string; description: string }>([
+	{
+		alphabet: '',
+		length: 8,
+		parameter: 'alphabet',
+		message: 'Alphabet cannot be empty',
+		description: 'an empty alphabet'
+	},
+	{
+		alphabet: 'a'.repeat(257),
+		length: 8,
+		parameter: 'alphabet',
+		message: 'Alphabet length cannot exceed 256',
+		description: 'an alphabet over 256 characters'
+	},
+	{ length: 0, parameter: 'length', message: 'Length must be positive', description: 'a length that is not positive' }
+])('rejects $description', ({ alphabet, length, parameter, message }) => {
 	const generate = () => new RandomStringGenerator(alphabet).generate(length)
 	expect(generate).toThrow(InvalidRandomStringParameterError)
 	expect(generate).toThrow(expect.objectContaining({ parameter }))
+	expect(generate).toThrow(message)
 })

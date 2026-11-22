@@ -12,6 +12,7 @@ class TestStore extends AsyncStore<Values> {
 
 test('throws when values are read outside of a context', () => {
 	expect(() => new TestStore().values).toThrow(ContextNotInitializedError)
+	expect(() => new TestStore().values).toThrow('Context is not initialized.')
 })
 
 test('run() exposes the values merged with the defaults', () => {

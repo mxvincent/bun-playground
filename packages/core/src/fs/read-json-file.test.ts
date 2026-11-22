@@ -10,4 +10,7 @@ test('parses the file content', () => {
 
 test('throws when the file does not exist', () => {
 	expect(() => readJsonFileSync('/does-not-exist.json')).toThrow(FileNotReadableError)
+	expect(() => readJsonFileSync('/does-not-exist.json')).toThrow(
+		'File does not exists or is not readable (path=/does-not-exist.json)'
+	)
 })
