@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'bun:test'
+import { describe, expect, it, test } from 'bun:test'
 import {
 	ArrayComparisonFilter,
 	ComparisonFilter,
+	type Filter,
 	LogicalFilter,
 	NullComparisonFilter,
 	ValueComparisonFilter
@@ -83,5 +84,20 @@ describe('toJSON()', () => {
 			operator: 'or',
 			filters: [{ type: 'comparison', operator: 'null', path: 'path' }]
 		})
+	})
+})
+
+describe('toString()', () => {
+	test.each<{ filter: Filter; expected: string; description: string }>([
+		{ filter: ComparisonFilter.equal('path', 'a'), expected: 'equal:path', description: 'a value filter' },
+		{ filter: ComparisonFilter.notIn('path', ['a', 'b']), expected: 'notIn:path', description: 'an array filter' },
+		{ filter: ComparisonFilter.notNull('path'), expected: 'notNull:path', description: 'a null filter' },
+		{
+			filter: LogicalFilter.or([ComparisonFilter.equal('a', 'a'), LogicalFilter.and([ComparisonFilter.null('b')])]),
+			expected: 'or(equal:a,and(null:b))',
+			description: 'the nested filters of a logical filter'
+		}
+	])('names $description', ({ filter, expected }) => {
+		expect(filter.toString()).toBe(expected)
 	})
 })

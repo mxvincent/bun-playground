@@ -214,7 +214,6 @@ describe('parseAndValidateQueryParameters()', () => {
 	})
 
 	it('should throw for invalid filter paths', () => {
-		// The reason is '[object Object]' until #380 gives filters a string form
 		expect(() =>
 			parseAndValidateQueryParameters(
 				{ filters: 'equal(unknown,dmFsdWU)' },
@@ -228,7 +227,7 @@ describe('parseAndValidateQueryParameters()', () => {
 			expect.objectContaining({
 				constructor: QueryStringParameterValidationError,
 				message: 'Invalid filter',
-				errors: [expect.any(String)]
+				errors: ['equal:unknown']
 			})
 		)
 	})
