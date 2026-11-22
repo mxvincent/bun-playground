@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import type { ObjectLiteral } from '@package/core'
 import type { PageEdge, PaginationCursorTransformer } from '@package/query-params'
 import { range } from 'es-toolkit'
+import { InvalidSliceOptionError } from '../errors'
 
 export const slice = <T extends ObjectLiteral>(
 	collection: T[],
@@ -12,10 +13,10 @@ export const slice = <T extends ObjectLiteral>(
 	}
 ): PageEdge<T>[] => {
 	if (!collection.length) {
-		throw new Error('collection can not be empty')
+		throw new InvalidSliceOptionError('collection', 'collection can not be empty')
 	}
 	if (options.take < 1) {
-		throw new Error('take parameter should be >= 1')
+		throw new InvalidSliceOptionError('take', 'take parameter should be >= 1')
 	}
 	options.skip ??= 0
 	const data = collection.slice(options.skip, options.skip + options.take)
