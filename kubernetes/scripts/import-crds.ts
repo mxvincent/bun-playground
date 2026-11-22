@@ -24,7 +24,7 @@ await importCrds({
 		],
 		'metallb.io': ['https://raw.githubusercontent.com/metallb/metallb/v0.16.2/config/manifests/metallb-native.yaml'],
 		'postgresql.cnpg.io': [
-			'https://github.com/cloudnative-pg/cloudnative-pg/releases/download/v1.30.1/cnpg-1.30.1.yaml'
+			'https://github.com/cloudnative-pg/cloudnative-pg/releases/download/v1.30.2/cnpg-1.30.2.yaml'
 		],
 		'rabbitmq.com': [
 			'https://github.com/rabbitmq/cluster-operator/releases/download/v2.23.2/cluster-operator.yml',
