@@ -11,6 +11,7 @@
 			"**/src/**/*.ts",
 			"**/test-helpers/**/*.ts",
 			"packages/kubernetes/**/*.ts",
+			"scripts/**/*.ts",
 			"!packages/kubernetes/crds"
 		]
 	},

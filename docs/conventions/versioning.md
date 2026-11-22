@@ -55,7 +55,11 @@ bunx changeset
 ```
 
 - A changeset MUST be added in the same pull request as the change it describes, for every modified
-  versioned workspace. Reviewers enforce this — CI does not.
+  versioned workspace.
+- CI enforces it (`scripts/check-pull-request.ts`): a versioned workspace with a changed file other
+  than a test, a test helper, a snapshot or Markdown MUST be listed in a changeset added or modified
+  by the pull request. When no consumer sees the change, for example a `package.json` field read only
+  by CI, the `no-changeset` label lifts the check. The reviewer judges whether the label holds.
 - `kubernetes` is excluded from versioning (`.changeset/config.json`). Changes to it never need a
   changeset.
 - Internal dependents are bumped as `patch` automatically (`updateInternalDependencies`). Do not add
