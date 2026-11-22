@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto'
+import { randomBytes } from 'node:crypto'
 import { Alphabet } from '../string/alphabets'
 
 /**
@@ -54,11 +54,11 @@ export class RandomStringGenerator {
 				byteIndex = 0
 			}
 
-			const randomValue = bytes[byteIndex++]! & this.mask
+			const randomValue = bytes.readUInt8(byteIndex++) & this.mask
 
 			// Rejection sampling: only use value if it's within the alphabet range, this ensures uniform distribution
 			if (randomValue < this.alphabetLength) {
-				result[resultIndex++] = this.alphabet[randomValue]!
+				result[resultIndex++] = this.alphabet.charAt(randomValue)
 			}
 		}
 

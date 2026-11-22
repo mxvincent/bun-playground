@@ -28,7 +28,7 @@ export const encodeFilterOperator = (decoded: FilterOperator): string => {
 export const FILTER_OPERATOR_DECODING_MAP = reverseRecord(FILTER_OPERATOR_ENCODING_MAP)
 
 export const decodeFilterOperator = (encoded?: string): FilterOperator => {
-	const decoded = FILTER_OPERATOR_DECODING_MAP[encoded!]
+	const decoded = encoded === undefined ? undefined : FILTER_OPERATOR_DECODING_MAP[encoded]
 	if (!decoded) {
 		throw new QueryStringParameterValidationError(`Invalid filter`, [`${encoded} is not a valid filter operator`])
 	}

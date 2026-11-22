@@ -3,7 +3,7 @@ import type { OrganizationMember } from '../schemas/organization-member'
 import { createOrganization } from './organization'
 import { createUserAccount } from './user-account'
 
-export function createOrganizationMember(values: Partial<OrganizationMember>): OrganizationMember {
+export const createOrganizationMember = (values: Partial<OrganizationMember>): OrganizationMember => {
 	return {
 		...generateResource(values),
 		organization: values?.organization ?? createOrganization(),

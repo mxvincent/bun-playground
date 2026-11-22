@@ -1,5 +1,6 @@
 import type { DatabaseContext } from '@package/database'
 import { logger } from '@package/telemetry'
+import invariant from 'tiny-invariant'
 import type { EntityManager, QueryRunner } from 'typeorm'
 import type { PostgresDataSource } from '../types/postgres-data-source'
 
@@ -34,7 +35,8 @@ export class TypeormDatabaseContext implements DatabaseContext {
 			if (typeof isolationLevelOrCallback === 'function') {
 				return this.transaction(isolationLevelOrCallback)
 			}
-			return this.transaction(maybeCallback!, isolationLevelOrCallback)
+			invariant(maybeCallback, 'transaction() with an isolation level requires a callback')
+			return this.transaction(maybeCallback, isolationLevelOrCallback)
 		}) as typeof manager.transaction
 		return manager
 	}

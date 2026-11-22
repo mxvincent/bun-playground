@@ -1,7 +1,7 @@
+import assert from 'node:assert'
 import { wait } from '@package/core'
 import { logger } from '@package/telemetry'
 import type { Channel, ChannelWrapper } from 'amqp-connection-manager'
-import assert from 'assert'
 import type { AmqpClient } from '../amqp/client'
 import { AmqpQueue, QueueRole, QueueType } from '../types/queue'
 import type { ExchangeConfig, TopicBinding } from '../types/topic'

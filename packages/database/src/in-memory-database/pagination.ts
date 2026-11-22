@@ -128,14 +128,14 @@ export class ArrayPager<T extends ObjectLiteral> {
 /**
  * Helper function to create a pager and get a page in one call
  */
-export async function paginateArray<T extends Resource>(
+export const paginateArray = async <T extends Resource>(
 	items: T[],
 	options: {
 		filters: Filter<KeyOf<T>>[]
 		sorts: Sort<KeyOf<T>>[]
 		pagination: Pagination
 	}
-): Promise<Page<T>> {
+): Promise<Page<T>> => {
 	const pager = new ArrayPager(items, {
 		filters: options.filters,
 		sorts: options.sorts

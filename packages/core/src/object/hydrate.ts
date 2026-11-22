@@ -7,16 +7,16 @@ export type ClassConstructor<T> = {
 /**
  * Transform literal object to an instance of a given class
  */
-export function hydrate<T extends PlainObject>(Constructor: ClassConstructor<T>, values: T): T {
+export const hydrate = <T extends PlainObject>(Constructor: ClassConstructor<T>, values: T): T => {
 	return Object.assign(new Constructor(), values)
 }
 
 /**
  * Transform literal object to a partial instance of a given class
  */
-export function hydratePartial<T extends PlainObject>(
+export const hydratePartial = <T extends PlainObject>(
 	Constructor: ClassConstructor<T>,
 	values: Partial<T>
-): Partial<T> {
+): Partial<T> => {
 	return Object.assign(new Constructor(), values)
 }

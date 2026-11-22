@@ -1,0 +1,13 @@
+// code-style.md: exported behaviour is an arrow function assigned to a const, never a `function` declaration.
+language js
+
+or {
+	JsFunctionDeclaration() as $declaration where { $declaration <: within JsExport() },
+	JsFunctionExportDefaultDeclaration() as $declaration
+} where {
+	register_diagnostic(
+		span = $declaration,
+		message = "An exported function MUST be an arrow function assigned to a const. See docs/conventions/code-style.md#functions-and-classes.",
+		severity = "error"
+	)
+}

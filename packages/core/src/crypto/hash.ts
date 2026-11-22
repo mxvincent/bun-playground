@@ -1,4 +1,4 @@
-import { createHash } from 'crypto'
+import { createHash } from 'node:crypto'
 
 const hash = (algorithm: string, value: string): string => {
 	return createHash(algorithm).update(value).digest('hex')

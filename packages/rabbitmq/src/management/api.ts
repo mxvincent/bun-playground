@@ -1,5 +1,5 @@
+import { randomUUID } from 'node:crypto'
 import { invariant } from '@package/core'
-import { randomUUID } from 'crypto'
 import { getManagementApiAuthorizationHeader, getManagementApiConfigUrl } from '../config'
 import { RabbitMQManagementAPIError } from '../errors/rabbitmq-management-api-error'
 import type { AmqpConfig } from '../schemas/config'

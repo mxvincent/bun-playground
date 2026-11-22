@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker'
 import { generateUUID } from '@package/core'
 import type { Editable, Resource } from '../interfaces/resource'
 
-export function generateResource(values: Partial<Resource & Editable>): Resource & Editable {
+export const generateResource = (values: Partial<Resource & Editable>): Resource & Editable => {
 	const createdAt =
 		values.createdAt ??
 		faker.date.between({

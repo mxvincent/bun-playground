@@ -1,7 +1,6 @@
 /**
  * Filter
  */
-export * from './filter/factories'
 export * from './filter/filters'
 export * from './filter/guards'
 export * from './filter/helpers'

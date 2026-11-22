@@ -156,15 +156,14 @@ export class Pager<T extends ObjectLiteral> {
 
 		query.andWhere(
 			new Brackets((qb) => {
-				for (let i = 0; i < sorts.length; i++) {
-					const currentSort = sorts[i]!
+				for (const [i, currentSort] of sorts.entries()) {
 					if (i === 0) {
 						qb.where(whereAfter(currentSort))
 					} else {
 						qb.orWhere(
 							new Brackets((nested) => {
-								for (let j = 0; j < i; j++) {
-									nested.andWhere(whereEqual(sorts[j]!))
+								for (const previousSort of sorts.slice(0, i)) {
+									nested.andWhere(whereEqual(previousSort))
 								}
 								nested.andWhere(whereAfter(currentSort))
 							})

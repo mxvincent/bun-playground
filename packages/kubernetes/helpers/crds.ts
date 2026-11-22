@@ -20,7 +20,7 @@ const cdk8s = join(dirname(require.resolve('cdk8s-cli/package.json')), 'bin', 'c
  * Keeps the CustomResourceDefinition documents of an API group, dropping the operator deployment and the CRDs of the
  * other groups around them.
  */
-export function extractCrds(manifest: string, group: string): string[] {
+export const extractCrds = (manifest: string, group: string): string[] => {
 	return manifest.split(/^---\s*$/m).filter((document) => {
 		return (
 			/^kind:\s*CustomResourceDefinition\s*$/m.test(document) &&
@@ -58,7 +58,7 @@ async function cdk8sImport(source: string, output: string, cwd: string) {
  * Each repository calls it with the CRDs it renders. Bump a version in the sources and run it again to update the
  * classes.
  */
-export async function importCrds({ output, sources, kubernetesApi = 'k8s@1.37.0' }: ImportCrdsOptions) {
+export const importCrds = async ({ output, sources, kubernetesApi = 'k8s@1.37.0' }: ImportCrdsOptions) => {
 	const directory = await mkdtemp(join(tmpdir(), 'import-crds-'))
 	try {
 		if (kubernetesApi) {

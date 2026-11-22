@@ -189,7 +189,7 @@ function applyFilter<T extends object>(filter: Filter<KeyOf<T>>, item: T): boole
  * Filter an array using a list of filters (all filters are combined with AND)
  * Now with better type inference for the filter paths
  */
-export function filterArrayWith<T extends object>(array: T[], filters: Filter<KeyOf<T>>[]): T[] {
+export const filterArrayWith = <T extends object>(array: T[], filters: Filter<KeyOf<T>>[]): T[] => {
 	if (filters.length === 0) {
 		return array
 	}
