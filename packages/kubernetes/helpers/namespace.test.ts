@@ -132,7 +132,7 @@ describe('defineNamespace', () => {
 	})
 
 	test('rejects duplicate component names', () => {
-		expect(() =>
+		const call = () =>
 			defineNamespace({
 				name: 'fixture',
 				application: 'fixture',
@@ -142,7 +142,8 @@ describe('defineNamespace', () => {
 					new Daemon({ name: 'server', command: ['daemon'] })
 				]
 			})
-		).toThrow(KubernetesDuplicateComponentNameError)
+		expect(call).toThrow(KubernetesDuplicateComponentNameError)
+		expect(call).toThrow('Duplicate component name in namespace fixture: server')
 	})
 })
 

@@ -104,6 +104,7 @@ describe('WorkloadConfig', () => {
 		const secret = config.secret
 		expect(config.secret).toBe(secret)
 		expect(() => config.generate()).toThrow(KubernetesConfigAlreadyGeneratedError)
+		expect(() => config.generate()).toThrow('ConfigFile.createManifests() should be called exactly once.')
 		expect(manifestsOf(context)).toHaveLength(1)
 	})
 
