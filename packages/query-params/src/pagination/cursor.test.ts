@@ -119,6 +119,11 @@ describe('PaginationCursorTransformer', () => {
 
 	it('throws on a value that cannot be serialized', () => {
 		const transformer = new PaginationCursorTransformer(['id'])
-		expect(() => transformer.encode({ id: { nested: true } })).toThrow(TypeError)
+		expect(() => transformer.encode({ id: { nested: true } })).toThrow(
+			expect.objectContaining({
+				constructor: TypeError,
+				message: 'unserializable value given as cursor part: [object Object]'
+			})
+		)
 	})
 })
