@@ -1,6 +1,29 @@
 import * as jwt from 'jsonwebtoken'
 import type { JwksClient } from 'jwks-rsa'
-import { AuthTokenError } from './errors'
+import { AuthTokenError, type AuthTokenErrorReason } from '../errors/auth-token'
+
+// jsonwebtoken reports every failure but expiry and activation as one JsonWebTokenError without a code:
+// its message prefix is the only way to tell them apart. The message itself is never exposed, since it
+// can contain the expected audience, issuer, subject, jwt id or nonce.
+const REASON_BY_MESSAGE_PREFIX: [prefix: string, reason: AuthTokenErrorReason][] = [
+	['jwt malformed', 'malformed'],
+	['jwt must be', 'malformed'],
+	['invalid token', 'malformed'],
+	['invalid signature', 'invalid-signature'],
+	['jwt signature is required', 'invalid-signature'],
+	['invalid algorithm', 'invalid-algorithm'],
+	['jwt audience invalid', 'invalid-audience'],
+	['jwt issuer invalid', 'invalid-issuer'],
+	['jwt subject invalid', 'invalid-subject'],
+	['jwt jwtid invalid', 'invalid-jwt-id'],
+	['jwt nonce invalid', 'invalid-nonce'],
+	['invalid exp value', 'invalid-claims'],
+	['invalid nbf value', 'invalid-claims'],
+	['iat required', 'invalid-claims']
+]
+
+const tokenErrorReason = (error: Error): AuthTokenErrorReason =>
+	REASON_BY_MESSAGE_PREFIX.find(([prefix]) => error.message.startsWith(prefix))?.[1] ?? 'invalid'
 
 /**
  * Decode token to get signing key id from headers
@@ -36,7 +59,7 @@ export const verifyToken = async <T extends Record<string, unknown>>(
 						})
 					)
 				}
-				return reject(new AuthTokenError(`Token invalid`, { reason: error.message }))
+				return reject(new AuthTokenError(`Token invalid`, { reason: tokenErrorReason(error) }))
 			} else {
 				resolve(claims as T)
 			}
@@ -66,5 +89,5 @@ export const getKeyAndVerify = async <T extends Record<string, unknown>>(
 			// try the next key
 		}
 	}
-	throw new AuthTokenError(`Token invalid`, { reason: `Token signature is not valid` })
+	throw new AuthTokenError(`Token invalid`, { reason: 'invalid-signature' })
 }
