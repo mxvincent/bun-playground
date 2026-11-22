@@ -69,9 +69,9 @@ describe('Pager.getPage()', () => {
 			})
 
 			// Pages of PAGE_SIZE items: the cursor of a page is the last item of the previous one
-			const PAGES = Array.from({ length: Math.ceil(DATASET_SIZE / PAGE_SIZE) }, (_, index) => index + 1)
+			const pages = Array.from({ length: Math.ceil(DATASET_SIZE / PAGE_SIZE) }, (_, index) => index + 1)
 
-			it.each(PAGES)('page %p', async (page) => {
+			it.each(pages)('page %p', async (page) => {
 				const skip = PAGE_SIZE * (page - 1)
 				const cursor = skip > 0 ? cursorTransformer.encode(invariant(resources[skip - 1])) : undefined
 

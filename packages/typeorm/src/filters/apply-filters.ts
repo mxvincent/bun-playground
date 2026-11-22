@@ -10,7 +10,7 @@ import {
 } from '@package/query-params'
 import { Brackets, type ObjectLiteral, type WhereExpressionBuilder } from 'typeorm'
 import { generateComparisonString } from './comparison'
-import { QueryUtils } from './generateParameterName'
+import { QueryUtils } from './generate-parameter-name'
 
 /**
  * Apply comparison filter to a query

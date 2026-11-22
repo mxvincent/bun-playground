@@ -2,8 +2,8 @@ import { afterAll, expect, it, spyOn } from 'bun:test'
 import { ComparisonFilter, LogicalFilter } from '@package/query-params'
 import { useDatabaseContext } from '#test-helpers/database'
 import { Author } from '#test-helpers/entities'
-import { applyFilters } from './applyFilters'
-import { QueryUtils } from './generateParameterName'
+import { applyFilters } from './apply-filters'
+import { QueryUtils } from './generate-parameter-name'
 
 const database = useDatabaseContext()
 

@@ -9,9 +9,9 @@ import {
 	SortDirection
 } from '@package/query-params'
 import type { ObjectType, SelectQueryBuilder } from 'typeorm'
-import { applyFilters } from './filters/applyFilters'
+import { applyFilters } from './filters/apply-filters'
 import { getPrimaryKeyColumns } from './helpers/primary-key'
-import { getAliasedPath, getDefaultSort, mergePrimaryKeySorts } from './helpers/sortPath'
+import { getAliasedPath, getDefaultSort, mergePrimaryKeySorts } from './helpers/sort-path'
 
 export const enforceFilterPathAliasing = (filters: (ComparisonFilter | LogicalFilter)[], alias: string): Filter[] => {
 	return filters.map((filter) => {

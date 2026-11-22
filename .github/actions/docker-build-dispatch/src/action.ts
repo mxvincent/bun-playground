@@ -28,6 +28,7 @@ const main = async () => {
 		await octokit.rest.actions.createWorkflowDispatch({
 			owner: context.repo.owner,
 			repo: context.repo.repo,
+			// biome-ignore lint/style/useNamingConvention: parameter name defined by the GitHub REST API
 			workflow_id: 'docker-build.yaml',
 			ref: context.ref,
 			inputs

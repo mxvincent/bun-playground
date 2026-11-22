@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 import type { KeyOf } from '@package/core'
 import { Sort } from '@package/query-params'
 import { Author } from '#test-helpers/entities'
-import { defaultSort, getAliasedPath, getDefaultSort, mergePrimaryKeySorts, setDefaultSort } from './sortPath'
+import { defaultSort, getAliasedPath, getDefaultSort, mergePrimaryKeySorts, setDefaultSort } from './sort-path'
 
 beforeEach(() => {
 	defaultSort.delete(Author)

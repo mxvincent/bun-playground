@@ -29,7 +29,36 @@
 		"rules": {
 			"recommended": true,
 			"style": {
-				"useBlockStatements": "error"
+				"useBlockStatements": "error",
+				"useFilenamingConvention": {
+					"level": "error",
+					"options": {
+						"filenameCases": ["kebab-case"],
+						"requireAscii": true
+					}
+				},
+				"useNamingConvention": {
+					"level": "error",
+					"options": {
+						"strictCase": false,
+						"requireAscii": true,
+						"conventions": [
+							{
+								"selector": {
+									"kind": "enumMember"
+								},
+								"formats": ["CONSTANT_CASE"]
+							},
+							{
+								"selector": {
+									"kind": "objectLiteralProperty"
+								},
+								"match": "\\$?(.+)",
+								"formats": ["camelCase", "CONSTANT_CASE"]
+							}
+						]
+					}
+				}
 			}
 		}
 	},
@@ -49,5 +78,126 @@
 				"organizeImports": "on"
 			}
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["packages/rabbitmq/src/management/**", "packages/rabbitmq/test-helpers/management-api.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"useNamingConvention": {
+							"level": "error",
+							"options": {
+								"strictCase": false,
+								"requireAscii": true,
+								"conventions": [
+									{
+										"selector": {
+											"kind": "typeProperty"
+										},
+										"formats": ["camelCase", "snake_case"]
+									},
+									{
+										"selector": {
+											"kind": "objectLiteralProperty"
+										},
+										"match": "\\$?(.+)",
+										"formats": ["camelCase", "snake_case", "PascalCase"]
+									},
+									{
+										"selector": {
+											"kind": "enumMember"
+										},
+										"formats": ["CONSTANT_CASE"]
+									},
+									{
+										"selector": {
+											"kind": "objectLiteralProperty"
+										},
+										"match": "\\$?(.+)",
+										"formats": ["camelCase", "CONSTANT_CASE"]
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["packages/json-schema/src/builder/index.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"useNamingConvention": {
+							"level": "error",
+							"options": {
+								"strictCase": false,
+								"requireAscii": true,
+								"conventions": [
+									{
+										"selector": {
+											"kind": "objectLiteralProperty"
+										},
+										"match": "\\$?(.+)",
+										"formats": ["camelCase", "PascalCase", "CONSTANT_CASE"]
+									},
+									{
+										"selector": {
+											"kind": "enumMember"
+										},
+										"formats": ["CONSTANT_CASE"]
+									},
+									{
+										"selector": {
+											"kind": "objectLiteralProperty"
+										},
+										"match": "\\$?(.+)",
+										"formats": ["camelCase", "CONSTANT_CASE"]
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["packages/fastify-plugins/src/helpers/endpoint.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"useNamingConvention": {
+							"level": "error",
+							"options": {
+								"strictCase": false,
+								"requireAscii": true,
+								"conventions": [
+									{
+										"selector": {
+											"kind": "typeProperty"
+										},
+										"formats": ["camelCase", "PascalCase"]
+									},
+									{
+										"selector": {
+											"kind": "enumMember"
+										},
+										"formats": ["CONSTANT_CASE"]
+									},
+									{
+										"selector": {
+											"kind": "objectLiteralProperty"
+										},
+										"match": "\\$?(.+)",
+										"formats": ["camelCase", "CONSTANT_CASE"]
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		}
+	]
 }

@@ -46,7 +46,8 @@ bun run turbo:test
 ```
 
 Rules that a tool can check are stated here for context only — Biome and `tsc` are the source of
-truth. The rules worth reading are the ones no tool can enforce: naming, layering, and structure.
+truth. The rules worth reading are the ones no tool can enforce: the meaning of names (Biome only
+checks their case), layering, and structure.
 
 ## Loading in Claude Code
 

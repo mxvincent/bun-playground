@@ -12,9 +12,9 @@ import {
 	type StringTransformer
 } from '@package/query-params'
 import { Brackets, type ObjectType, type SelectQueryBuilder } from 'typeorm'
-import { applyFilters } from './filters/applyFilters'
+import { applyFilters } from './filters/apply-filters'
 import { getPrimaryKeyColumns } from './helpers/primary-key'
-import { getAliasedPath, getDefaultSort, mergePrimaryKeySorts } from './helpers/sortPath'
+import { getAliasedPath, getDefaultSort, mergePrimaryKeySorts } from './helpers/sort-path'
 import { applySorts, enforceFilterPathAliasing } from './sort'
 
 /**

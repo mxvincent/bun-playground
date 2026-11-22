@@ -43,14 +43,14 @@ const populateOrganization = (data: { organizations: Organization[]; users: User
 }
 
 enum Mark {
-	start = 'START',
-	createUsers = 'CREATE_USER',
-	createOrganizations = 'CREATE_ORGANIZATION',
-	createOrganizationMembers = 'CREATE_ORGANIZATION_MEMBER'
+	START = 'START',
+	CREATE_USERS = 'CREATE_USER',
+	CREATE_ORGANIZATIONS = 'CREATE_ORGANIZATION',
+	CREATE_ORGANIZATION_MEMBERS = 'CREATE_ORGANIZATION_MEMBER'
 }
 
 const seedDatabase = async () => {
-	performance.mark(Mark.start)
+	performance.mark(Mark.START)
 
 	const sequences = {
 		users: new TextSequence('user', await database.$count(tables.user)),
@@ -58,7 +58,7 @@ const seedDatabase = async () => {
 	}
 
 	const seed = async (chunkId: number) => {
-		performance.mark(Mark.createUsers)
+		performance.mark(Mark.CREATE_USERS)
 
 		const users = await insert(
 			tables.user,
@@ -70,16 +70,16 @@ const seedDatabase = async () => {
 				})
 			})
 		)
-		reportPerformance(Mark.createUsers, `[#${chunkId}] ${users.length} users created`)
+		reportPerformance(Mark.CREATE_USERS, `[#${chunkId}] ${users.length} users created`)
 
-		performance.mark(Mark.createOrganizations)
+		performance.mark(Mark.CREATE_ORGANIZATIONS)
 		const organizations = await insert(
 			tables.organization,
 			times(2_000, () => factories.organization({ name: sequences.organizations.next() }))
 		)
-		reportPerformance(Mark.createOrganizations, `[#${chunkId}] ${organizations.length} organizations created`)
+		reportPerformance(Mark.CREATE_ORGANIZATIONS, `[#${chunkId}] ${organizations.length} organizations created`)
 
-		performance.mark(Mark.createOrganizationMembers)
+		performance.mark(Mark.CREATE_ORGANIZATION_MEMBERS)
 		const organizationMembers = populateOrganization({ organizations, users })
 		await insert(
 			tables.organizationMember,
@@ -90,7 +90,7 @@ const seedDatabase = async () => {
 			}))
 		)
 		reportPerformance(
-			Mark.createOrganizationMembers,
+			Mark.CREATE_ORGANIZATION_MEMBERS,
 			`[#${chunkId}] ${organizationMembers.length} organization members created`
 		)
 
@@ -105,7 +105,7 @@ const seedDatabase = async () => {
 		await seed(i)
 	}
 
-	reportPerformance(Mark.start, 'Seed operation completed', {
+	reportPerformance(Mark.START, 'Seed operation completed', {
 		organizations: sequences.organizations.value,
 		users: sequences.users.value,
 		organizationMember: await database.$count(tables.organizationMember)
