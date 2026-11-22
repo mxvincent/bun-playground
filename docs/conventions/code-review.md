@@ -71,7 +71,8 @@ A pull request, or each pull request of a stack, goes through the same rounds. A
 author of the pull request drives them and merges.
 
 1. **Review.** Two reviewers read the pull request in parallel, each through every pass. They work
-   independently: neither sees the findings of the other.
+   independently: neither sees the findings of the other. They SHOULD differ, so that their blind
+   spots do not add up: another model, and the passes in another order.
 2. **Verification.** The findings of both reviewers are merged, and a finding raised twice is kept
    once. Each finding then goes to three skeptic agents, who try to refute it against the code: they
    look for the input or state that triggers it and check that the stated result is the actual one.
@@ -102,10 +103,11 @@ author of the pull request drives them and merges.
 When a pull request or a stack is ready, the local Claude Code agent MAY run every round, from the
 review to the merge, without handing back between steps. The `review-stack` workflow
 (`.claude/workflows/review-stack.js`) implements this flow; it takes the pull requests bottom to top
-(`prs`), or the checked out stack, and stops before the merge with `merge: false`. It runs the steps in parallel wherever they
-do not depend on each other:
+(`prs`), or the checked out stack, and stops before the merge with `merge: false`. It runs the steps
+in parallel wherever they do not depend on each other:
 
-- **Review**: the two reviewers of every pull request of the stack start at once.
+- **Review**: the two reviewers of every pull request of the stack start at once. The workflow runs
+  one on Opus and one on Sonnet, the second through the passes in the reverse order.
 - **Verification** of a pull request starts as soon as its two reviews end, without waiting for the
   other pull requests. The three skeptics of every finding run at once. Only a finding confirmed
   two out of three gets the two extra skeptics, as soon as its first vote ends.

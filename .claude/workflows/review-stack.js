@@ -151,15 +151,22 @@ log(`Reviewing ${prs.map((pr) => `#${pr.number}`).join(' <- ')}`)
 
 // --- Steps
 
+// The two reviewers differ, so that their blind spots do not add up: another model, and the passes in the reverse order.
+const PASSES = ['structure and organization', 'bugs and edge cases', 'performance', 'readability and maintainability', 'adherence to the conventions']
+const REVIEWERS = [
+	{ model: 'opus', passes: PASSES },
+	{ model: 'sonnet', passes: [...PASSES].reverse() },
+]
+
 async function review(pr) {
 	const reviews = await parallel(
-		[1, 2].map((r) => () =>
+		REVIEWERS.map((reviewer, i) => () =>
 			agent(
-				`You are reviewer ${r} of 2 of ${describe(pr)}. Review its diff (\`gh pr diff ${pr.number}\`) through every pass of \
-the "Passes" section of docs/conventions/code-review.md, reading the surrounding code where you need it. Report only findings that \
-follow the "Comments" section: a line of the head of the pull request inside a hunk of the diff, a concrete case, a severity. \
-Do not raise what CI checks. ${READ_ONLY}`,
-				{ phase: 'Review', label: `review:#${pr.number}:${r}`, schema: FINDINGS },
+				`You are reviewer ${i + 1} of 2 of ${describe(pr)}. Review its diff (\`gh pr diff ${pr.number}\`) through every pass of \
+the "Passes" section of docs/conventions/code-review.md, in this order: ${reviewer.passes.join(', ')}. Give the last pass the same \
+attention as the first. Read the surrounding code where you need it. Report only findings that follow the "Comments" section: a \
+line of the head of the pull request inside a hunk of the diff, a concrete case, a severity. Do not raise what CI checks. ${READ_ONLY}`,
+				{ phase: 'Review', label: `review:#${pr.number}:${i + 1}:${reviewer.model}`, schema: FINDINGS, model: reviewer.model },
 			),
 		),
 	)
@@ -232,17 +239,21 @@ function apply(fixes) {
 		`Apply the fix commits of this review round, bottom to top, then push them and post the replies.\n
 Pull requests, bottom to top, with their fix commit (created in other worktrees of this repository) and replies:
 ${JSON.stringify(fixes, null, 2)}\n
-Record the current branch first and switch back to it at the end. Run \`git fetch origin\`. For each pull request with a \
-commit: \`git switch <branch>\`, \`git reset --hard origin/<branch>\`, \`git cherry-pick <commit>\`${
-			stack.isStack ? ', then `gh stack rebase --upstack`' : ''
-		}. Before the push, rebase on an up-to-date \`origin/main\` (docs/conventions/commits-and-branches.md#commits-on-a-branch): ${
-			stack.isStack ? '`gh stack rebase`' : '`git rebase origin/<base>`, where the base is `main` or the open pull request below'
-		}. Resolve a conflict only when it is mechanical; otherwise abort and set problem. Then ${
-			stack.isStack ? '`gh stack push`' : '`git push --force-with-lease`'
-		}. Find the SHA of each fix commit after the rebase, then reply to each comment \
-(\`gh api repos/{owner}/{repo}/pulls/<n>/comments/<commentId>/replies\`): a fixed comment names its fix commit. Replies are in \
-English.`,
-		{ phase: 'Apply', label: 'apply', schema: APPLIED },
+Work only in this worktree: never switch branches in the main checkout or in another worktree, which someone else may be using. \
+Run \`git fetch origin\` and record the SHA of \`origin/<branch>\` of every pull request. Then, bottom to top, for every pull \
+request, with or without a commit:
+1. \`git switch -C review/<branch> origin/<branch>\`.
+2. Rebase it: the bottom pull request on \`origin/<base>\` (\`origin/main\` or the open pull request it is based on, as \
+docs/conventions/commits-and-branches.md#commits-on-a-branch requires before a push); every other one with \
+\`git rebase --onto review/<branch below> <recorded SHA of origin/<branch below>>\`.
+3. \`git cherry-pick <commit>\` when it has a fix commit.
+Resolve a conflict only when it is mechanical; otherwise abort and set problem, without pushing anything. Then push every branch \
+that changed: \`git push --force-with-lease=<branch>:<recorded SHA> origin review/<branch>:<branch>\`. Find the SHA of each fix \
+commit after the rebase, then reply to each comment (\`gh api repos/{owner}/{repo}/pulls/<n>/comments/<commentId>/replies\`): a \
+fixed comment names its fix commit. Replies are in English. Finally run \`git switch --detach\`, delete the \`review/*\` branches, \
+and remove the worktrees that hold the fix commits (\`git worktree list --porcelain\`, then \`git worktree remove\` only when \
+clean) and their local branches.`,
+		{ phase: 'Apply', label: 'apply', schema: APPLIED, isolation: 'worktree' },
 	)
 }
 
