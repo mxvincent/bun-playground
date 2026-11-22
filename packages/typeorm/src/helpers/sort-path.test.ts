@@ -42,8 +42,11 @@ describe('mergePrimaryKeySorts()', () => {
 
 	it('should fail when `primaryKeyColumns` array is empty', () => {
 		const sorts: Sort<KeyOf<Pet>>[] = []
-		expect(() => mergePrimaryKeySorts(sorts, [] as never)).toThrowError(
-			'Invariant failed: Argument primaryKeyColumns should be a non empty array'
+		expect(() => mergePrimaryKeySorts(sorts, [] as never)).toThrow(
+			expect.objectContaining({
+				constructor: Error,
+				message: 'Invariant failed: Argument primaryKeyColumns should be a non empty array'
+			})
 		)
 	})
 
