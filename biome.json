@@ -265,6 +265,10 @@
 					}
 				}
 			}
+		},
+		{
+			"includes": ["**", "!**/*.test.ts", "!**/test-helpers/**", "!.github/actions/**"],
+			"plugins": ["./biome-plugins/no-throw-error.grit"]
 		}
 	],
 	"plugins": ["./biome-plugins/no-exported-function-declaration.grit"]
