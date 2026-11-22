@@ -36,7 +36,15 @@ export const accountService = defineNamespace({
 	components: [
 		new WebService({
 			name: 'app-server',
-			command: node('app-server.js')
+			command: node('app-server.js'),
+			config: {
+				[CONFIG_FILE_NAME]: {
+					server: {
+						host: '0.0.0.0',
+						port: WebService.HTTP_PORT
+					}
+				}
+			}
 		})
 	]
 })

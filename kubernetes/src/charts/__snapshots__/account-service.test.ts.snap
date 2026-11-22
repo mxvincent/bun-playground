@@ -163,7 +163,7 @@ spec:
     name: account-service-app-server-config
     template:
       data:
-        config.json: '{"app":{"logLevel":"info","timeZone":"UTC"},"database":{"type":"postgres","host":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_HOST | toString }}","port":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_PORT | toString }}","database":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_DATABASE | toString }}","username":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_USERNAME | toString }}","password":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_PASSWORD | toString }}"}}'
+        config.json: '{"app":{"logLevel":"info","timeZone":"UTC"},"database":{"type":"postgres","host":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_HOST | toString }}","port":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_PORT | toString }}","database":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_DATABASE | toString }}","username":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_USERNAME | toString }}","password":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_PASSWORD | toString }}"},"server":{"host":"0.0.0.0","port":4000}}'
       engineVersion: v2
       metadata:
         labels:
@@ -334,7 +334,7 @@ spec:
     name: account-service-app-server-config
     template:
       data:
-        config.json: '{"app":{"logLevel":"info","timeZone":"UTC"},"database":{"type":"postgres","host":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_HOST | toString }}","port":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_PORT | toString }}","database":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_DATABASE | toString }}","username":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_USERNAME | toString }}","password":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_PASSWORD | toString }}"}}'
+        config.json: '{"app":{"logLevel":"info","timeZone":"UTC"},"database":{"type":"postgres","host":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_HOST | toString }}","port":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_PORT | toString }}","database":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_DATABASE | toString }}","username":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_USERNAME | toString }}","password":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_PASSWORD | toString }}"},"server":{"host":"0.0.0.0","port":4000}}'
       engineVersion: v2
       metadata:
         labels:
@@ -505,7 +505,7 @@ spec:
     name: account-service-app-server-config
     template:
       data:
-        config.json: '{"app":{"logLevel":"info","timeZone":"UTC"},"database":{"type":"postgres","host":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_HOST | toString }}","port":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_PORT | toString }}","database":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_DATABASE | toString }}","username":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_USERNAME | toString }}","password":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_PASSWORD | toString }}"}}'
+        config.json: '{"app":{"logLevel":"info","timeZone":"UTC"},"database":{"type":"postgres","host":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_HOST | toString }}","port":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_PORT | toString }}","database":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_DATABASE | toString }}","username":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_USERNAME | toString }}","password":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_PASSWORD | toString }}"},"server":{"host":"0.0.0.0","port":4000}}'
       engineVersion: v2
       metadata:
         labels:
