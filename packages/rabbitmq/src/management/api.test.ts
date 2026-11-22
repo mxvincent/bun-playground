@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import { afterAll, afterEach, beforeAll, describe, expect, it, test } from 'bun:test'
 import { http } from 'msw'
 import { config } from '#test-helpers/config'
 import { managementApiServer } from '#test-helpers/management-api'
@@ -15,8 +15,31 @@ afterAll(() => {
 })
 
 const api = new RabbitMQManagementAPI(config)
+const encodedVhost = encodeURIComponent(config.connection.vhost)
+
+describe('RabbitMQManagementApi.listQueues()', () => {
+	afterEach(() => {
+		managementApiServer.resetHandlers()
+	})
+
+	test('throws when the queues are not listed', async () => {
+		managementApiServer.use(http.get('https://localhost/api/queues/:vhost', () => new Response(null, { status: 503 })))
+		await expect(api.listQueues()).rejects.toThrow(
+			expect.objectContaining({
+				constructor: RabbitMQManagementAPIError,
+				message: '[RabbitMQ] List queues query failed.',
+				requestUrl: `https://localhost/api/queues/${encodedVhost}`,
+				responseStatus: 503
+			})
+		)
+	})
+})
 
 describe('RabbitMQManagementApi.getQueueBindings()', () => {
+	afterEach(() => {
+		managementApiServer.resetHandlers()
+	})
+
 	it('should map RabbitMQ management API response', async () => {
 		const bindings = await api.listQueueBindings('test-queue')
 		expect(bindings[0]).toEqual(
@@ -33,6 +56,19 @@ describe('RabbitMQManagementApi.getQueueBindings()', () => {
 			{ exchange: 'loan', routingKey: 'loan.updated' }
 		])
 	})
+	test('throws when the bindings are not listed', async () => {
+		managementApiServer.use(
+			http.get('https://localhost/api/queues/:vhost/:queue/bindings', () => new Response(null, { status: 404 }))
+		)
+		await expect(api.listQueueBindings('test-queue')).rejects.toThrow(
+			expect.objectContaining({
+				constructor: RabbitMQManagementAPIError,
+				message: '[RabbitMQ] List queue bindings query failed.',
+				requestUrl: `https://localhost/api/queues/${encodedVhost}/test-queue/bindings`,
+				responseStatus: 404
+			})
+		)
+	})
 })
 
 describe('shovels', () => {
@@ -40,11 +76,30 @@ describe('shovels', () => {
 		managementApiServer.resetHandlers()
 	})
 
+	// putShovel() draws the shovel id itself: the handler records it to build the expected URL
+	let createdShovelId: unknown
 	const respondToShovels = (status: number) =>
 		managementApiServer.use(
-			http.put('https://localhost/api/parameters/shovel/:vhost/:id', () => new Response(null, { status })),
+			http.put('https://localhost/api/parameters/shovel/:vhost/:id', ({ params }) => {
+				createdShovelId = params.id
+				return new Response(null, { status })
+			}),
 			http.delete('https://localhost/api/parameters/shovel/:vhost/:id', () => new Response(null, { status }))
 		)
+
+	test('listShovels() throws when the shovels are not listed', async () => {
+		managementApiServer.use(
+			http.get('https://localhost/api/parameters/shovel/:vhost', () => new Response(null, { status: 500 }))
+		)
+		await expect(api.listShovels()).rejects.toThrow(
+			expect.objectContaining({
+				constructor: RabbitMQManagementAPIError,
+				message: '[RabbitMQ] List shovels query failed.',
+				requestUrl: `https://localhost/api/parameters/shovel/${encodedVhost}`,
+				responseStatus: 500
+			})
+		)
+	})
 
 	it('putShovel() returns the created shovel', async () => {
 		respondToShovels(201)
@@ -54,11 +109,15 @@ describe('shovels', () => {
 
 	it('putShovel() throws when the shovel is not created', async () => {
 		respondToShovels(400)
-		await expect(api.putShovel({ sourceQueue: 'source', destinationQueue: 'destination' })).rejects.toThrow(
+		const creating = api.putShovel({ sourceQueue: 'source', destinationQueue: 'destination' })
+		// The expected URL holds the id, known once the request is sent: let the call settle first
+		await creating.catch(() => undefined)
+		await expect(creating).rejects.toThrow(
 			expect.objectContaining({
 				constructor: RabbitMQManagementAPIError,
 				message: '[RabbitMQ] Create shovel query failed.',
-				statusCode: 400
+				requestUrl: `https://localhost/api/parameters/shovel/${encodedVhost}/${createdShovelId}`,
+				responseStatus: 400
 			})
 		)
 	})
@@ -69,7 +128,8 @@ describe('shovels', () => {
 			expect.objectContaining({
 				constructor: RabbitMQManagementAPIError,
 				message: '[RabbitMQ] Delete shovel query failed.',
-				statusCode: 404
+				requestUrl: `https://localhost/api/parameters/shovel/${encodedVhost}/id`,
+				responseStatus: 404
 			})
 		)
 	})
@@ -87,8 +147,9 @@ describe('RabbitMQManagementApi.getQueue()', () => {
 		await expect(api.getQueue('orders')).rejects.toThrow(
 			expect.objectContaining({
 				constructor: RabbitMQManagementAPIError,
-				message: expect.stringContaining('Unexpected response status 500 for'),
-				statusCode: 500
+				message: `Unexpected response status 500 for https://localhost/api/queues/${encodedVhost}/orders.`,
+				requestUrl: `https://localhost/api/queues/${encodedVhost}/orders`,
+				responseStatus: 500
 			})
 		)
 	})
