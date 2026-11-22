@@ -283,6 +283,13 @@ Left is the bottom and merges first; right is the top.
   and tests pass at every level. Foundational work goes at the bottom: domain types, then
   persistence, then the endpoint that exposes it.
 - Stacks are strictly linear. Parallel work belongs in separate stacks.
+- A batch of pull requests opened together — dependency or CRD updates, the steps of a migration —
+  MUST be a stack as soon as its pull requests touch the same files (`package.json`, `bun.lock`, a
+  generated file, a shared script) or must land in a given order. Decide the order before creating
+  the branches: each one starts from the previous one, and the batch merges at once with
+  `gh stack merge`. Independent branches on `main` would each need a rebase and a full CI run after
+  every merge. Only pull requests that share no file MAY stay independent. This applies as well when
+  agents open the pull requests: give each one its base branch.
 
 ### Working in a stack
 
