@@ -28,7 +28,7 @@ describe('TypeormDatabaseContext.transaction()', () => {
 			await manager.insert(Author, author)
 			throw new Error('failure')
 		})
-		await expect(failure).rejects.toThrow('failure')
+		await expect(failure).rejects.toThrow(expect.objectContaining({ constructor: Error, message: 'failure' }))
 		expect(await isPersisted()).toBe(false)
 	})
 
@@ -70,7 +70,7 @@ describe('nested TypeormDatabaseContext.transaction()', () => {
 			await manager.insert(Author, outer)
 			throw new Error('failure')
 		})
-		await expect(failure).rejects.toThrow('failure')
+		await expect(failure).rejects.toThrow(expect.objectContaining({ constructor: Error, message: 'failure' }))
 		expect([await isPersisted(inner), await isPersisted(outer)]).toEqual([false, false])
 	})
 
