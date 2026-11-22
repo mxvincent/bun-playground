@@ -12,11 +12,12 @@
 		"import-api-resources": "bun scripts/import-crds.ts",
 		"generate-manifests": "cdk8s synth --output manifests --check-upgrade=false"
 	},
+	"dependencies": {
+		"@package/kubernetes": "workspace:*"
+	},
 	"devDependencies": {
 		"cdk8s": "^2.70.33",
 		"cdk8s-cli": "^2.200.150",
-		"cdk8s-plus-33": "^2.4.10",
-		"constructs": "^10.4.4",
-		"es-toolkit": "^1.43.0"
+		"constructs": "^10.4.4"
 	}
 }

@@ -1,0 +1,42 @@
+{
+	"name": "@package/kubernetes",
+	"version": "0.0.0",
+	"private": true,
+	"exports": {
+		".": {
+			"types": "./index.ts",
+			"default": "./index.ts"
+		},
+		"./crds": {
+			"types": "./helpers/crds.ts",
+			"default": "./helpers/crds.ts"
+		},
+		"./crds/*": {
+			"types": "./crds/*.ts",
+			"default": "./crds/*.ts"
+		},
+		"./testing": {
+			"types": "./testing.ts",
+			"default": "./testing.ts"
+		}
+	},
+	"scripts": {
+		"import-api-resources": "bun scripts/import-crds.ts",
+		"lint:check": "biome lint .",
+		"modules:clean": "rm -rf node_modules",
+		"test": "bun test",
+		"test:watch": "bun test --watch",
+		"tsc:check": "tsc --noEmit --skipLibCheck",
+		"tsc:check:watch": "tsc --noEmit --watch --skipLibCheck"
+	},
+	"dependencies": {
+		"cdk8s": "^2.70.33",
+		"cdk8s-cli": "^2.200.150",
+		"cdk8s-plus-33": "^2.4.10",
+		"constructs": "^10.4.4",
+		"es-toolkit": "^1.43.0"
+	},
+	"devDependencies": {
+		"@types/bun": "^1.3.2"
+	}
+}

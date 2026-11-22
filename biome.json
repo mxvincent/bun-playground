@@ -7,7 +7,12 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**/src/**/*.ts", "**/test-helpers/**/*.ts"]
+		"includes": [
+			"**/src/**/*.ts",
+			"**/test-helpers/**/*.ts",
+			"packages/kubernetes/**/*.ts",
+			"!packages/kubernetes/crds"
+		]
 	},
 	"formatter": {
 		"enabled": true,

@@ -17,7 +17,7 @@
     },
     "applications/account": {
       "name": "@application/account",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "dependencies": {
         "@domain/account": "workspace:",
         "@fastify/type-provider-typebox": "^6.1.0",
@@ -53,17 +53,18 @@
     },
     "kubernetes": {
       "name": "kubernetes",
+      "dependencies": {
+        "@package/kubernetes": "workspace:*",
+      },
       "devDependencies": {
         "cdk8s": "^2.70.33",
         "cdk8s-cli": "^2.200.150",
-        "cdk8s-plus-33": "^2.4.10",
         "constructs": "^10.4.4",
-        "es-toolkit": "^1.43.0",
       },
     },
     "packages/core": {
       "name": "@package/core",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@package/errors": "workspace:*",
         "jsonwebtoken": "^9.0.2",
@@ -82,7 +83,7 @@
     },
     "packages/database": {
       "name": "@package/database",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "dependencies": {
         "@faker-js/faker": "^9.9.0",
         "@package/core": "workspace:",
@@ -92,7 +93,7 @@
     },
     "packages/drizzle": {
       "name": "@package/drizzle",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "dependencies": {
         "@package/core": "workspace:*",
         "@package/database": "workspace:*",
@@ -111,11 +112,11 @@
     },
     "packages/errors": {
       "name": "@package/errors",
-      "version": "0.1.0",
+      "version": "0.2.0",
     },
     "packages/fastify-plugins": {
       "name": "@package/fastify-plugins",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "dependencies": {
         "@fastify/type-provider-typebox": "^6.1.0",
         "@package/errors": "workspace:*",
@@ -129,7 +130,7 @@
     },
     "packages/json-schema": {
       "name": "@package/json-schema",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@package/core": "workspace:*",
         "@package/errors": "workspace:*",
@@ -139,9 +140,23 @@
         "typebox": "^1.4.6",
       },
     },
+    "packages/kubernetes": {
+      "name": "@package/kubernetes",
+      "version": "0.0.0",
+      "dependencies": {
+        "cdk8s": "^2.70.33",
+        "cdk8s-cli": "^2.200.150",
+        "cdk8s-plus-33": "^2.4.10",
+        "constructs": "^10.4.4",
+        "es-toolkit": "^1.43.0",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.3.2",
+      },
+    },
     "packages/query-params": {
       "name": "@package/query-params",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "dependencies": {
         "@package/core": "workspace:*",
         "es-toolkit": "^1.40.0",
@@ -149,7 +164,7 @@
     },
     "packages/query-params-serializer": {
       "name": "@package/query-params-serializer",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "dependencies": {
         "@package/core": "workspace:*",
         "@package/errors": "workspace:*",
@@ -162,7 +177,7 @@
     },
     "packages/rabbitmq": {
       "name": "@package/rabbitmq",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@package/core": "workspace:*",
         "@package/errors": "workspace:*",
@@ -180,7 +195,7 @@
     },
     "packages/telemetry": {
       "name": "@package/telemetry",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@fastify/otel": "^0.14.0",
         "@opentelemetry/api": "^1.9.0",
@@ -213,7 +228,7 @@
     },
     "packages/typeorm": {
       "name": "@package/typeorm",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "dependencies": {
         "@faker-js/faker": "^9.9.0",
         "@package/core": "workspace:*",
@@ -536,6 +551,8 @@
     "@package/fastify-plugins": ["@package/fastify-plugins@workspace:packages/fastify-plugins"],
 
     "@package/json-schema": ["@package/json-schema@workspace:packages/json-schema"],
+
+    "@package/kubernetes": ["@package/kubernetes@workspace:packages/kubernetes"],
 
     "@package/query-params": ["@package/query-params@workspace:packages/query-params"],
 
@@ -979,7 +996,7 @@
 
     "micromatch": ["micromatch@4.0.8", "", { "dependencies": { "braces": "^3.0.3", "picomatch": "^2.3.1" } }, "sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA=="],
 
-    "minimatch": ["minimatch@10.1.2", "", { "dependencies": { "@isaacs/brace-expansion": "^5.0.1" } }, "sha512-fu656aJ0n2kcXwsnwnv9g24tkU5uSmOlTjd6WyyaKm2Z+h1qmY6bAjrcaIxF/BslFqbZ8UBtbJi7KgQOZD2PTw=="],
+    "minimatch": ["minimatch@9.0.5", "", { "dependencies": { "brace-expansion": "^2.0.1" } }, "sha512-G6T0ZX48xgozx7587koeX9Ys2NYy6Gmv//P89sEte9V9whIapMNF4idKxnW2QtCcLiTWlb/wfCabAtAFWhhBow=="],
 
     "minimist": ["minimist@1.2.8", "", {}, "sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA=="],
 
@@ -1297,6 +1314,8 @@
 
     "@fastify/otel/@opentelemetry/instrumentation": ["@opentelemetry/instrumentation@0.207.0", "", { "dependencies": { "@opentelemetry/api-logs": "0.207.0", "import-in-the-middle": "^2.0.0", "require-in-the-middle": "^8.0.0" }, "peerDependencies": { "@opentelemetry/api": "^1.3.0" } }, "sha512-y6eeli9+TLKnznrR8AZlQMSJT7wILpXH+6EYq5Vf/4Ao+huI7EedxQHwRgVUOMLFbe7VFDvHJrX9/f4lcwnJsA=="],
 
+    "@fastify/otel/minimatch": ["minimatch@10.1.2", "", { "dependencies": { "@isaacs/brace-expansion": "^5.0.1" } }, "sha512-fu656aJ0n2kcXwsnwnv9g24tkU5uSmOlTjd6WyyaKm2Z+h1qmY6bAjrcaIxF/BslFqbZ8UBtbJi7KgQOZD2PTw=="],
+
     "@manypkg/find-root/@types/node": ["@types/node@12.20.55", "", {}, "sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ=="],
 
     "@manypkg/find-root/fs-extra": ["fs-extra@8.1.0", "", { "dependencies": { "graceful-fs": "^4.2.0", "jsonfile": "^4.0.0", "universalify": "^0.1.0" } }, "sha512-yhlQgA6mnOJUKOsRUFsgJdQCvkKhcz8tlZG5HBQfReYZy46OwLcY+Zia0mtdHsOo9y/hP+CxMN0TU9QxoOtG4g=="],
@@ -1386,8 +1405,6 @@
     "cdk8s-cli/yargs": ["yargs@15.4.1", "", { "dependencies": { "cliui": "^6.0.0", "decamelize": "^1.2.0", "find-up": "^4.1.0", "get-caller-file": "^2.0.1", "require-directory": "^2.1.1", "require-main-filename": "^2.0.0", "set-blocking": "^2.0.0", "string-width": "^4.2.0", "which-module": "^2.0.0", "y18n": "^4.0.0", "yargs-parser": "^18.1.2" } }, "sha512-aePbxDmcYW++PaqBsJ+HYUFwCdv4LVvdnhBy78E57PIor8/OVvhMrADFFEDh8DHDFRv/O9i3lPhsENjO7QX0+A=="],
 
     "cdk8s-plus-28/minimatch": ["minimatch@3.1.2", "", { "dependencies": { "brace-expansion": "^1.1.7" } }, "sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw=="],
-
-    "cdk8s-plus-33/minimatch": ["minimatch@9.0.5", "", { "dependencies": { "brace-expansion": "^2.0.1" } }, "sha512-G6T0ZX48xgozx7587koeX9Ys2NYy6Gmv//P89sEte9V9whIapMNF4idKxnW2QtCcLiTWlb/wfCabAtAFWhhBow=="],
 
     "cliui/wrap-ansi": ["wrap-ansi@7.0.0", "", { "dependencies": { "ansi-styles": "^4.0.0", "string-width": "^4.1.0", "strip-ansi": "^6.0.0" } }, "sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q=="],
 

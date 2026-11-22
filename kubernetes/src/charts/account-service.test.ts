@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
+import { pinRevision } from '@package/kubernetes/testing'
 import { App } from 'cdk8s/lib/app'
 import { accountService } from '#/charts/account-service'
-import { pinRevision } from '#/helpers/revision.testing'
 import { Application } from '#/interfaces/application'
 import { Environment } from '#/interfaces/environment'
 

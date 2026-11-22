@@ -1,0 +1,99 @@
+import type { Chart } from 'cdk8s/lib/chart'
+import type { Construct } from 'constructs'
+import { type ImageRegistry, ImageRegistryAuth } from '../components/config/registry-auth'
+import { type ConfigFiles, mergeConfigFiles, WorkloadConfig } from '../components/config/workload-config'
+import { type EnvironmentVariables, WorkloadEnvironment } from '../components/config/workload-environment'
+import type { WorkloadComponent } from '../components/workload-component'
+import type { ExternalSecretSpecSecretStoreRef } from '../crds/external-secrets.io'
+import { ApplicationContext } from './context'
+import { DEFAULT_IMAGE_REGISTRY } from './registry'
+import { type Resolvable, resolve } from './resolvable'
+import type { RevisionSource } from './revision'
+
+/**
+ * Declaration of a workload namespace
+ */
+export interface WorkloadNamespaceOptions {
+	/** Name of the namespace, prefixed by the environment for the Kubernetes namespace */
+	readonly name: string
+	/** Application providing the image and the revision run by every component */
+	readonly application: string
+	/** Revision of the application, the version of `applications/<application>/package.json` when omitted */
+	readonly revision?: RevisionSource
+	/** Registry the image of the application is pulled from, `DEFAULT_IMAGE_REGISTRY` when omitted */
+	readonly imageRegistry?: ImageRegistry
+	/** Secret store the external secrets read from, `DEFAULT_SECRET_STORE` when omitted */
+	readonly secretStore?: ExternalSecretSpecSecretStoreRef
+	/** Config files shared by the components, by file name */
+	readonly config?: Resolvable<ConfigFiles>
+	/** Environment variables shared by the components */
+	readonly environment?: Resolvable<EnvironmentVariables>
+	/** Components of the namespace, with unique names */
+	readonly components: readonly WorkloadComponent[]
+}
+
+/**
+ * Options of the generation of a workload namespace
+ */
+export interface WorkloadNamespaceGenerateOptions {
+	/** Scope the chart is created in, the global scope of the application when omitted */
+	readonly scope?: Construct
+}
+
+/**
+ * A workload namespace: an application (or a domain) and the components it runs
+ */
+export interface WorkloadNamespace {
+	readonly name: string
+	readonly application: string
+	/** Generate the chart of the namespace for one environment */
+	generate(environment: string, options?: WorkloadNamespaceGenerateOptions): Chart
+}
+
+/**
+ * Declare a workload namespace
+ *
+ * Each component extends the settings of the namespace: its config files are deep-merged into the namespace ones and
+ * its environment variables are merged with the namespace ones. The component wins on conflicts.
+ */
+export const defineNamespace = (options: WorkloadNamespaceOptions): WorkloadNamespace => {
+	const names = new Set<string>()
+	for (const component of options.components) {
+		if (names.has(component.name)) {
+			throw new Error(`Duplicate component name in namespace ${options.name}: ${component.name}`)
+		}
+		names.add(component.name)
+	}
+	return {
+		name: options.name,
+		application: options.application,
+		generate(environment, { scope } = {}) {
+			const context = new ApplicationContext(environment, options.application, options.name, {
+				revision: options.revision,
+				secretStore: options.secretStore,
+				scope
+			})
+			const { url, auth } = options.imageRegistry ?? DEFAULT_IMAGE_REGISTRY
+			const image = `${url}/${context.application}:${context.revision}`
+			const imagePullSecret = auth && new ImageRegistryAuth(context, auth).secret
+			for (const component of options.components) {
+				const componentContext = context.component(component.name)
+				const config = mergeConfigFiles(
+					resolve(options.config, componentContext),
+					resolve(component.options.config, componentContext)
+				)
+				const variables = {
+					...resolve(options.environment, componentContext),
+					...resolve(component.options.environment, componentContext)
+				}
+				component.generate(componentContext, {
+					image,
+					imagePullSecret,
+					config: config && new WorkloadConfig(componentContext, config),
+					environment: Object.keys(variables).length ? new WorkloadEnvironment(componentContext, variables) : undefined
+				})
+			}
+			return context.chart
+		}
+	}
+}
