@@ -113,7 +113,8 @@ do not depend on each other:
 - **Fix**: one agent per pull request, each in its own worktree, prepares the fixes of its layer at
   the same time. Their commits are then applied bottom to top, and the layers above are rebased
   after each one.
-- **Re-review**: every layer at once.
+- **Re-review**: every layer at once. A suggestion or a question it raises starts no round: the
+  workflow returns it, unverified, in `leftover`, for the author.
 - **Merge**: the whole stack at once, with `gh stack merge`.
 
 The agent stops and hands back to the author when a finding needs a product decision, when a

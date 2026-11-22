@@ -263,10 +263,12 @@ Do not change files.`,
 const handBack = []
 let pending = new Map() // round 1 reviews the whole pull requests; later rounds verify the findings of the re-review
 let openThreads = new Map() // unresolved threads per pull request after the last re-review
+let leftover = [] // non-blocker findings of the last re-review: they start no round, so the result carries them
 let clean = false
 
 for (let round = 1; round <= MAX_ROUNDS && !clean; round++) {
 	log(`Round ${round}`)
+	leftover = []
 	const results = await pipeline(
 		prs,
 		async (pr) => (round === 1 ? review(pr) : pending.get(pr.number) || []),
@@ -312,13 +314,20 @@ for (let round = 1; round <= MAX_ROUNDS && !clean; round++) {
 	const fresh = [...pending.values()].reduce((n, f) => n + f.filter((x) => x.severity === 'blocker').length, 0)
 	log(`Round ${round}: ${open} open threads, ${fresh} new blockers`)
 	clean = open === 0 && fresh === 0
+	leftover = touched.flatMap((pr) =>
+		pending
+			.get(pr.number)
+			.filter((x) => x.severity !== 'blocker')
+			.map((x) => ({ number: pr.number, ...x })),
+	)
 	if (!clean && round === MAX_ROUNDS) handBack.push(`A blocker or an open thread remains after round ${MAX_ROUNDS}`)
 }
 
 // --- Merge
 
-if (!clean || handBack.length) return { merged: false, handBack }
-if (!MERGE) return { merged: false, handBack: ['Every thread is resolved; merge skipped (merge: false)'] }
+for (const f of leftover) log(`#${f.number}: ${f.severity} of the re-review, left to the author: ${f.file}:${f.line} ${f.title}`)
+if (!clean || handBack.length) return { merged: false, handBack, leftover }
+if (!MERGE) return { merged: false, handBack: ['Every thread is resolved; merge skipped (merge: false)'], leftover }
 
 const merged = await agent(
 	`Merge ${prs.map(describe).join(', ')}, following the "Merging" section of docs/conventions/commits-and-branches.md. \
@@ -331,4 +340,9 @@ Check first that no review thread is unresolved. ${
 	} Do not bypass a check or the ruleset. When a check fails, do not merge: report it.`,
 	{ phase: 'Merge', label: 'merge', schema: MERGED },
 )
-return { merged: Boolean(merged?.merged), details: merged?.details, handBack: merged?.merged ? [] : [merged?.details || 'merge agent did not return'] }
+return {
+	merged: Boolean(merged?.merged),
+	details: merged?.details,
+	handBack: merged?.merged ? [] : [merged?.details || 'merge agent did not return'],
+	leftover,
+}
