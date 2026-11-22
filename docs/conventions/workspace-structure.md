@@ -1,3 +1,10 @@
+---
+paths:
+  - "**/package.json"
+  - "**/tsconfig*.json"
+  - "**/src/index.ts"
+---
+
 # Workspace structure
 
 ## Categories

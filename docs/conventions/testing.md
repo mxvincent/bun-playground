@@ -1,10 +1,16 @@
+---
+paths:
+  - "**/*.test.ts"
+  - "**/test-helpers/**"
+---
+
 # Testing
 
 The test runner is Bun's built-in runner. There is no Jest, no Vitest.
 
 ```bash
 bun run turbo:test                          # every workspace
-bun test --filter=@package/core             # one workspace
+bun run --filter=@package/core test         # one workspace
 bun test packages/core/src/auth/jwt.test.ts # one file
 ```
 

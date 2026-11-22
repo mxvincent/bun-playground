@@ -1,3 +1,10 @@
+---
+paths:
+  - ".changeset/**"
+  - "**/package.json"
+  - "**/CHANGELOG.md"
+---
+
 # Versioning and releases
 
 Every workspace is versioned independently with [Changesets](https://github.com/changesets/changesets).
