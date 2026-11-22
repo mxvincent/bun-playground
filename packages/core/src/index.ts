@@ -8,18 +8,19 @@ export * from './auth/errors'
 export * from './auth/jwt'
 export * from './auth/schemas'
 export * from './auth/types'
-
 export * from './config/environment'
-
 export * from './context/async-store'
-
 export * from './crypto/hash'
 export * from './crypto/random-string'
 export * from './crypto/uuid'
-
 export * from './enums/country-code'
 export * from './enums/currency-code'
 export * from './enums/time-zone'
+export * from './errors/context-not-initialized'
+export * from './errors/file-not-readable'
+export * from './errors/invalid-random-string-parameter'
+export * from './errors/missing-environment-variable'
+export * from './errors/package-root-not-found'
 
 export * from './fs/get-package-info'
 export * from './fs/get-package-root-path'

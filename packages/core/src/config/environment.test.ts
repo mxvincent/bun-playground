@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { MissingEnvironmentVariableError } from '../errors/missing-environment-variable'
 import { EnvValue } from './environment'
 
 const VARIABLES = {
@@ -34,7 +35,11 @@ describe('EnvValue.string()', () => {
 	})
 	test('throws when a required variable is missing', () => {
 		expect(() => EnvValue.string('TEST_UNDEFINED', { required: true })).toThrow(
-			'Environment variable is missing: TEST_UNDEFINED'
+			expect.objectContaining({
+				constructor: MissingEnvironmentVariableError,
+				variableName: 'TEST_UNDEFINED',
+				message: 'Environment variable is missing: TEST_UNDEFINED'
+			})
 		)
 	})
 })
@@ -59,7 +64,11 @@ describe('EnvValue.boolean()', () => {
 	})
 	test('throws when a required variable is missing', () => {
 		expect(() => EnvValue.boolean('TEST_UNDEFINED', { required: true })).toThrow(
-			'Environment variable is missing: TEST_UNDEFINED'
+			expect.objectContaining({
+				constructor: MissingEnvironmentVariableError,
+				variableName: 'TEST_UNDEFINED',
+				message: 'Environment variable is missing: TEST_UNDEFINED'
+			})
 		)
 	})
 })
@@ -79,7 +88,11 @@ describe('EnvValue.number()', () => {
 	})
 	test('throws when a required variable is missing', () => {
 		expect(() => EnvValue.number('TEST_UNDEFINED', { required: true })).toThrow(
-			'Environment variable is missing: TEST_UNDEFINED'
+			expect.objectContaining({
+				constructor: MissingEnvironmentVariableError,
+				variableName: 'TEST_UNDEFINED',
+				message: 'Environment variable is missing: TEST_UNDEFINED'
+			})
 		)
 	})
 })

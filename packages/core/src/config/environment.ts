@@ -1,3 +1,5 @@
+import { MissingEnvironmentVariableError } from '../errors/missing-environment-variable'
+
 type WithDefaultValue<T> = { default: T }
 type WithRequiredValue = { required: boolean }
 type GetEnvValueOptions<T> = WithDefaultValue<T> | WithRequiredValue
@@ -8,7 +10,7 @@ export class EnvValue {
 	private static get(name: string, isRequired: boolean): string | undefined {
 		const value = process.env[name]
 		if (isRequired && value === undefined) {
-			throw new Error(`Environment variable is missing: ${name}`)
+			throw new MissingEnvironmentVariableError(name)
 		}
 		return value
 	}

@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
+import { ContextNotInitializedError } from '../errors/context-not-initialized'
 
 export abstract class AsyncStore<TValues> {
 	#store = new AsyncLocalStorage<TValues>()
@@ -12,7 +13,7 @@ export abstract class AsyncStore<TValues> {
 		if (values) {
 			return values
 		}
-		throw new Error('Context is not initialized.')
+		throw new ContextNotInitializedError()
 	}
 
 	/**

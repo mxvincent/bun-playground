@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
+import { PackageRootNotFoundError } from '../errors/package-root-not-found'
 import { getPackageRootPath } from './get-package-root-path'
 
 const PACKAGE_ROOT = resolve(import.meta.dir, '../..')
@@ -9,5 +10,11 @@ test('returns the closest directory holding a package.json', () => {
 })
 
 test('throws when no parent directory holds a package.json', () => {
-	expect(() => getPackageRootPath('/no-package/file.ts')).toThrow('Failed to find package root directory.')
+	expect(() => getPackageRootPath('/no-package/file.ts')).toThrow(
+		expect.objectContaining({
+			constructor: PackageRootNotFoundError,
+			startingPath: '/no-package/file.ts',
+			message: 'Failed to find package root directory.'
+		})
+	)
 })

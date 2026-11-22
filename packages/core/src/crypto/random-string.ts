@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto'
+import { InvalidRandomStringParameterError } from '../errors/invalid-random-string-parameter'
 import { Alphabet } from '../string/alphabets'
 
 /**
@@ -13,10 +14,10 @@ export class RandomStringGenerator {
 
 	constructor(alphabet: string = Alphabet.ALPHANUMERIC) {
 		if (alphabet.length === 0) {
-			throw new Error('Alphabet cannot be empty')
+			throw new InvalidRandomStringParameterError('alphabet', 'Alphabet cannot be empty')
 		}
 		if (alphabet.length > 256) {
-			throw new Error('Alphabet length cannot exceed 256')
+			throw new InvalidRandomStringParameterError('alphabet', 'Alphabet length cannot exceed 256')
 		}
 
 		this.alphabet = alphabet
@@ -37,7 +38,7 @@ export class RandomStringGenerator {
 	 */
 	generate(length: number): string {
 		if (length <= 0) {
-			throw new Error('Length must be positive')
+			throw new InvalidRandomStringParameterError('length', 'Length must be positive')
 		}
 
 		const result: string[] = new Array(length)
