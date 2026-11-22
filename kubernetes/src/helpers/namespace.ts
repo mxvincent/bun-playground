@@ -1,4 +1,5 @@
 import type { Chart } from 'cdk8s/lib/chart'
+import type { Construct } from 'constructs'
 import { type ImageRegistry, ImageRegistryAuth } from '#/components/config/registry-auth'
 import { type ConfigFiles, mergeConfigFiles, WorkloadConfig } from '#/components/config/workload-config'
 import { type EnvironmentVariables, WorkloadEnvironment } from '#/components/config/workload-environment'
@@ -27,13 +28,21 @@ export interface WorkloadNamespaceOptions {
 }
 
 /**
+ * Options of the generation of a workload namespace
+ */
+export interface WorkloadNamespaceGenerateOptions {
+	/** Scope the chart is created in, the global scope of the application when omitted */
+	readonly scope?: Construct
+}
+
+/**
  * A workload namespace: an application (or a domain) and the components it runs
  */
 export interface WorkloadNamespace {
 	readonly name: string
 	readonly application: Application
 	/** Generate the chart of the namespace for one environment */
-	generate(environment: Environment): Chart
+	generate(environment: Environment, options?: WorkloadNamespaceGenerateOptions): Chart
 }
 
 /**
@@ -53,8 +62,8 @@ export const defineNamespace = (options: WorkloadNamespaceOptions): WorkloadName
 	return {
 		name: options.name,
 		application: options.application,
-		generate(environment) {
-			const context = new ApplicationContext(environment, options.application, options.name)
+		generate(environment, { scope } = {}) {
+			const context = new ApplicationContext(environment, options.application, options.name, scope)
 			const { url, auth } = options.imageRegistry
 			const image = `${url}/${context.application}:${context.revision}`
 			const imagePullSecret = auth && new ImageRegistryAuth(context, auth).secret

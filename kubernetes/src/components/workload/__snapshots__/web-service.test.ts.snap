@@ -10,6 +10,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: development-fixture
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -17,7 +18,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+      cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -30,7 +31,7 @@ spec:
         app.kubernetes.io/instance: development
         app.kubernetes.io/name: account-service
         app.kubernetes.io/version: 0.0.0-snapshot
-        cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+        cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
       name: app-server
     spec:
       automountServiceAccountToken: false
@@ -71,7 +72,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  labels:
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: account-service
+    app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: development-fixture
 spec:
   externalIPs: []
   ports:
@@ -79,7 +85,7 @@ spec:
       port: 4000
       targetPort: 4000
   selector:
-    cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+    cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
   type: ClusterIP
 ---
 apiVersion: networking.k8s.io/v1
@@ -94,6 +100,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: development-fixture
 spec:
   rules:
     - host: fixture.example.com
@@ -123,6 +130,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: development-fixture
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -130,7 +138,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+      cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -143,7 +151,7 @@ spec:
         app.kubernetes.io/instance: development
         app.kubernetes.io/name: account-service
         app.kubernetes.io/version: 0.0.0-snapshot
-        cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+        cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
       name: app-server
     spec:
       automountServiceAccountToken: false
@@ -184,7 +192,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  labels:
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: account-service
+    app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: development-fixture
 spec:
   externalIPs: []
   ports:
@@ -192,7 +205,7 @@ spec:
       port: 4000
       targetPort: 4000
   selector:
-    cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+    cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
   type: ClusterIP
 ---
 apiVersion: networking.k8s.io/v1
@@ -208,6 +221,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: development-fixture
 spec:
   rules:
     - host: fixture.example.com
@@ -237,6 +251,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server-env
+  namespace: development-fixture
 spec:
   data:
     - remoteRef:
@@ -266,6 +281,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: development-fixture
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -273,7 +289,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+      cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -286,7 +302,7 @@ spec:
         app.kubernetes.io/instance: development
         app.kubernetes.io/name: account-service
         app.kubernetes.io/version: 0.0.0-snapshot
-        cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+        cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
       name: app-server
     spec:
       automountServiceAccountToken: false
@@ -333,7 +349,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  labels:
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: account-service
+    app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: development-fixture
 spec:
   externalIPs: []
   ports:
@@ -341,7 +362,7 @@ spec:
       port: 4000
       targetPort: 4000
   selector:
-    cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+    cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
   type: ClusterIP
 "
 `;
@@ -350,7 +371,12 @@ exports[`WebService pulls the image with the registry pull secret 1`] = `
 "apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
+  labels:
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: account-service
+    app.kubernetes.io/version: 0.0.0-snapshot
   name: docker-auth
+  namespace: development-fixture
 spec:
   data:
     - remoteRef:
@@ -380,6 +406,7 @@ metadata:
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: development-fixture
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -387,7 +414,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+      cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -400,7 +427,7 @@ spec:
         app.kubernetes.io/instance: development
         app.kubernetes.io/name: account-service
         app.kubernetes.io/version: 0.0.0-snapshot
-        cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+        cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
       name: app-server
     spec:
       automountServiceAccountToken: false
@@ -443,7 +470,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  labels:
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: account-service
+    app.kubernetes.io/version: 0.0.0-snapshot
   name: app-server
+  namespace: development-fixture
 spec:
   externalIPs: []
   ports:
@@ -451,7 +483,7 @@ spec:
       port: 4000
       targetPort: 4000
   selector:
-    cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+    cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
   type: ClusterIP
 "
 `;

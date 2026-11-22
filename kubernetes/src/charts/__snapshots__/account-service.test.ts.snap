@@ -1,6 +1,6 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
-exports[`AccountService synthesizes the manifests of every environment 1`] = `
+exports[`AccountService synthesizes the manifests of production 1`] = `
 "apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -174,8 +174,11 @@ spec:
           app.kubernetes.io/instance: production
           app.kubernetes.io/name: account-service
           app.kubernetes.io/version: 0.0.0-snapshot
----
-apiVersion: apps/v1
+"
+`;
+
+exports[`AccountService synthesizes the manifests of development 1`] = `
+"apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -348,8 +351,11 @@ spec:
           app.kubernetes.io/instance: development
           app.kubernetes.io/name: account-service
           app.kubernetes.io/version: 0.0.0-snapshot
----
-apiVersion: apps/v1
+"
+`;
+
+exports[`AccountService synthesizes the manifests of staging 1`] = `
+"apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
