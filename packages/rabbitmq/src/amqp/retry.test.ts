@@ -22,8 +22,8 @@ describe('getRetryDelayInMilliseconds', () => {
 	})
 
 	it.each([-1, 0])('should throw an error when requested attempt is not valid (%i)', async (attempt) => {
-		expect(() => getRetryAttemptDelayInMilliseconds(attempt)).toThrowError(
-			new TypeError('Parameter "attempt" should be a positive integer.')
+		expect(() => getRetryAttemptDelayInMilliseconds(attempt)).toThrow(
+			expect.objectContaining({ constructor: TypeError, message: 'Parameter "attempt" should be a positive integer.' })
 		)
 	})
 })

@@ -73,7 +73,12 @@ describe('derived queues', () => {
 			'an unprocessable queue'
 		]
 	])('%s() rejects a queue that is not a consumer queue', (_factory, derive, queueKind) => {
-		expect(derive).toThrow(new AmqpConfigError(`Queue role should be "consumer" to create ${queueKind}.`))
+		expect(derive).toThrow(
+			expect.objectContaining({
+				constructor: AmqpConfigError,
+				message: `Queue role should be "consumer" to create ${queueKind}.`
+			})
+		)
 	})
 })
 
