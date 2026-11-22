@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/instance: development
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: fixture-app-server
+  name: app-server
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -17,7 +17,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      cdk8s.io/metadata.addr: fixture-fixture-app-server-deployment-c8594711
+      cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -30,8 +30,8 @@ spec:
         app.kubernetes.io/instance: development
         app.kubernetes.io/name: account-service
         app.kubernetes.io/version: 0.0.0-snapshot
-        cdk8s.io/metadata.addr: fixture-fixture-app-server-deployment-c8594711
-      name: fixture-app-server
+        cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+      name: app-server
     spec:
       automountServiceAccountToken: false
       containers:
@@ -71,7 +71,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: fixture-app-server
+  name: app-server
 spec:
   externalIPs: []
   ports:
@@ -79,7 +79,7 @@ spec:
       port: 4000
       targetPort: 4000
   selector:
-    cdk8s.io/metadata.addr: fixture-fixture-app-server-deployment-c8594711
+    cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
   type: ClusterIP
 ---
 apiVersion: networking.k8s.io/v1
@@ -93,7 +93,7 @@ metadata:
     app.kubernetes.io/instance: development
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: fixture-app-server
+  name: app-server
 spec:
   rules:
     - host: fixture.example.com
@@ -101,7 +101,7 @@ spec:
         paths:
           - backend:
               service:
-                name: fixture-app-server
+                name: app-server
                 port:
                   number: 4000
             path: /
@@ -109,7 +109,7 @@ spec:
   tls:
     - hosts:
         - fixture.example.com
-      secretName: fixture-app-server-cert
+      secretName: app-server-cert
 "
 `;
 
@@ -122,7 +122,7 @@ metadata:
     app.kubernetes.io/instance: development
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: fixture-app-server
+  name: app-server
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -130,7 +130,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      cdk8s.io/metadata.addr: fixture-fixture-app-server-deployment-c8594711
+      cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -143,8 +143,8 @@ spec:
         app.kubernetes.io/instance: development
         app.kubernetes.io/name: account-service
         app.kubernetes.io/version: 0.0.0-snapshot
-        cdk8s.io/metadata.addr: fixture-fixture-app-server-deployment-c8594711
-      name: fixture-app-server
+        cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+      name: app-server
     spec:
       automountServiceAccountToken: false
       containers:
@@ -184,7 +184,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: fixture-app-server
+  name: app-server
 spec:
   externalIPs: []
   ports:
@@ -192,7 +192,7 @@ spec:
       port: 4000
       targetPort: 4000
   selector:
-    cdk8s.io/metadata.addr: fixture-fixture-app-server-deployment-c8594711
+    cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
   type: ClusterIP
 ---
 apiVersion: networking.k8s.io/v1
@@ -207,7 +207,7 @@ metadata:
     app.kubernetes.io/instance: development
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: fixture-app-server
+  name: app-server
 spec:
   rules:
     - host: fixture.example.com
@@ -215,7 +215,7 @@ spec:
         paths:
           - backend:
               service:
-                name: fixture-app-server
+                name: app-server
                 port:
                   number: 4000
             path: /
@@ -223,7 +223,7 @@ spec:
   tls:
     - hosts:
         - fixture.example.com
-      secretName: fixture-app-server-cert
+      secretName: app-server-cert
 "
 `;
 
@@ -236,7 +236,7 @@ metadata:
     app.kubernetes.io/instance: development
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: fixture-app-server-env
+  name: app-server-env
 spec:
   data:
     - remoteRef:
@@ -253,19 +253,19 @@ spec:
     name: scaleway
   target:
     creationPolicy: Owner
-    name: fixture-app-server-env
+    name: app-server-env
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    secret.reloader.stakater.com/reload: fixture-app-server-env
+    secret.reloader.stakater.com/reload: app-server-env
   labels:
     app.kubernetes.io/component: app-server
     app.kubernetes.io/instance: development
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: fixture-app-server
+  name: app-server
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -273,7 +273,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      cdk8s.io/metadata.addr: fixture-fixture-app-server-deployment-c8594711
+      cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -286,8 +286,8 @@ spec:
         app.kubernetes.io/instance: development
         app.kubernetes.io/name: account-service
         app.kubernetes.io/version: 0.0.0-snapshot
-        cdk8s.io/metadata.addr: fixture-fixture-app-server-deployment-c8594711
-      name: fixture-app-server
+        cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+      name: app-server
     spec:
       automountServiceAccountToken: false
       containers:
@@ -299,7 +299,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: API_KEY
-                  name: fixture-app-server-env
+                  name: app-server-env
           image: ghcr.io/mxvincent/account-service:0.0.0-snapshot
           imagePullPolicy: Always
           name: app-server
@@ -333,7 +333,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: fixture-app-server
+  name: app-server
 spec:
   externalIPs: []
   ports:
@@ -341,7 +341,7 @@ spec:
       port: 4000
       targetPort: 4000
   selector:
-    cdk8s.io/metadata.addr: fixture-fixture-app-server-deployment-c8594711
+    cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
   type: ClusterIP
 "
 `;
@@ -350,7 +350,7 @@ exports[`WebService pulls the image with the registry pull secret 1`] = `
 "apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
-  name: fixture-docker-auth-secret
+  name: docker-auth
 spec:
   data:
     - remoteRef:
@@ -365,7 +365,7 @@ spec:
     name: scaleway
   target:
     creationPolicy: Owner
-    name: fixture-docker-auth
+    name: docker-auth
     template:
       data:
         .dockerconfigjson: "{{ .secret | toString }}"
@@ -379,7 +379,7 @@ metadata:
     app.kubernetes.io/instance: development
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: fixture-app-server
+  name: app-server
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -387,7 +387,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      cdk8s.io/metadata.addr: fixture-fixture-app-server-deployment-c8594711
+      cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -400,8 +400,8 @@ spec:
         app.kubernetes.io/instance: development
         app.kubernetes.io/name: account-service
         app.kubernetes.io/version: 0.0.0-snapshot
-        cdk8s.io/metadata.addr: fixture-fixture-app-server-deployment-c8594711
-      name: fixture-app-server
+        cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
+      name: app-server
     spec:
       automountServiceAccountToken: false
       containers:
@@ -428,7 +428,7 @@ spec:
       dnsPolicy: ClusterFirst
       hostNetwork: false
       imagePullSecrets:
-        - name: fixture-docker-auth
+        - name: docker-auth
       restartPolicy: Always
       securityContext:
         fsGroup: 1000
@@ -443,7 +443,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: fixture-app-server
+  name: app-server
 spec:
   externalIPs: []
   ports:
@@ -451,7 +451,7 @@ spec:
       port: 4000
       targetPort: 4000
   selector:
-    cdk8s.io/metadata.addr: fixture-fixture-app-server-deployment-c8594711
+    cdk8s.io/metadata.addr: fixture-app-server-deployment-c852697c
   type: ClusterIP
 "
 `;

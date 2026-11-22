@@ -5,13 +5,13 @@ exports[`AccountService synthesizes the manifests of every environment 1`] = `
 kind: Deployment
 metadata:
   annotations:
-    secret.reloader.stakater.com/reload: account-service-app-server-config
+    secret.reloader.stakater.com/reload: app-server-config
   labels:
     app.kubernetes.io/component: app-server
     app.kubernetes.io/instance: production
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: account-service-app-server
+  name: app-server
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -19,7 +19,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      cdk8s.io/metadata.addr: production-account-service-app-server-deployment-c82692ec
+      cdk8s.io/metadata.addr: production-app-server-deployment-c8c2b5db
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -32,8 +32,8 @@ spec:
         app.kubernetes.io/instance: production
         app.kubernetes.io/name: account-service
         app.kubernetes.io/version: 0.0.0-snapshot
-        cdk8s.io/metadata.addr: production-account-service-app-server-deployment-c82692ec
-      name: account-service-app-server
+        cdk8s.io/metadata.addr: production-app-server-deployment-c8c2b5db
+      name: app-server
     spec:
       automountServiceAccountToken: false
       containers:
@@ -83,7 +83,7 @@ spec:
       volumes:
         - name: config
           secret:
-            secretName: account-service-app-server-config
+            secretName: app-server-config
 ---
 apiVersion: v1
 kind: Service
@@ -92,7 +92,7 @@ metadata:
     app.kubernetes.io/instance: production
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: account-service-app-server
+  name: app-server
 spec:
   externalIPs: []
   ports:
@@ -100,7 +100,7 @@ spec:
       port: 4000
       targetPort: 4000
   selector:
-    cdk8s.io/metadata.addr: production-account-service-app-server-deployment-c82692ec
+    cdk8s.io/metadata.addr: production-app-server-deployment-c8c2b5db
   type: ClusterIP
 ---
 apiVersion: external-secrets.io/v1
@@ -111,7 +111,7 @@ metadata:
     app.kubernetes.io/instance: production
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: account-service-app-server-config
+  name: app-server-config
 spec:
   data:
     - remoteRef:
@@ -160,7 +160,7 @@ spec:
     name: scaleway
   target:
     creationPolicy: Owner
-    name: account-service-app-server-config
+    name: app-server-config
     template:
       data:
         config.json: '{"app":{"logLevel":"info","timeZone":"UTC"},"database":{"type":"postgres","host":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_HOST | toString }}","port":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_PORT | toString }}","database":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_DATABASE | toString }}","username":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_USERNAME | toString }}","password":"{{ .PRODUCTION_ACCOUNT_SERVICE_POSTGRES_PASSWORD | toString }}"},"server":{"host":"0.0.0.0","port":4000}}'
@@ -176,13 +176,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    secret.reloader.stakater.com/reload: account-service-app-server-config
+    secret.reloader.stakater.com/reload: app-server-config
   labels:
     app.kubernetes.io/component: app-server
     app.kubernetes.io/instance: development
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: account-service-app-server
+  name: app-server
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -190,7 +190,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      cdk8s.io/metadata.addr: development-account-service-app-server-deployment-c896b293
+      cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -203,8 +203,8 @@ spec:
         app.kubernetes.io/instance: development
         app.kubernetes.io/name: account-service
         app.kubernetes.io/version: 0.0.0-snapshot
-        cdk8s.io/metadata.addr: development-account-service-app-server-deployment-c896b293
-      name: account-service-app-server
+        cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
+      name: app-server
     spec:
       automountServiceAccountToken: false
       containers:
@@ -254,7 +254,7 @@ spec:
       volumes:
         - name: config
           secret:
-            secretName: account-service-app-server-config
+            secretName: app-server-config
 ---
 apiVersion: v1
 kind: Service
@@ -263,7 +263,7 @@ metadata:
     app.kubernetes.io/instance: development
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: account-service-app-server
+  name: app-server
 spec:
   externalIPs: []
   ports:
@@ -271,7 +271,7 @@ spec:
       port: 4000
       targetPort: 4000
   selector:
-    cdk8s.io/metadata.addr: development-account-service-app-server-deployment-c896b293
+    cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
   type: ClusterIP
 ---
 apiVersion: external-secrets.io/v1
@@ -282,7 +282,7 @@ metadata:
     app.kubernetes.io/instance: development
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: account-service-app-server-config
+  name: app-server-config
 spec:
   data:
     - remoteRef:
@@ -331,7 +331,7 @@ spec:
     name: scaleway
   target:
     creationPolicy: Owner
-    name: account-service-app-server-config
+    name: app-server-config
     template:
       data:
         config.json: '{"app":{"logLevel":"info","timeZone":"UTC"},"database":{"type":"postgres","host":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_HOST | toString }}","port":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_PORT | toString }}","database":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_DATABASE | toString }}","username":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_USERNAME | toString }}","password":"{{ .DEVELOPMENT_ACCOUNT_SERVICE_POSTGRES_PASSWORD | toString }}"},"server":{"host":"0.0.0.0","port":4000}}'
@@ -347,13 +347,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    secret.reloader.stakater.com/reload: account-service-app-server-config
+    secret.reloader.stakater.com/reload: app-server-config
   labels:
     app.kubernetes.io/component: app-server
     app.kubernetes.io/instance: staging
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: account-service-app-server
+  name: app-server
 spec:
   minReadySeconds: 0
   progressDeadlineSeconds: 600
@@ -361,7 +361,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      cdk8s.io/metadata.addr: staging-account-service-app-server-deployment-c8ee2527
+      cdk8s.io/metadata.addr: staging-app-server-deployment-c83f8ba5
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -374,8 +374,8 @@ spec:
         app.kubernetes.io/instance: staging
         app.kubernetes.io/name: account-service
         app.kubernetes.io/version: 0.0.0-snapshot
-        cdk8s.io/metadata.addr: staging-account-service-app-server-deployment-c8ee2527
-      name: account-service-app-server
+        cdk8s.io/metadata.addr: staging-app-server-deployment-c83f8ba5
+      name: app-server
     spec:
       automountServiceAccountToken: false
       containers:
@@ -425,7 +425,7 @@ spec:
       volumes:
         - name: config
           secret:
-            secretName: account-service-app-server-config
+            secretName: app-server-config
 ---
 apiVersion: v1
 kind: Service
@@ -434,7 +434,7 @@ metadata:
     app.kubernetes.io/instance: staging
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: account-service-app-server
+  name: app-server
 spec:
   externalIPs: []
   ports:
@@ -442,7 +442,7 @@ spec:
       port: 4000
       targetPort: 4000
   selector:
-    cdk8s.io/metadata.addr: staging-account-service-app-server-deployment-c8ee2527
+    cdk8s.io/metadata.addr: staging-app-server-deployment-c83f8ba5
   type: ClusterIP
 ---
 apiVersion: external-secrets.io/v1
@@ -453,7 +453,7 @@ metadata:
     app.kubernetes.io/instance: staging
     app.kubernetes.io/name: account-service
     app.kubernetes.io/version: 0.0.0-snapshot
-  name: account-service-app-server-config
+  name: app-server-config
 spec:
   data:
     - remoteRef:
@@ -502,7 +502,7 @@ spec:
     name: scaleway
   target:
     creationPolicy: Owner
-    name: account-service-app-server-config
+    name: app-server-config
     template:
       data:
         config.json: '{"app":{"logLevel":"info","timeZone":"UTC"},"database":{"type":"postgres","host":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_HOST | toString }}","port":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_PORT | toString }}","database":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_DATABASE | toString }}","username":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_USERNAME | toString }}","password":"{{ .STAGING_ACCOUNT_SERVICE_POSTGRES_PASSWORD | toString }}"},"server":{"host":"0.0.0.0","port":4000}}'

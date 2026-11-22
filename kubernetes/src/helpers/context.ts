@@ -67,7 +67,7 @@ export class ComponentContext extends Context {
 	constructor(parent: ApplicationContext, component: string) {
 		super(parent.environment, parent.application, {
 			chart: parent.chart,
-			name: `${parent.name}-${component}`,
+			name: component,
 			revision: parent.revision
 		})
 		this.parent = parent
