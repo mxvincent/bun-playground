@@ -3493,6 +3493,15 @@ export interface ClusterSpecBackupBarmanObjectStore {
   readonly historyTags?: { [key: string]: string };
 
   /**
+   * How bucket names appear in S3 requests: `virtual` (bucket.endpoint/key),
+   * `path` (endpoint/bucket/key) or `auto` (boto3 decides, same as unset).
+   * Requires s3Credentials and Barman 3.18 or later.
+   *
+   * @schema ClusterSpecBackupBarmanObjectStore#s3AddressingStyle
+   */
+  readonly s3AddressingStyle?: ClusterSpecBackupBarmanObjectStoreS3AddressingStyle;
+
+  /**
    * The credentials to use to upload data to S3
    *
    * @schema ClusterSpecBackupBarmanObjectStore#s3Credentials
@@ -3539,6 +3548,7 @@ export function toJson_ClusterSpecBackupBarmanObjectStore(obj: ClusterSpecBackup
     'endpointURL': obj.endpointUrl,
     'googleCredentials': toJson_ClusterSpecBackupBarmanObjectStoreGoogleCredentials(obj.googleCredentials),
     'historyTags': ((obj.historyTags) === undefined) ? undefined : (Object.entries(obj.historyTags).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {})),
+    's3AddressingStyle': obj.s3AddressingStyle,
     's3Credentials': toJson_ClusterSpecBackupBarmanObjectStoreS3Credentials(obj.s3Credentials),
     'serverName': obj.serverName,
     'tags': ((obj.tags) === undefined) ? undefined : (Object.entries(obj.tags).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {})),
@@ -4338,6 +4348,15 @@ export interface ClusterSpecExternalClustersBarmanObjectStore {
   readonly historyTags?: { [key: string]: string };
 
   /**
+   * How bucket names appear in S3 requests: `virtual` (bucket.endpoint/key),
+   * `path` (endpoint/bucket/key) or `auto` (boto3 decides, same as unset).
+   * Requires s3Credentials and Barman 3.18 or later.
+   *
+   * @schema ClusterSpecExternalClustersBarmanObjectStore#s3AddressingStyle
+   */
+  readonly s3AddressingStyle?: ClusterSpecExternalClustersBarmanObjectStoreS3AddressingStyle;
+
+  /**
    * The credentials to use to upload data to S3
    *
    * @schema ClusterSpecExternalClustersBarmanObjectStore#s3Credentials
@@ -4384,6 +4403,7 @@ export function toJson_ClusterSpecExternalClustersBarmanObjectStore(obj: Cluster
     'endpointURL': obj.endpointUrl,
     'googleCredentials': toJson_ClusterSpecExternalClustersBarmanObjectStoreGoogleCredentials(obj.googleCredentials),
     'historyTags': ((obj.historyTags) === undefined) ? undefined : (Object.entries(obj.historyTags).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {})),
+    's3AddressingStyle': obj.s3AddressingStyle,
     's3Credentials': toJson_ClusterSpecExternalClustersBarmanObjectStoreS3Credentials(obj.s3Credentials),
     'serverName': obj.serverName,
     'tags': ((obj.tags) === undefined) ? undefined : (Object.entries(obj.tags).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {})),
@@ -7453,7 +7473,7 @@ export interface ClusterSpecBackupBarmanObjectStoreData {
   /**
    * Compress a backup file (a tar file per tablespace) while streaming it
    * to the object store. Available options are empty string (no
-   * compression, default), `gzip`, `bzip2`, `lz4`, and `snappy`.
+   * compression, default), `gzip`, `bzip2`, `lz4`, `snappy`, and `zstd`.
    *
    * @schema ClusterSpecBackupBarmanObjectStoreData#compression
    */
@@ -7604,6 +7624,22 @@ export function toJson_ClusterSpecBackupBarmanObjectStoreGoogleCredentials(obj: 
 /* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 
 /**
+ * How bucket names appear in S3 requests: `virtual` (bucket.endpoint/key),
+ * `path` (endpoint/bucket/key) or `auto` (boto3 decides, same as unset).
+ * Requires s3Credentials and Barman 3.18 or later.
+ *
+ * @schema ClusterSpecBackupBarmanObjectStoreS3AddressingStyle
+ */
+export enum ClusterSpecBackupBarmanObjectStoreS3AddressingStyle {
+  /** auto */
+  AUTO = "auto",
+  /** virtual */
+  VIRTUAL = "virtual",
+  /** path */
+  PATH = "path",
+}
+
+/**
  * The credentials to use to upload data to S3
  *
  * @schema ClusterSpecBackupBarmanObjectStoreS3Credentials
@@ -7643,6 +7679,19 @@ export interface ClusterSpecBackupBarmanObjectStoreS3Credentials {
    * @schema ClusterSpecBackupBarmanObjectStoreS3Credentials#sessionToken
    */
   readonly sessionToken?: ClusterSpecBackupBarmanObjectStoreS3CredentialsSessionToken;
+
+  /**
+   * Reference to the secret holding the key for Server-Side Encryption with
+   * Customer-provided keys (SSE-C): a base64-encoded 256-bit AES key.
+   * barman-cloud uses it to encrypt the objects it uploads and to read them
+   * back. Meant for S3-compatible providers that only support SSE-C
+   * (e.g. Hetzner Object Storage). Cannot be combined with `encryption`.
+   * Works with any authentication method. Changing the key makes the
+   * existing objects unreadable: use a new `destinationPath` or `serverName`.
+   *
+   * @schema ClusterSpecBackupBarmanObjectStoreS3Credentials#sseCustomerKey
+   */
+  readonly sseCustomerKey?: ClusterSpecBackupBarmanObjectStoreS3CredentialsSseCustomerKey;
 }
 
 /**
@@ -7657,6 +7706,7 @@ export function toJson_ClusterSpecBackupBarmanObjectStoreS3Credentials(obj: Clus
     'region': toJson_ClusterSpecBackupBarmanObjectStoreS3CredentialsRegion(obj.region),
     'secretAccessKey': toJson_ClusterSpecBackupBarmanObjectStoreS3CredentialsSecretAccessKey(obj.secretAccessKey),
     'sessionToken': toJson_ClusterSpecBackupBarmanObjectStoreS3CredentialsSessionToken(obj.sessionToken),
+    'sseCustomerKey': toJson_ClusterSpecBackupBarmanObjectStoreS3CredentialsSseCustomerKey(obj.sseCustomerKey),
   };
   // filter undefined values
   return Object.entries(result).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {});
@@ -8846,7 +8896,7 @@ export interface ClusterSpecExternalClustersBarmanObjectStoreData {
   /**
    * Compress a backup file (a tar file per tablespace) while streaming it
    * to the object store. Available options are empty string (no
-   * compression, default), `gzip`, `bzip2`, `lz4`, and `snappy`.
+   * compression, default), `gzip`, `bzip2`, `lz4`, `snappy`, and `zstd`.
    *
    * @schema ClusterSpecExternalClustersBarmanObjectStoreData#compression
    */
@@ -8997,6 +9047,22 @@ export function toJson_ClusterSpecExternalClustersBarmanObjectStoreGoogleCredent
 /* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 
 /**
+ * How bucket names appear in S3 requests: `virtual` (bucket.endpoint/key),
+ * `path` (endpoint/bucket/key) or `auto` (boto3 decides, same as unset).
+ * Requires s3Credentials and Barman 3.18 or later.
+ *
+ * @schema ClusterSpecExternalClustersBarmanObjectStoreS3AddressingStyle
+ */
+export enum ClusterSpecExternalClustersBarmanObjectStoreS3AddressingStyle {
+  /** auto */
+  AUTO = "auto",
+  /** virtual */
+  VIRTUAL = "virtual",
+  /** path */
+  PATH = "path",
+}
+
+/**
  * The credentials to use to upload data to S3
  *
  * @schema ClusterSpecExternalClustersBarmanObjectStoreS3Credentials
@@ -9036,6 +9102,19 @@ export interface ClusterSpecExternalClustersBarmanObjectStoreS3Credentials {
    * @schema ClusterSpecExternalClustersBarmanObjectStoreS3Credentials#sessionToken
    */
   readonly sessionToken?: ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSessionToken;
+
+  /**
+   * Reference to the secret holding the key for Server-Side Encryption with
+   * Customer-provided keys (SSE-C): a base64-encoded 256-bit AES key.
+   * barman-cloud uses it to encrypt the objects it uploads and to read them
+   * back. Meant for S3-compatible providers that only support SSE-C
+   * (e.g. Hetzner Object Storage). Cannot be combined with `encryption`.
+   * Works with any authentication method. Changing the key makes the
+   * existing objects unreadable: use a new `destinationPath` or `serverName`.
+   *
+   * @schema ClusterSpecExternalClustersBarmanObjectStoreS3Credentials#sseCustomerKey
+   */
+  readonly sseCustomerKey?: ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSseCustomerKey;
 }
 
 /**
@@ -9050,6 +9129,7 @@ export function toJson_ClusterSpecExternalClustersBarmanObjectStoreS3Credentials
     'region': toJson_ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsRegion(obj.region),
     'secretAccessKey': toJson_ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSecretAccessKey(obj.secretAccessKey),
     'sessionToken': toJson_ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSessionToken(obj.sessionToken),
+    'sseCustomerKey': toJson_ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSseCustomerKey(obj.sseCustomerKey),
   };
   // filter undefined values
   return Object.entries(result).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {});
@@ -11361,7 +11441,7 @@ export function toJson_ClusterSpecBackupBarmanObjectStoreAzureCredentialsStorage
 /**
  * Compress a backup file (a tar file per tablespace) while streaming it
  * to the object store. Available options are empty string (no
- * compression, default), `gzip`, `bzip2`, `lz4`, and `snappy`.
+ * compression, default), `gzip`, `bzip2`, `lz4`, `snappy`, and `zstd`.
  *
  * @schema ClusterSpecBackupBarmanObjectStoreDataCompression
  */
@@ -11374,6 +11454,8 @@ export enum ClusterSpecBackupBarmanObjectStoreDataCompression {
   LZ4 = "lz4",
   /** snappy */
   SNAPPY = "snappy",
+  /** zstd */
+  ZSTD = "zstd",
 }
 
 /**
@@ -11561,6 +11643,48 @@ export interface ClusterSpecBackupBarmanObjectStoreS3CredentialsSessionToken {
  */
 /* eslint-disable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 export function toJson_ClusterSpecBackupBarmanObjectStoreS3CredentialsSessionToken(obj: ClusterSpecBackupBarmanObjectStoreS3CredentialsSessionToken | undefined): Record<string, any> | undefined {
+  if (obj === undefined) { return undefined; }
+  const result = {
+    'key': obj.key,
+    'name': obj.name,
+  };
+  // filter undefined values
+  return Object.entries(result).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {});
+}
+/* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
+
+/**
+ * Reference to the secret holding the key for Server-Side Encryption with
+ * Customer-provided keys (SSE-C): a base64-encoded 256-bit AES key.
+ * barman-cloud uses it to encrypt the objects it uploads and to read them
+ * back. Meant for S3-compatible providers that only support SSE-C
+ * (e.g. Hetzner Object Storage). Cannot be combined with `encryption`.
+ * Works with any authentication method. Changing the key makes the
+ * existing objects unreadable: use a new `destinationPath` or `serverName`.
+ *
+ * @schema ClusterSpecBackupBarmanObjectStoreS3CredentialsSseCustomerKey
+ */
+export interface ClusterSpecBackupBarmanObjectStoreS3CredentialsSseCustomerKey {
+  /**
+   * The key to select
+   *
+   * @schema ClusterSpecBackupBarmanObjectStoreS3CredentialsSseCustomerKey#key
+   */
+  readonly key: string;
+
+  /**
+   * Name of the referent.
+   *
+   * @schema ClusterSpecBackupBarmanObjectStoreS3CredentialsSseCustomerKey#name
+   */
+  readonly name: string;
+}
+
+/**
+ * Converts an object of type 'ClusterSpecBackupBarmanObjectStoreS3CredentialsSseCustomerKey' to JSON representation.
+ */
+/* eslint-disable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
+export function toJson_ClusterSpecBackupBarmanObjectStoreS3CredentialsSseCustomerKey(obj: ClusterSpecBackupBarmanObjectStoreS3CredentialsSseCustomerKey | undefined): Record<string, any> | undefined {
   if (obj === undefined) { return undefined; }
   const result = {
     'key': obj.key,
@@ -12424,7 +12548,7 @@ export function toJson_ClusterSpecExternalClustersBarmanObjectStoreAzureCredenti
 /**
  * Compress a backup file (a tar file per tablespace) while streaming it
  * to the object store. Available options are empty string (no
- * compression, default), `gzip`, `bzip2`, `lz4`, and `snappy`.
+ * compression, default), `gzip`, `bzip2`, `lz4`, `snappy`, and `zstd`.
  *
  * @schema ClusterSpecExternalClustersBarmanObjectStoreDataCompression
  */
@@ -12437,6 +12561,8 @@ export enum ClusterSpecExternalClustersBarmanObjectStoreDataCompression {
   LZ4 = "lz4",
   /** snappy */
   SNAPPY = "snappy",
+  /** zstd */
+  ZSTD = "zstd",
 }
 
 /**
@@ -12624,6 +12750,48 @@ export interface ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSessio
  */
 /* eslint-disable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 export function toJson_ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSessionToken(obj: ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSessionToken | undefined): Record<string, any> | undefined {
+  if (obj === undefined) { return undefined; }
+  const result = {
+    'key': obj.key,
+    'name': obj.name,
+  };
+  // filter undefined values
+  return Object.entries(result).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {});
+}
+/* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
+
+/**
+ * Reference to the secret holding the key for Server-Side Encryption with
+ * Customer-provided keys (SSE-C): a base64-encoded 256-bit AES key.
+ * barman-cloud uses it to encrypt the objects it uploads and to read them
+ * back. Meant for S3-compatible providers that only support SSE-C
+ * (e.g. Hetzner Object Storage). Cannot be combined with `encryption`.
+ * Works with any authentication method. Changing the key makes the
+ * existing objects unreadable: use a new `destinationPath` or `serverName`.
+ *
+ * @schema ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSseCustomerKey
+ */
+export interface ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSseCustomerKey {
+  /**
+   * The key to select
+   *
+   * @schema ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSseCustomerKey#key
+   */
+  readonly key: string;
+
+  /**
+   * Name of the referent.
+   *
+   * @schema ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSseCustomerKey#name
+   */
+  readonly name: string;
+}
+
+/**
+ * Converts an object of type 'ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSseCustomerKey' to JSON representation.
+ */
+/* eslint-disable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
+export function toJson_ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSseCustomerKey(obj: ClusterSpecExternalClustersBarmanObjectStoreS3CredentialsSseCustomerKey | undefined): Record<string, any> | undefined {
   if (obj === undefined) { return undefined; }
   const result = {
     'key': obj.key,
