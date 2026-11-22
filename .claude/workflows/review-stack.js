@@ -217,9 +217,9 @@ ${round}" and counts the findings per severity. Post each comment body as given.
 
 function fix(pr, round) {
 	return agent(
-		`You are the author of ${describe(pr)}. In this worktree, run \`git fetch origin && git switch -C ${pr.branch} \
-origin/${pr.branch}\`. List the unresolved review threads of the pull request (GraphQL \`reviewThreads\`) and answer each one: \
-fix a blocker; fix a suggestion or decline it with a reason; answer a question. Use needs_author only for a product decision you \
+		`You are the author of ${describe(pr)}. In this worktree, run \`git fetch origin && git switch --detach \
+origin/${pr.branch}\`: another worktree may hold the branch, and only the SHA of your commit is needed. List the \
+unresolved review threads of the pull request (GraphQL \`reviewThreads\`) and answer each one: fix a blocker; fix a suggestion or decline it with a reason; answer a question. Use needs_author only for a product decision you \
 cannot take. Commit every fix of this round in one commit, \`fix: address review round ${round}\` (use the scope of the pull \
 request title), after the type-check, the tests and \`bunx biome check --write\` pass on the workspaces you touched. Do not push \
 and do not post the replies: return them.`,
@@ -232,9 +232,11 @@ function apply(fixes) {
 		`Apply the fix commits of this review round, bottom to top, then push them and post the replies.\n
 Pull requests, bottom to top, with their fix commit (created in other worktrees of this repository) and replies:
 ${JSON.stringify(fixes, null, 2)}\n
-Record the current branch first and switch back to it at the end. For each pull request with a commit: \`git switch <branch>\`, \
-\`git reset --hard origin/<branch>\`, \`git cherry-pick <commit>\`${
+Record the current branch first and switch back to it at the end. Run \`git fetch origin\`. For each pull request with a \
+commit: \`git switch <branch>\`, \`git reset --hard origin/<branch>\`, \`git cherry-pick <commit>\`${
 			stack.isStack ? ', then `gh stack rebase --upstack`' : ''
+		}. Before the push, rebase on an up-to-date \`origin/main\` (docs/conventions/commits-and-branches.md#commits-on-a-branch): ${
+			stack.isStack ? '`gh stack rebase`' : '`git rebase origin/<base>`, where the base is `main` or the open pull request below'
 		}. Resolve a conflict only when it is mechanical; otherwise abort and set problem. Then ${
 			stack.isStack ? '`gh stack push`' : '`git push --force-with-lease`'
 		}. Find the SHA of each fix commit after the rebase, then reply to each comment \
@@ -306,8 +308,9 @@ for (let round = 1; round <= MAX_ROUNDS && !clean; round++) {
 	pending = new Map(touched.map((pr, i) => [pr.number, rereviews[i]?.findings || []]))
 	openThreads = new Map(touched.map((pr, i) => [pr.number, rereviews[i] ? rereviews[i].openThreads : 1]))
 	const open = [...openThreads.values()].reduce((n, c) => n + c, 0)
-	const fresh = [...pending.values()].reduce((n, f) => n + f.length, 0)
-	log(`Round ${round}: ${open} open threads, ${fresh} new findings`)
+	// Only a new blocker starts another round (docs/conventions/code-review.md#rounds)
+	const fresh = [...pending.values()].reduce((n, f) => n + f.filter((x) => x.severity === 'blocker').length, 0)
+	log(`Round ${round}: ${open} open threads, ${fresh} new blockers`)
 	clean = open === 0 && fresh === 0
 	if (!clean && round === MAX_ROUNDS) handBack.push(`A blocker or an open thread remains after round ${MAX_ROUNDS}`)
 }
