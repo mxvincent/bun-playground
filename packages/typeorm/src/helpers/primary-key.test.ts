@@ -15,6 +15,7 @@ describe('set sortable paths', () => {
 	})
 	it('should throw an error without column', () => {
 		expect(() => setPrimaryKeyColumns(Author, [])).toThrowError(TypeormInvalidPrimaryKeyError)
+		expect(() => setPrimaryKeyColumns(Author, [])).toThrowError('Keys should be a non empty array of string.')
 	})
 })
 
@@ -25,5 +26,6 @@ describe('get primary key', () => {
 	})
 	it('should throw an error if key is not configured', () => {
 		expect(() => getPrimaryKeyColumns(Author)).toThrowError(TypeormPrimaryKeyNotConfiguredError)
+		expect(() => getPrimaryKeyColumns(Author)).toThrowError('Primary key is not configured for Author')
 	})
 })
