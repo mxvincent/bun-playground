@@ -1,3 +1,9 @@
+---
+paths:
+  - "**/*.test.ts"
+  - "**/test-helpers/**"
+---
+
 # Testing
 
 The test runner is Bun's built-in runner. There is no Jest, no Vitest.

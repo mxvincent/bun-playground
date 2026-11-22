@@ -48,6 +48,20 @@ bun run turbo:test
 Rules that a tool can check are stated here for context only — Biome and `tsc` are the source of
 truth. The rules worth reading are the ones no tool can enforce: naming, layering, and structure.
 
+## Loading in Claude Code
+
+Claude Code sessions load these documents from `.claude/`:
+
+- This index, in every session, through `.claude/rules/conventions.md`.
+- Each code document, only when the session works on a file it governs. The document is
+  symlinked into `.claude/rules/`, and its `paths` frontmatter lists the matching globs. An
+  `@import` would not work here: Claude Code loads imports at startup, whatever `paths` says.
+- [commits-and-branches.md](./commits-and-branches.md), before the first issue, branch, commit, push,
+  pull request or stack command of a session. The `PreToolUse` hook
+  `.claude/hooks/commit-conventions.ts` holds that command once and hands the document to Claude.
+
+A new document that governs files MUST carry a `paths` frontmatter and a symlink in `.claude/rules/`.
+
 ## Changing a rule
 
 Conventions are versioned with the code. Open a pull request that changes the document and the code

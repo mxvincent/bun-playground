@@ -1,3 +1,10 @@
+---
+paths:
+  - "**/*.ts"
+  - "**/package.json"
+  - "**/migrations/**"
+---
+
 # Naming
 
 ## Files and directories

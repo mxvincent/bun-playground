@@ -1,0 +1,1 @@
+../../docs/conventions/workspace-structure.md
