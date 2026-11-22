@@ -139,7 +139,8 @@ const stack = await agent(
 			: 'Take the stack of the checked out branch (`gh stack view --json`), or its pull request when it is not in a stack.'
 	} For each, give its number, head branch and base branch (\`gh pr view <n> --json number,headRefName,baseRefName,state\`). \
 Set isStack when there are several pull requests or the branch is in a gh stack. Set problem when a pull request is not open, \
-when the working tree is not clean (\`git status --porcelain\`), or when the bases do not chain from \`main\`.`,
+when the working tree is not clean (\`git status --porcelain\`), or when a base is neither \`main\`, nor the branch of \
+the pull request below it, nor the head branch of an open pull request.`,
 	{ phase: 'Discover', schema: STACK, effort: 'low' },
 )
 if (!stack || stack.problem || !stack.prs.length) {
