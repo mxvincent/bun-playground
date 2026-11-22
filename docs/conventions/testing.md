@@ -60,6 +60,33 @@ describe.each<{ rawDataset: AuthorRecord[]; description: string }>([
 ])('[DATASET] $description', ({ rawDataset }) => { /* … */ })
 ```
 
+### Thrown errors
+
+A test of a thrown error MUST check its class, its message and its context fields in one assertion,
+with `toThrow(expect.objectContaining(…))`. The code under test runs once.
+
+```ts
+expect(() => slice(authors, { take: 0, cursorTransformer })).toThrow(
+	expect.objectContaining({ constructor: InvalidSliceOptionError, message: 'take parameter should be >= 1', option: 'take' })
+)
+```
+
+A rejected promise uses the same matcher through `rejects`:
+
+```ts
+await expect(pager.getPage(parameters)).rejects.toThrow(
+	expect.objectContaining({ constructor: DrizzleInvalidCursorError, message: 'Invalid cursor format' })
+)
+```
+
+- `constructor` checks the exact class: the assertion fails on another class that has the same
+  `code`, message and fields. `rejects.toMatchObject({ constructor })` does not check it, so a
+  rejection MUST also go through `toThrow`.
+- The `message` is compared in full. Use `expect.stringContaining(…)` only for the part of a message
+  that the test cannot know, such as a generated URL.
+- ❌ `toThrow('…')` alone does not check the class, `toThrow(SomeError)` alone does not check the
+  message, and two `expect(call).toThrow(…)` run the code twice.
+
 ## Data
 
 - Test data MUST come from a factory, not from hand-written literals repeated across tests. Domain
