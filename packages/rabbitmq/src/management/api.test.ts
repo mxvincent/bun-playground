@@ -65,6 +65,25 @@ describe('shovels', () => {
 	})
 })
 
+describe('RabbitMQManagementApi.getQueue()', () => {
+	afterEach(() => {
+		managementApiServer.resetHandlers()
+	})
+
+	it('throws on a status other than 200 and 404', async () => {
+		managementApiServer.use(
+			http.get('https://localhost/api/queues/:vhost/:queue', () => new Response(null, { status: 500 }))
+		)
+		await expect(api.getQueue('orders')).rejects.toThrow(
+			expect.objectContaining({
+				constructor: RabbitMQManagementAPIError,
+				message: expect.stringContaining('Unexpected response status 500 for'),
+				statusCode: 500
+			})
+		)
+	})
+})
+
 describe('queue names in URLs', () => {
 	afterEach(() => {
 		managementApiServer.resetHandlers()

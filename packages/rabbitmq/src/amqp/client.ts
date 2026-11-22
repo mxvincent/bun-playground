@@ -3,6 +3,7 @@ import { logger, serializers } from '@package/telemetry'
 import type { AmqpConnectionManager, Channel, ChannelWrapper } from 'amqp-connection-manager'
 import { connect } from 'amqp-connection-manager'
 import { getAmqpConnectionUrl } from '../config'
+import { AmqpClientError } from '../errors/amqp-client-error'
 import type { AmqpConfig } from '../schemas/config'
 import type { AmqpPublishOptions } from '../types'
 import { Consumer, type ConsumerOptions } from './consumer'
@@ -101,14 +102,14 @@ export class AmqpClient {
 
 	getConnectionManager(): AmqpConnectionManager {
 		if (!this.#connectionManager) {
-			throw new Error(withMessagePrefix('Connection manager is not initialized yet.'))
+			throw new AmqpClientError(withMessagePrefix('Connection manager is not initialized yet.'))
 		}
 		return this.#connectionManager
 	}
 
 	getDefaultChannel(): ChannelWrapper {
 		if (!this.#defaultChannel) {
-			throw new Error(withMessagePrefix('Client is not initialized yet.'))
+			throw new AmqpClientError(withMessagePrefix('Client is not initialized yet.'))
 		}
 		return this.#defaultChannel
 	}

@@ -2,16 +2,24 @@ import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { randomUUID } from 'node:crypto'
 import { config } from '#test-helpers/config'
 import { createMeasureMessageContent, type MeasureMessage, MeasureMessageSchema } from '#test-helpers/message'
+import { AmqpClientError } from '../errors/amqp-client-error'
 import { AmqpClient } from './client'
 import type { Consumer } from './consumer'
 
 describe('AmqpClient before initialize()', () => {
 	test('getDefaultChannel() throws', () => {
-		expect(() => new AmqpClient(config).getDefaultChannel()).toThrow('Client is not initialized yet.')
+		expect(() => new AmqpClient(config).getDefaultChannel()).toThrow(
+			expect.objectContaining({ constructor: AmqpClientError, message: '[AMQP] Client is not initialized yet.' })
+		)
 	})
 
 	test('getConnectionManager() throws', () => {
-		expect(() => new AmqpClient(config).getConnectionManager()).toThrow('Connection manager is not initialized yet.')
+		expect(() => new AmqpClient(config).getConnectionManager()).toThrow(
+			expect.objectContaining({
+				constructor: AmqpClientError,
+				message: '[AMQP] Connection manager is not initialized yet.'
+			})
+		)
 	})
 })
 

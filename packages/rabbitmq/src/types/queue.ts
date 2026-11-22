@@ -120,7 +120,7 @@ export class AmqpQueue {
 
 	argumentEquals(config: AmqpQueue) {
 		if (this.name !== config.name) {
-			throw new Error('Compared queue config name should be equals.')
+			throw new AmqpConfigError('Compared queue config name should be equals.')
 		}
 		return isEqual(this.options, config.options)
 	}
