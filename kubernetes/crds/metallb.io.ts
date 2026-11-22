@@ -301,6 +301,15 @@ export interface BgpAdvertisementSpec {
   readonly aggregationLengthV6?: number;
 
   /**
+   * Specifies the number of times to prepend the ASN to the AS-path on outgoing BGP updates,
+   * artificially lengthening the path for traffic engineering.
+   * Supported only in frr-k8s mode.
+   *
+   * @schema BgpAdvertisementSpec#asPathPrepend
+   */
+  readonly asPathPrepend?: number;
+
+  /**
    * The BGP communities to be associated with the announcement. Each item can be a standard community of the
    * form 1234:1234, a large community of the form large:1234:1234:1234 or the name of an alias defined in the
    * Community CRD.
@@ -367,6 +376,7 @@ export function toJson_BgpAdvertisementSpec(obj: BgpAdvertisementSpec | undefine
   const result = {
     'aggregationLength': obj.aggregationLength,
     'aggregationLengthV6': obj.aggregationLengthV6,
+    'asPathPrepend': obj.asPathPrepend,
     'communities': obj.communities?.map(y => y),
     'ipAddressPoolSelectors': obj.ipAddressPoolSelectors?.map(y => toJson_BgpAdvertisementSpecIpAddressPoolSelectors(y)),
     'ipAddressPools': obj.ipAddressPools?.map(y => y),
@@ -1028,6 +1038,7 @@ export interface BgpPeerV1Beta2Spec {
 
   /**
    * To set if we want to disable MP BGP that will separate IPv4 and IPv6 route exchanges into distinct BGP sessions.
+   *
    * Deprecated: DisableMP is deprecated in favor of dualStackAddressFamily.
    *
    * @schema BgpPeerV1Beta2Spec#disableMP
@@ -2120,8 +2131,20 @@ export interface L2AdvertisementSpec {
   readonly nodeSelectors?: L2AdvertisementSpecNodeSelectors[];
 
   /**
+   * PreferredNodeSelectors allows specifying soft node preferences for L2
+   * leader election. Nodes matching these selectors receive a higher score
+   * and are preferred as the announcing node. If no preferred node is
+   * available, any eligible node (per NodeSelectors) can announce.
+   * Modeled after Kubernetes PreferredSchedulingTerm.
+   *
+   * @schema L2AdvertisementSpec#preferredNodeSelectors
+   */
+  readonly preferredNodeSelectors?: L2AdvertisementSpecPreferredNodeSelectors[];
+
+  /**
    * ServiceSelectors limits the set of services that will be advertised via this advertisement.
    * If empty, all services from the selected pools are advertised.
+   * Services matching the selectors cannot use the allow-shared-ip annotation.
    *
    * @schema L2AdvertisementSpec#serviceSelectors
    */
@@ -2139,6 +2162,7 @@ export function toJson_L2AdvertisementSpec(obj: L2AdvertisementSpec | undefined)
     'ipAddressPoolSelectors': obj.ipAddressPoolSelectors?.map(y => toJson_L2AdvertisementSpecIpAddressPoolSelectors(y)),
     'ipAddressPools': obj.ipAddressPools?.map(y => y),
     'nodeSelectors': obj.nodeSelectors?.map(y => toJson_L2AdvertisementSpecNodeSelectors(y)),
+    'preferredNodeSelectors': obj.preferredNodeSelectors?.map(y => toJson_L2AdvertisementSpecPreferredNodeSelectors(y)),
     'serviceSelectors': obj.serviceSelectors?.map(y => toJson_L2AdvertisementSpecServiceSelectors(y)),
   };
   // filter undefined values
@@ -2220,6 +2244,49 @@ export function toJson_L2AdvertisementSpecNodeSelectors(obj: L2AdvertisementSpec
   const result = {
     'matchExpressions': obj.matchExpressions?.map(y => toJson_L2AdvertisementSpecNodeSelectorsMatchExpressions(y)),
     'matchLabels': ((obj.matchLabels) === undefined) ? undefined : (Object.entries(obj.matchLabels).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {})),
+  };
+  // filter undefined values
+  return Object.entries(result).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {});
+}
+/* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
+
+/**
+ * PreferredNodeSelector expresses a weighted soft preference for nodes.
+ * This follows the Kubernetes PreferredSchedulingTerm pattern where Weight
+ * controls relative priority and Preference selects matching nodes.
+ *
+ * @schema L2AdvertisementSpecPreferredNodeSelectors
+ */
+export interface L2AdvertisementSpecPreferredNodeSelectors {
+  /**
+   * Preference selects the nodes that receive this weight. An empty
+   * selector matches every node. Preferences only apply to nodes
+   * already eligible under the advertisement's NodeSelectors.
+   *
+   * @schema L2AdvertisementSpecPreferredNodeSelectors#preference
+   */
+  readonly preference: L2AdvertisementSpecPreferredNodeSelectorsPreference;
+
+  /**
+   * Weight associated with matching the corresponding preference,
+   * in the range 1-100. Higher weights rank the node higher in the
+   * L2 leader election. Weights from selectors that both match a
+   * node sum together.
+   *
+   * @schema L2AdvertisementSpecPreferredNodeSelectors#weight
+   */
+  readonly weight: number;
+}
+
+/**
+ * Converts an object of type 'L2AdvertisementSpecPreferredNodeSelectors' to JSON representation.
+ */
+/* eslint-disable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
+export function toJson_L2AdvertisementSpecPreferredNodeSelectors(obj: L2AdvertisementSpecPreferredNodeSelectors | undefined): Record<string, any> | undefined {
+  if (obj === undefined) { return undefined; }
+  const result = {
+    'preference': toJson_L2AdvertisementSpecPreferredNodeSelectorsPreference(obj.preference),
+    'weight': obj.weight,
   };
   // filter undefined values
   return Object.entries(result).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {});
@@ -2365,6 +2432,46 @@ export function toJson_L2AdvertisementSpecNodeSelectorsMatchExpressions(obj: L2A
 /* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 
 /**
+ * Preference selects the nodes that receive this weight. An empty
+ * selector matches every node. Preferences only apply to nodes
+ * already eligible under the advertisement's NodeSelectors.
+ *
+ * @schema L2AdvertisementSpecPreferredNodeSelectorsPreference
+ */
+export interface L2AdvertisementSpecPreferredNodeSelectorsPreference {
+  /**
+   * matchExpressions is a list of label selector requirements. The requirements are ANDed.
+   *
+   * @schema L2AdvertisementSpecPreferredNodeSelectorsPreference#matchExpressions
+   */
+  readonly matchExpressions?: L2AdvertisementSpecPreferredNodeSelectorsPreferenceMatchExpressions[];
+
+  /**
+   * matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+   * map is equivalent to an element of matchExpressions, whose key field is "key", the
+   * operator is "In", and the values array contains only "value". The requirements are ANDed.
+   *
+   * @schema L2AdvertisementSpecPreferredNodeSelectorsPreference#matchLabels
+   */
+  readonly matchLabels?: { [key: string]: string };
+}
+
+/**
+ * Converts an object of type 'L2AdvertisementSpecPreferredNodeSelectorsPreference' to JSON representation.
+ */
+/* eslint-disable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
+export function toJson_L2AdvertisementSpecPreferredNodeSelectorsPreference(obj: L2AdvertisementSpecPreferredNodeSelectorsPreference | undefined): Record<string, any> | undefined {
+  if (obj === undefined) { return undefined; }
+  const result = {
+    'matchExpressions': obj.matchExpressions?.map(y => toJson_L2AdvertisementSpecPreferredNodeSelectorsPreferenceMatchExpressions(y)),
+    'matchLabels': ((obj.matchLabels) === undefined) ? undefined : (Object.entries(obj.matchLabels).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {})),
+  };
+  // filter undefined values
+  return Object.entries(result).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {});
+}
+/* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
+
+/**
  * A label selector requirement is a selector that contains values, a key, and an operator that
  * relates the key and values.
  *
@@ -2402,6 +2509,55 @@ export interface L2AdvertisementSpecServiceSelectorsMatchExpressions {
  */
 /* eslint-disable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
 export function toJson_L2AdvertisementSpecServiceSelectorsMatchExpressions(obj: L2AdvertisementSpecServiceSelectorsMatchExpressions | undefined): Record<string, any> | undefined {
+  if (obj === undefined) { return undefined; }
+  const result = {
+    'key': obj.key,
+    'operator': obj.operator,
+    'values': obj.values?.map(y => y),
+  };
+  // filter undefined values
+  return Object.entries(result).reduce((r, i) => (i[1] === undefined) ? r : ({ ...r, [i[0]]: i[1] }), {});
+}
+/* eslint-enable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
+
+/**
+ * A label selector requirement is a selector that contains values, a key, and an operator that
+ * relates the key and values.
+ *
+ * @schema L2AdvertisementSpecPreferredNodeSelectorsPreferenceMatchExpressions
+ */
+export interface L2AdvertisementSpecPreferredNodeSelectorsPreferenceMatchExpressions {
+  /**
+   * key is the label key that the selector applies to.
+   *
+   * @schema L2AdvertisementSpecPreferredNodeSelectorsPreferenceMatchExpressions#key
+   */
+  readonly key: string;
+
+  /**
+   * operator represents a key's relationship to a set of values.
+   * Valid operators are In, NotIn, Exists and DoesNotExist.
+   *
+   * @schema L2AdvertisementSpecPreferredNodeSelectorsPreferenceMatchExpressions#operator
+   */
+  readonly operator: string;
+
+  /**
+   * values is an array of string values. If the operator is In or NotIn,
+   * the values array must be non-empty. If the operator is Exists or DoesNotExist,
+   * the values array must be empty. This array is replaced during a strategic
+   * merge patch.
+   *
+   * @schema L2AdvertisementSpecPreferredNodeSelectorsPreferenceMatchExpressions#values
+   */
+  readonly values?: string[];
+}
+
+/**
+ * Converts an object of type 'L2AdvertisementSpecPreferredNodeSelectorsPreferenceMatchExpressions' to JSON representation.
+ */
+/* eslint-disable max-len, @stylistic/max-len, quote-props, @stylistic/quote-props */
+export function toJson_L2AdvertisementSpecPreferredNodeSelectorsPreferenceMatchExpressions(obj: L2AdvertisementSpecPreferredNodeSelectorsPreferenceMatchExpressions | undefined): Record<string, any> | undefined {
   if (obj === undefined) { return undefined; }
   const result = {
     'key': obj.key,
