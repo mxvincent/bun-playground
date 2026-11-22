@@ -16,8 +16,9 @@ Formatting is owned by Biome (`biome.json`) and `.editorconfig`. It is never a r
 | Import order | Managed by Biome's `organizeImports` assist |
 | Control statements | Always braced, even for a single statement (`useBlockStatements`) |
 
-Biome only sees `**/src/**` and `**/test-helpers/**`. Code placed anywhere else is silently
-unformatted and unlinted — see [workspace-structure.md](./workspace-structure.md).
+Biome only sees the paths listed in `files.includes` of `biome.json`: `**/src/**`,
+`**/test-helpers/**`, and the exceptions `packages/kubernetes/**` and `scripts/**`. Code placed
+anywhere else is silently unformatted and unlinted — see [workspace-structure.md](./workspace-structure.md).
 
 ### Suppressions
 

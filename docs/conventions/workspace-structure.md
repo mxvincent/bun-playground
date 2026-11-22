@@ -66,8 +66,9 @@ packages/<name>/
 └── tsconfig.json
 ```
 
-- All source code MUST live under `src/`. Biome only sees `**/src/**` and `**/test-helpers/**`;
-  code outside those paths is neither formatted nor linted.
+- All source code MUST live under `src/`. Biome sees `**/src/**` and `**/test-helpers/**` in every
+  workspace, and other paths only when `biome.json` lists them as exceptions; code outside those
+  paths is neither formatted nor linted.
 - A package is organised in one of two shapes, and MUST NOT mix them:
   - **Flat** — a handful of files directly under `src/`, for a package small enough that grouping
     them would add nothing (`@package/errors`).
