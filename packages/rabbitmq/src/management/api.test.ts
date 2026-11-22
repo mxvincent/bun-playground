@@ -74,7 +74,9 @@ describe('RabbitMQManagementApi.getQueue()', () => {
 		managementApiServer.use(
 			http.get('https://localhost/api/queues/:vhost/:queue', () => new Response(null, { status: 500 }))
 		)
-		await expect(api.getQueue('orders')).rejects.toThrow(RabbitMQManagementAPIError)
+		const queue = api.getQueue('orders')
+		await expect(queue).rejects.toThrow(RabbitMQManagementAPIError)
+		await expect(queue).rejects.toThrow('Unexpected response status 500 for')
 	})
 })
 

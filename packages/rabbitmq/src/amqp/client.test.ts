@@ -9,10 +9,14 @@ import type { Consumer } from './consumer'
 describe('AmqpClient before initialize()', () => {
 	test('getDefaultChannel() throws', () => {
 		expect(() => new AmqpClient(config).getDefaultChannel()).toThrow(AmqpClientError)
+		expect(() => new AmqpClient(config).getDefaultChannel()).toThrow('[AMQP] Client is not initialized yet.')
 	})
 
 	test('getConnectionManager() throws', () => {
 		expect(() => new AmqpClient(config).getConnectionManager()).toThrow(AmqpClientError)
+		expect(() => new AmqpClient(config).getConnectionManager()).toThrow(
+			'[AMQP] Connection manager is not initialized yet.'
+		)
 	})
 })
 
