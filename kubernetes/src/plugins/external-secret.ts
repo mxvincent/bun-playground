@@ -1,15 +1,15 @@
 import {
-	type ExternalSecretV1Beta1SpecDataRemoteRef,
-	ExternalSecretV1Beta1SpecDataRemoteRefConversionStrategy,
-	ExternalSecretV1Beta1SpecDataRemoteRefDecodingStrategy,
-	ExternalSecretV1Beta1SpecDataRemoteRefMetadataPolicy,
-	type ExternalSecretV1Beta1SpecSecretStoreRef,
-	ExternalSecretV1Beta1SpecSecretStoreRefKind
+	type ExternalSecretSpecDataRemoteRef,
+	ExternalSecretSpecDataRemoteRefConversionStrategy,
+	ExternalSecretSpecDataRemoteRefDecodingStrategy,
+	ExternalSecretSpecDataRemoteRefMetadataPolicy,
+	type ExternalSecretSpecSecretStoreRef,
+	ExternalSecretSpecSecretStoreRefKind
 } from '#/imports/external-secrets.io'
 
 export const EXTERNAL_SECRET_REFRESH_INTERVAL = '1h'
-export const SCALEWAY_SECRET_STORE: ExternalSecretV1Beta1SpecSecretStoreRef = {
-	kind: ExternalSecretV1Beta1SpecSecretStoreRefKind.CLUSTER_SECRET_STORE,
+export const SCALEWAY_SECRET_STORE: ExternalSecretSpecSecretStoreRef = {
+	kind: ExternalSecretSpecSecretStoreRefKind.CLUSTER_SECRET_STORE,
 	name: 'scaleway'
 }
 
@@ -20,17 +20,17 @@ export type SecretValueTransformHelper = 'toString'
 
 export class ExternalSecretRef {
 	readonly externalSecretName: string
-	readonly remoteRef: ExternalSecretV1Beta1SpecDataRemoteRef
+	readonly remoteRef: ExternalSecretSpecDataRemoteRef
 
 	constructor(secretName: string, options: { property: string; version?: string }) {
 		this.externalSecretName = secretName
 		this.remoteRef = {
 			key: `name:${secretName}`,
 			property: options.property,
-			conversionStrategy: ExternalSecretV1Beta1SpecDataRemoteRefConversionStrategy.DEFAULT,
-			decodingStrategy: ExternalSecretV1Beta1SpecDataRemoteRefDecodingStrategy.NONE,
+			conversionStrategy: ExternalSecretSpecDataRemoteRefConversionStrategy.DEFAULT,
+			decodingStrategy: ExternalSecretSpecDataRemoteRefDecodingStrategy.NONE,
 			version: options.version ?? 'latest',
-			metadataPolicy: ExternalSecretV1Beta1SpecDataRemoteRefMetadataPolicy.NONE
+			metadataPolicy: ExternalSecretSpecDataRemoteRefMetadataPolicy.NONE
 		}
 	}
 

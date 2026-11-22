@@ -1,9 +1,9 @@
 import { EnvValue, type ISecret, Secret } from 'cdk8s-plus-33'
 import type { Context } from '#/helpers/context'
 import {
-	ExternalSecretV1Beta1,
-	type ExternalSecretV1Beta1SpecDataRemoteRef,
-	ExternalSecretV1Beta1SpecTargetCreationPolicy
+	ExternalSecret,
+	type ExternalSecretSpecDataRemoteRef,
+	ExternalSecretSpecTargetCreationPolicy
 } from '#/imports/external-secrets.io'
 import {
 	EXTERNAL_SECRET_REFRESH_INTERVAL,
@@ -22,7 +22,7 @@ export class WorkloadEnvironment {
 	readonly context: Context
 	readonly values: Record<string, EnvValue> = {}
 	secret?: ISecret
-	readonly #externalSecretValues: Record<string, ExternalSecretV1Beta1SpecDataRemoteRef> = {}
+	readonly #externalSecretValues: Record<string, ExternalSecretSpecDataRemoteRef> = {}
 
 	constructor(context: Context, data: EnvironmentVariables) {
 		this.context = context
@@ -66,9 +66,9 @@ export class WorkloadEnvironment {
 	/**
 	 * Create external secret
 	 */
-	#registerExternalSecret(values: Record<string, ExternalSecretV1Beta1SpecDataRemoteRef>) {
+	#registerExternalSecret(values: Record<string, ExternalSecretSpecDataRemoteRef>) {
 		const secret = this.#initializedSecret
-		new ExternalSecretV1Beta1(this.context.chart, `${this.name}-external-secrets`, {
+		new ExternalSecret(this.context.chart, `${this.name}-external-secrets`, {
 			metadata: {
 				labels: this.context.labels,
 				name: this.name
@@ -78,7 +78,7 @@ export class WorkloadEnvironment {
 				secretStoreRef: SCALEWAY_SECRET_STORE,
 				target: {
 					name: secret.name,
-					creationPolicy: ExternalSecretV1Beta1SpecTargetCreationPolicy.OWNER
+					creationPolicy: ExternalSecretSpecTargetCreationPolicy.OWNER
 				},
 				data: Object.entries(values).map(([secretKey, remoteRef]) => ({
 					secretKey,

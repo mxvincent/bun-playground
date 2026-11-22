@@ -2,10 +2,10 @@ import { Names } from 'cdk8s'
 import { type ISecret, Secret } from 'cdk8s-plus-33'
 import type { Context } from '#/helpers/context'
 import {
-	ExternalSecretV1Beta1,
-	ExternalSecretV1Beta1SpecDataRemoteRefConversionStrategy,
-	ExternalSecretV1Beta1SpecDataRemoteRefDecodingStrategy,
-	ExternalSecretV1Beta1SpecTargetCreationPolicy
+	ExternalSecret as ExternalSecretResource,
+	ExternalSecretSpecDataRemoteRefConversionStrategy,
+	ExternalSecretSpecDataRemoteRefDecodingStrategy,
+	ExternalSecretSpecTargetCreationPolicy
 } from '#/imports/external-secrets.io'
 import { EXTERNAL_SECRET_REFRESH_INTERVAL, type ExternalSecret, SCALEWAY_SECRET_STORE } from '#/plugins/external-secret'
 
@@ -36,13 +36,13 @@ export class ImageRegistryAuth {
 			includeHash: false
 		})
 		this.secret = Secret.fromSecretName(chart, resourceId, secretName)
-		new ExternalSecretV1Beta1(chart, `${resourceId}-secret`, {
+		new ExternalSecretResource(chart, `${resourceId}-secret`, {
 			spec: {
 				secretStoreRef: SCALEWAY_SECRET_STORE,
 				refreshInterval: EXTERNAL_SECRET_REFRESH_INTERVAL,
 				target: {
 					name: secretName,
-					creationPolicy: ExternalSecretV1Beta1SpecTargetCreationPolicy.OWNER,
+					creationPolicy: ExternalSecretSpecTargetCreationPolicy.OWNER,
 					template: {
 						type: 'kubernetes.io/dockerconfigjson',
 						data: {
@@ -54,8 +54,8 @@ export class ImageRegistryAuth {
 					{
 						secretKey: 'secret',
 						remoteRef: {
-							conversionStrategy: ExternalSecretV1Beta1SpecDataRemoteRefConversionStrategy.DEFAULT,
-							decodingStrategy: ExternalSecretV1Beta1SpecDataRemoteRefDecodingStrategy.NONE,
+							conversionStrategy: ExternalSecretSpecDataRemoteRefConversionStrategy.DEFAULT,
+							decodingStrategy: ExternalSecretSpecDataRemoteRefDecodingStrategy.NONE,
 							key: `name:${auth.name}`,
 							version: 'latest'
 						}
