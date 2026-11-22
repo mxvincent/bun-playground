@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { App } from 'cdk8s/lib/app'
-import { Pod } from 'cdk8s-plus-33'
+import { Pod } from 'cdk8s-plus-37'
 import { ApplicationContext, type ComponentContext } from '../../helpers/context'
 import { DEFAULT_SECRET_STORE, ExternalSecret } from '../../plugins/external-secret'
 import { pinRevision } from '../../testing'

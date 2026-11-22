@@ -1,4 +1,4 @@
-import { EnvValue, type ISecret, Secret } from 'cdk8s-plus-33'
+import { EnvValue, type ISecret, Secret } from 'cdk8s-plus-37'
 import {
 	ExternalSecret,
 	type ExternalSecretSpecDataRemoteRef,

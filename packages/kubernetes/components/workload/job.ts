@@ -1,5 +1,5 @@
 import type { Duration } from 'cdk8s'
-import { Job as CDKJob, RestartPolicy } from 'cdk8s-plus-33'
+import { Job as CDKJob, RestartPolicy } from 'cdk8s-plus-37'
 import type { ComponentContext } from '../../helpers/context'
 import { ArgoCDAnnotation, ArgocdHook, ArgocdHookDeletePolicy } from '../../plugins/argocd'
 import { WorkloadComponent, type WorkloadComponentOptions, type WorkloadSettings } from '../workload-component'
