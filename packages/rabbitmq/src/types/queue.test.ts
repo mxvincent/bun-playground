@@ -105,8 +105,8 @@ describe('AmqpQueue.argumentEquals()', () => {
 	})
 
 	it('throws for queues with other names', () => {
-		const call = () => new AmqpQueue({ name: 'orders' }).argumentEquals(new AmqpQueue({ name: 'other' }))
-		expect(call).toThrow(AmqpConfigError)
-		expect(call).toThrow('Compared queue config name should be equals.')
+		expect(() => new AmqpQueue({ name: 'orders' }).argumentEquals(new AmqpQueue({ name: 'other' }))).toThrow(
+			expect.objectContaining({ constructor: AmqpConfigError, message: 'Compared queue config name should be equals.' })
+		)
 	})
 })
