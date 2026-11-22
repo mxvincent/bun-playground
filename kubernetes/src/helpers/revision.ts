@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { getRepositoryRootDirectory } from '#/helpers/misc'
-import { Application } from '#interfaces/application'
-import type { Environment } from '#interfaces/environment'
+import { Application } from '#/interfaces/application'
+import type { Environment } from '#/interfaces/environment'
 
 /**
  * You can use this map to pin a specific version

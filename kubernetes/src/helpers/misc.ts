@@ -2,18 +2,6 @@ import { existsSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { memoize } from 'es-toolkit'
 
-export const recursiveDirname = (iteration: number, path: string): string => {
-	if (iteration === 0) {
-		return path
-	}
-	return recursiveDirname(iteration - 1, dirname(path))
-}
-
-export const withProtocol = (protocol: 'http' | 'https') => (url: string) => `${protocol}://${url}`
-
-export const http = withProtocol('http')
-export const https = withProtocol('https')
-
 /**
  * Get applications directory path
  */

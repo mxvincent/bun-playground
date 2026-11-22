@@ -1,7 +1,14 @@
+import { accountService } from '#/charts/account-service'
+import type { WorkloadNamespace } from '#/helpers/namespace'
 import { synthesizeAllResources } from '#/helpers/scope'
-import { AccountService } from '#charts/account-service'
-import { Environment } from '#interfaces/environment'
+import { Environment } from '#/interfaces/environment'
 
-new AccountService(Environment.DEVELOPMENT)
+const namespaces: WorkloadNamespace[] = [accountService]
+
+for (const environment of Object.values(Environment)) {
+	for (const namespace of namespaces) {
+		namespace.generate(environment)
+	}
+}
 
 synthesizeAllResources()

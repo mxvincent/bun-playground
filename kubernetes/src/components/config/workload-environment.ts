@@ -10,11 +10,13 @@ import {
 	type ExternalSecretRef,
 	SCALEWAY_SECRET_STORE
 } from '#/plugins/external-secret'
-import { findOrCreate } from '#helpers/misc'
 
 export type EnvironmentValue = string | ExternalSecretRef
 
-const memo = new Map<Context, WorkloadEnvironment>()
+/**
+ * Environment variables by name
+ */
+export type EnvironmentVariables = Record<string, EnvironmentValue>
 
 export class WorkloadEnvironment {
 	readonly context: Context
@@ -22,7 +24,7 @@ export class WorkloadEnvironment {
 	secret?: ISecret
 	readonly #externalSecretValues: Record<string, ExternalSecretV1Beta1SpecDataRemoteRef> = {}
 
-	private constructor(context: Context, data: Record<string, EnvironmentValue>) {
+	constructor(context: Context, data: EnvironmentVariables) {
 		this.context = context
 		for (const [key, value] of Object.entries(data)) {
 			if (typeof value === 'string') {
@@ -43,10 +45,6 @@ export class WorkloadEnvironment {
 	get #initializedSecret() {
 		this.secret ??= Secret.fromSecretName(this.context.chart, this.name, this.name)
 		return this.secret
-	}
-
-	static register(context: Context, environment: Record<string, EnvironmentValue>): WorkloadEnvironment {
-		return findOrCreate(memo, context, () => new WorkloadEnvironment(context, environment))
 	}
 
 	/**

@@ -7,11 +7,46 @@ import {
 	ExternalSecretV1Beta1SpecTargetTemplateEngineVersion
 } from '#/imports/external-secrets.io'
 import { EXTERNAL_SECRET_REFRESH_INTERVAL, ExternalSecretRef, SCALEWAY_SECRET_STORE } from '#/plugins/external-secret'
-import { findOrCreate } from '#helpers/misc'
 
 export type JSONLike<T> = T | { [x: string]: JSONLike<T> } | Array<JSONLike<T>>
 export type ConfigFileContent = JSONLike<boolean | number | string | ExternalSecretRef>
 export type ConfigFileTemplate = JSONLike<boolean | number | string>
+
+/**
+ * Config files by file name
+ */
+export type ConfigFiles = Record<string, ConfigFileContent>
+
+const isPlainObject = (value: ConfigFileContent): value is { [x: string]: ConfigFileContent } => {
+	return typeof value === 'object' && !Array.isArray(value) && !(value instanceof ExternalSecretRef)
+}
+
+/**
+ * Deep-merge two config file contents
+ *
+ * Plain objects are merged recursively; arrays, scalars and secret references are replaced by the override.
+ */
+export const mergeConfigFileContent = (base: ConfigFileContent, override: ConfigFileContent): ConfigFileContent => {
+	if (!isPlainObject(base) || !isPlainObject(override)) {
+		return override
+	}
+	const merged = { ...base }
+	for (const [key, value] of Object.entries(override)) {
+		const current = merged[key]
+		merged[key] = current === undefined ? value : mergeConfigFileContent(current, value)
+	}
+	return merged
+}
+
+/**
+ * Deep-merge the config files of an override into the base ones
+ */
+export const mergeConfigFiles = (base?: ConfigFiles, override?: ConfigFiles): ConfigFiles | undefined => {
+	if (!base || !override) {
+		return override ?? base
+	}
+	return mergeConfigFileContent(base, override) as ConfigFiles
+}
 
 export interface ConfigFilesMountOptions {
 	container: Container
@@ -19,18 +54,13 @@ export interface ConfigFilesMountOptions {
 	files?: string[]
 }
 
-const memo = new Map<Context, WorkloadConfig>()
-
 export class WorkloadConfig {
 	readonly context: Context
 	readonly templates: Record<string, ConfigFileTemplate> = {}
 	readonly secretRefs: Record<string, ExternalSecretRef> = {}
 	#secret?: ISecret
 
-	/**
-	 * @prop data  config map content
-	 */
-	private constructor(context: Context, files: Record<string, ConfigFileContent>) {
+	constructor(context: Context, files: ConfigFiles) {
 		this.context = context
 		for (const [name, value] of Object.entries(files)) {
 			this.templates[name] = this.#transform(value)
@@ -50,10 +80,6 @@ export class WorkloadConfig {
 			this.#secret = this.generate()
 		}
 		return this.#secret
-	}
-
-	static register(context: Context, files: Record<string, ConfigFileContent>): WorkloadConfig {
-		return findOrCreate(memo, context, () => new WorkloadConfig(context, files))
 	}
 
 	generate(): ISecret {

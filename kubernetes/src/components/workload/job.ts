@@ -1,6 +1,11 @@
 import type { Duration } from 'cdk8s'
 import { Job as CDKJob, RestartPolicy } from 'cdk8s-plus-33'
-import { WorkloadComponent, type WorkloadComponentOptions } from '#/components/workload-component'
+import {
+	WorkloadComponent,
+	type WorkloadComponentOptions,
+	type WorkloadSettings
+} from '#/components/workload-component'
+import type { ComponentContext } from '#/helpers/context'
 import { ArgoCDAnnotation, ArgocdHook, ArgocdHookDeletePolicy } from '#/plugins/argocd'
 
 export interface JobOptions extends WorkloadComponentOptions {
@@ -10,13 +15,13 @@ export interface JobOptions extends WorkloadComponentOptions {
 }
 
 export class Job extends WorkloadComponent<JobOptions> {
-	generate() {
-		const { context, options } = this
+	generate(context: ComponentContext, settings: WorkloadSettings) {
+		const { options } = this
 
 		// Configure job
 		const job = new CDKJob(context.chart, context.name, {
 			metadata: context.metadata,
-			dockerRegistryAuth: options.imageRegistryAuth?.secret,
+			dockerRegistryAuth: settings.imagePullSecret,
 			restartPolicy: RestartPolicy.ON_FAILURE,
 			activeDeadline: options.activeDeadline,
 			podMetadata: context.metadata,
@@ -30,9 +35,9 @@ export class Job extends WorkloadComponent<JobOptions> {
 		)
 
 		// Configure job container
-		const container = job.addContainer(this.containerProps)
+		const container = job.addContainer(this.containerProps(context, settings))
 
 		// Inject configuration
-		this.mountConfiguration(job, container)
+		this.mountConfiguration(job, container, settings)
 	}
 }
