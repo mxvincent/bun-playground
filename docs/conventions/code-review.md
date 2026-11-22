@@ -77,8 +77,8 @@ author of the pull request drives them and merges.
    look for the input or state that triggers it and check that the stated result is the actual one.
    The vote decides:
    - three confirmations out of three: the finding is kept;
-   - two out of three: two more skeptics review it, and the finding is kept only with at least four
-     confirmations out of five;
+   - two out of three: two more skeptics review it. Four or five confirmations out of five keep the
+     finding; three or fewer drop it;
    - one or none out of three: the finding is dropped.
 
    A skeptic MUST NOT add a finding of their own.
