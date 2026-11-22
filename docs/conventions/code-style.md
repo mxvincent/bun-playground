@@ -66,6 +66,10 @@ Further rules:
 - Biome reports both as errors (`noExplicitAny`, `noNonNullAssertion`), along with a type-only import
   or export written without `type` (`useImportType`, `useExportType`) and a Node.js builtin imported
   without the `node:` prefix (`useNodejsImportProtocol`).
+- A Node.js builtin MUST be imported with the `node:` prefix: `import { createHash } from
+  'node:crypto'`. Bun resolves both spellings to the same builtin; the prefix states that the module
+  is a builtin and not an npm package, prevents an npm package of the same name from being resolved
+  instead, and matches the `bun:` prefix of Bun's own modules (`bun:test`).
 - A type assertion (`as`) SHOULD be avoided. Prefer `satisfies` to check a literal against a type
   while keeping its narrow inferred shape:
   ```ts
