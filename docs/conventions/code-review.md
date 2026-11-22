@@ -105,8 +105,8 @@ do not depend on each other:
 
 - **Review**: the two reviewers of every pull request of the stack start at once.
 - **Verification** of a pull request starts as soon as its two reviews end, without waiting for the
-  other pull requests. The three skeptics of every finding run at once, and the two extra skeptics
-  of a split finding start as soon as its first vote ends.
+  other pull requests. The three skeptics of every finding run at once. Only a finding confirmed
+  two out of three gets the two extra skeptics, as soon as its first vote ends.
 - **Publication** of a pull request follows its verification.
 - **Fix**: one agent per pull request, each in its own worktree, prepares the fixes of its layer at
   the same time. Their commits are then applied bottom to top, and the layers above are rebased
