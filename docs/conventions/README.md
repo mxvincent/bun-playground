@@ -14,6 +14,7 @@ document wins and the code is aligned when it is next touched.
 | [testing.md](./testing.md) | Test placement, structure, helpers, database-backed tests |
 | [commits-and-branches.md](./commits-and-branches.md) | Language on GitHub, issues, branches, commits on a branch, squash merge, commit messages, pull requests, stacked pull requests |
 | [versioning.md](./versioning.md) | Public surface, semver policy, changesets, release pipeline, Docker image versions |
+| [code-review.md](./code-review.md) | Review passes (structure, bugs, performance, readability, conventions), review comments and their severity |
 
 ## Reading the rules
 
@@ -60,6 +61,7 @@ Claude Code sessions load these documents from `.claude/`:
 - [commits-and-branches.md](./commits-and-branches.md), before the first issue, branch, commit, push,
   pull request or stack command of a session. The `PreToolUse` hook
   `.claude/hooks/commit-conventions.ts` holds that command once and hands the document to Claude.
+- [code-review.md](./code-review.md), read by Claude before it reviews a pull request or a diff.
 
 A new document that governs files MUST carry a `paths` frontmatter and a symlink in `.claude/rules/`.
 
