@@ -32,6 +32,7 @@ const FINDING = {
 			type: 'string',
 			description: 'The comment to post, in English, starting with the severity prefix, with the concrete case',
 		},
+		foundBy: { type: 'array', items: { type: 'string' }, description: 'Set by the workflow: the reviewers that raised it' },
 	},
 	required: ['file', 'line', 'severity', 'pass', 'title', 'body'],
 }
@@ -170,12 +171,14 @@ line of the head of the pull request inside a hunk of the diff, a concrete case,
 			),
 		),
 	)
-	const found = reviews.filter(Boolean).flatMap((r) => r.findings)
+	const found = reviews.flatMap((r, i) =>
+		(r?.findings || []).map((f) => ({ ...f, foundBy: [`${i + 1}:${REVIEWERS[i].model}`] })),
+	)
 	if (reviews.filter(Boolean).length < 2) log(`#${pr.number}: a reviewer did not return; ${found.length} findings from one review`)
 	if (found.length < 2) return found
 	const merged = await agent(
 		`Two reviewers reviewed ${describe(pr)} independently. Merge their findings: when two findings describe the same problem, \
-keep one, the clearer, with the higher severity. Change nothing else.\n\n${JSON.stringify(found, null, 2)}`,
+keep one, the clearer, with the higher severity, and set its foundBy to the union of theirs. Change nothing else.\n\n${JSON.stringify(found, null, 2)}`,
 		{ phase: 'Review', label: `merge:#${pr.number}`, schema: FINDINGS, effort: 'low' },
 	)
 	return merged ? merged.findings : found
@@ -201,10 +204,9 @@ async function verify(pr, findings) {
 		findings.map((finding, index) => async () => {
 			const confirmed = (votes) => votes.filter((v) => v?.confirmed).length
 			const first = confirmed(await skeptics(pr, finding, index, 0, 3))
-			if (first === 3) return finding
-			if (first < 2) return null
-			const total = first + confirmed(await skeptics(pr, finding, index, 3, 5))
-			return total >= 4 ? finding : null
+			const keep = first === 3 || (first === 2 && first + confirmed(await skeptics(pr, finding, index, 3, 5)) >= 4)
+			if (finding.foundBy) reviewed.push({ ...finding, kept: keep })
+			return keep ? finding : null
 		}),
 	)
 	const result = kept.filter(Boolean)
@@ -272,6 +274,25 @@ Do not change files.`,
 // --- Rounds
 
 const handBack = []
+const reviewed = [] // every finding of a first review, with the reviewers that raised it and the outcome of its vote
+
+// What each reviewer raised, what the vote kept, and the kept findings it missed, per pass: the data to decide whether a
+// pass needs a specialist reviewer.
+function reviewerStats() {
+	const kept = reviewed.filter((f) => f.kept)
+	const byPass = (list) => list.reduce((acc, f) => ({ ...acc, [f.pass]: (acc[f.pass] || 0) + 1 }), {})
+	return REVIEWERS.map((reviewer, i) => {
+		const name = `${i + 1}:${reviewer.model}`
+		const own = reviewed.filter((f) => f.foundBy.includes(name))
+		return {
+			reviewer: name,
+			raised: own.length,
+			kept: own.filter((f) => f.kept).length,
+			keptAlone: kept.filter((f) => f.foundBy.length === 1 && f.foundBy[0] === name).length,
+			missedByPass: byPass(kept.filter((f) => !f.foundBy.includes(name))),
+		}
+	})
+}
 let pending = new Map() // round 1 reviews the whole pull requests; later rounds verify the findings of the re-review
 let openThreads = new Map() // unresolved threads per pull request after the last re-review
 let leftover = [] // non-blocker findings of the last re-review: they start no round; when no round follows, the result carries them
@@ -337,8 +358,10 @@ for (let round = 1; round <= MAX_ROUNDS && !clean; round++) {
 // --- Merge
 
 for (const f of leftover) log(`#${f.number}: ${f.severity} of the re-review, left to the author: ${f.file}:${f.line} ${f.title}`)
-if (!clean || handBack.length) return { merged: false, handBack, leftover }
-if (!MERGE) return { merged: false, handBack: ['Every thread is resolved; merge skipped (merge: false)'], leftover }
+const reviewers = reviewerStats()
+for (const r of reviewers) log(`Reviewer ${r.reviewer}: ${r.kept} of ${r.raised} kept, ${r.keptAlone} alone, missed ${JSON.stringify(r.missedByPass)}`)
+if (!clean || handBack.length) return { merged: false, handBack, leftover, reviewers }
+if (!MERGE) return { merged: false, handBack: ['Every thread is resolved; merge skipped (merge: false)'], leftover, reviewers }
 
 const merged = await agent(
 	`Merge ${prs.map(describe).join(', ')}, following the "Merging" section of docs/conventions/commits-and-branches.md. \
@@ -356,4 +379,5 @@ return {
 	details: merged?.details,
 	handBack: merged?.merged ? [] : [merged?.details || 'merge agent did not return'],
 	leftover,
+	reviewers,
 }
