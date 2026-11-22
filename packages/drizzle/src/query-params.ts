@@ -14,6 +14,7 @@ import { parseFilters, parseSorts, QueryStringParameterValidationError } from '@
 import type { PgColumn } from 'drizzle-orm/pg-core'
 import * as SQLCondition from 'drizzle-orm/sql/expressions/conditions'
 import { type SQL, sql } from 'drizzle-orm/sql/sql'
+import { DrizzleUnsupportedFilterError } from './errors/unsupported-filter'
 
 export type ColumnMapping<T extends string = string> = Record<T, PgColumn>
 
@@ -93,7 +94,7 @@ export const transformFilter = <Key extends string>(filter: Filter<Key>, columns
 				return SQLCondition.isNotNull(column)
 		}
 	}
-	throw new Error('Filter is not configured')
+	throw new DrizzleUnsupportedFilterError(filter)
 }
 export const transformFilters = <Key extends string>(
 	filters: Filter<Key>[] | undefined,

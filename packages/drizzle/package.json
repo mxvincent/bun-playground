@@ -14,8 +14,9 @@
 	"dependencies": {
 		"@package/core": "workspace:*",
 		"@package/database": "workspace:*",
-		"@package/query-params-serializer": "workspace:*",
+		"@package/errors": "workspace:*",
 		"@package/query-params": "workspace:*",
+		"@package/query-params-serializer": "workspace:*",
 		"@package/telemetry": "workspace:*"
 	},
 	"peerDependencies": {
