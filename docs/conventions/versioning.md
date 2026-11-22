@@ -92,7 +92,9 @@ Pass sort as Pager.getPage() parameter
 Releases run on every push to `main` (`.github/workflows/release-main.yaml`). The sequence:
 
 1. **Collect** — the Changesets action opens or updates a *release pull request* gathering every
-   pending changeset, titled `release(main): <ISO timestamp>`.
+   pending changeset, titled `release(main): <ISO timestamp>`. The action opens it with
+   `GITHUB_TOKEN`, and GitHub starts no workflow for a pull request opened that way: it reports none
+   of the checks the `main` ruleset requires. The repository admin merges it with the ruleset bypass.
 2. **Version** — merging that pull request runs `scripts/changeset-version.sh`, which applies the
    bumps, writes the `CHANGELOG.md` files, regenerates the CDK8s deployment manifests
    (`bun run --filter kubernetes generate-manifests`), and commits the result.

@@ -87,7 +87,12 @@ gh pr edit <pr> --add-label bug --add-label pkg/core
 - A branch MUST carry exactly one issue's worth of work. Unrelated fixes noticed along the way get
   their own issue and their own branch.
 - `main` is protected. It MUST NOT be pushed to directly, and MUST NOT be force-pushed under any
-  circumstance.
+  circumstance. The `main` repository ruleset enforces it: no deletion, no force push, changes only
+  through a pull request merged by squash or rebase, and four required checks —
+  `code-quality / typecheck`, `code-quality / lint`, `code-quality / test` and `conventions`.
+- The ruleset lets the repository admin bypass it when merging a pull request. The bypass is for the
+  release pull request only (see [versioning.md](./versioning.md#release-pipeline)), and MUST NOT be
+  used for any other pull request.
 - `main` MUST NOT be merged into a branch. Rebase instead:
   ```bash
   git fetch origin && git rebase origin/main
