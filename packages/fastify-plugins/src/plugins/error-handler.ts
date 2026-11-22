@@ -23,7 +23,12 @@ export const fastifyErrorHandler: FastifyPluginAsync = plugin(
 
 			if (error instanceof BaseError) {
 				reply.statusCode = error.statusCode
-				return error.toJSON()
+				// A client error (4xx) body is the API contract: keep its context
+				if (error.statusCode < 500) {
+					return error.toJSON()
+				}
+				// A server error context (path, URL, variable name…) is internal: only its code reaches the client
+				return { statusCode: error.statusCode, code: error.code, message: 'Internal server error' }
 			}
 
 			// Fastify client errors (validation, unsupported media type…) describe the request: keep them

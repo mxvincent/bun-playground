@@ -1,7 +1,29 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, spyOn } from 'bun:test'
-import { ResourceNotFoundError } from '@package/errors'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, spyOn, test } from 'bun:test'
+import { BaseError, ResourceNotFoundError } from '@package/errors'
 import Fastify from 'fastify'
 import { fastifyErrorHandler } from './error-handler'
+
+const UPSTREAM_URL = 'http://10.0.0.12/internal/users'
+
+/** A typed server error whose context must stay internal: 500 by default, like BaseError */
+class UpstreamUnavailableError extends BaseError {
+	code = 'TEST_UPSTREAM_UNAVAILABLE'
+	readonly url: string
+
+	constructor(url: string) {
+		super(`Upstream is unavailable (url=${url})`)
+		this.url = url
+	}
+
+	override toJSON() {
+		return { ...super.toJSON(), url: this.url }
+	}
+}
+
+/** The same server error with another 5xx status code */
+class UpstreamTimeoutError extends UpstreamUnavailableError {
+	override statusCode = 503
+}
 
 const app = Fastify()
 
@@ -9,6 +31,12 @@ beforeAll(async () => {
 	await app.register(fastifyErrorHandler)
 	app.get('/missing', async () => {
 		throw new ResourceNotFoundError('organization', 'id-1')
+	})
+	app.get('/unavailable', async () => {
+		throw new UpstreamUnavailableError(UPSTREAM_URL)
+	})
+	app.get('/unavailable-503', async () => {
+		throw new UpstreamTimeoutError(UPSTREAM_URL)
 	})
 	app.get('/internal', async () => {
 		throw new Error('connection to 10.0.0.12 refused')
@@ -29,6 +57,20 @@ it('responds to a BaseError with its status code and its JSON body', async () =>
 	expect({ statusCode: response.statusCode, body: response.json() }).toStrictEqual({
 		statusCode: 404,
 		body: new ResourceNotFoundError('organization', 'id-1').toJSON()
+	})
+})
+
+test.each<{ url: string; statusCode: number }>([
+	{ url: '/unavailable', statusCode: 500 },
+	{ url: '/unavailable-503', statusCode: 503 }
+])('responds to a BaseError with a $statusCode status code with its code and a generic message, without its context', async ({
+	url,
+	statusCode
+}) => {
+	const response = await app.inject({ url })
+	expect({ statusCode: response.statusCode, body: response.json<unknown>() }).toStrictEqual({
+		statusCode,
+		body: { statusCode, code: 'TEST_UPSTREAM_UNAVAILABLE', message: 'Internal server error' }
 	})
 })
 
@@ -73,6 +115,16 @@ describe('logs', () => {
 	it('logs an unexpected error as an error', async () => {
 		await app.inject({ url: '/internal' })
 		expect(errorLogSpy).toHaveBeenCalledWith(expect.anything(), 'Unhandled error')
+	})
+
+	test('logs a BaseError with a 5xx status code as an error, with its context', async () => {
+		await app.inject({ url: '/unavailable' })
+		expect(errorLogSpy).toHaveBeenCalledWith(
+			expect.objectContaining({
+				error: expect.objectContaining({ constructor: UpstreamUnavailableError, url: UPSTREAM_URL })
+			}),
+			'Unhandled error'
+		)
 	})
 
 	it('logs an error with a 4xx status code that Fastify did not produce as an error', async () => {

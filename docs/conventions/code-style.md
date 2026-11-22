@@ -150,12 +150,15 @@ Further rules:
 - Error classes MUST live in an `errors/` directory (or `errors.ts` for a single one) within their
   package, one class per file when there are several.
 - An error carrying context MUST expose it as fields and surface it in `toJSON()`, so that logging
-  and HTTP serialization both see it:
+  sees it:
   ```ts
   override toJSON() {
   	return { ...super.toJSON(), resource: { type: this.resourceType, id: this.resourceId } }
   }
   ```
+  The Fastify error handler of `@package/fastify-plugins` answers a client error (4xx) with
+  `toJSON()`: its context is part of the API contract and MUST hold nothing internal. It answers a
+  server error (5xx) with its `statusCode`, its `code` and a generic message only.
 - A `catch` block MUST NOT swallow an error. Either handle it meaningfully, or log and rethrow:
   ```ts
   } catch (error) {
