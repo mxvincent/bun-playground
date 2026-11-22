@@ -1,5 +1,23 @@
 # @package/typeorm
 
+## 0.5.0
+
+### Minor Changes
+
+- [#343](https://github.com/mxvincent/bun-playground/pull/343) [`85369fa`](https://github.com/mxvincent/bun-playground/commit/85369faa2c18f3c273f014e923c4d1776d360f94) Thanks [@mxvincent](https://github.com/mxvincent)! - Rename the members of `PostgresErrorCode` to `SCREAMING_SNAKE_CASE`, as `naming.md` requires for enum members: `UniqueViolation` becomes `UNIQUE_VIOLATION`, `ForeignKeyViolation` becomes `FOREIGN_KEY_VIOLATION`, and so on. Breaking: code that reads `PostgresErrorCode.<Member>` must use the new names. The values do not change.
+
+- [#359](https://github.com/mxvincent/bun-playground/pull/359) [`5ce45db`](https://github.com/mxvincent/bun-playground/commit/5ce45dbec6264ed7ad5c583b1c40d24a950c5549) Thanks [@mxvincent](https://github.com/mxvincent)! - Throw typed errors that extend `BaseError` instead of a plain `Error`: `TypeormUnsupportedFilterError` (with the filter `operator` and `path`), `TypeormDataSourceNotInitializedError`, `TypeormPrimaryKeyNotConfiguredError` and `TypeormInvalidPrimaryKeyError` (with the `entityName`). Messages do not change.
+
+### Patch Changes
+
+- [#345](https://github.com/mxvincent/bun-playground/pull/345) [`689346a`](https://github.com/mxvincent/bun-playground/commit/689346a75743a2e3a52fad974bec57f5d254d7e8) Thanks [@mxvincent](https://github.com/mxvincent)! - Align the code with the code-style rules that Biome now enforces: exported functions are arrow functions assigned to a `const`, non-null assertions are replaced by narrowing, and Node.js builtins are imported with the `node:` prefix. No export is renamed or removed, and behavior does not change.
+
+- Updated dependencies [[`689346a`](https://github.com/mxvincent/bun-playground/commit/689346a75743a2e3a52fad974bec57f5d254d7e8), [`607bb09`](https://github.com/mxvincent/bun-playground/commit/607bb09cbff3f25d557b839f08050ba716c958e9), [`71aee2d`](https://github.com/mxvincent/bun-playground/commit/71aee2d1fd2b98671ce0a979bc8b134fc0dc8671)]:
+  - @package/core@0.3.0
+  - @package/database@0.4.0
+  - @package/query-params@0.1.3
+  - @package/telemetry@0.2.1
+
 ## 0.4.0
 
 ### Minor Changes

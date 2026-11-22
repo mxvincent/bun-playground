@@ -1,5 +1,22 @@
 # @application/account
 
+## 0.1.3
+
+### Patch Changes
+
+- [#362](https://github.com/mxvincent/bun-playground/pull/362) [`4d97e85`](https://github.com/mxvincent/bun-playground/commit/4d97e850ee6f4a938131520b6980ffb90ca60b20) Thanks [@mxvincent](https://github.com/mxvincent)! - The organization repository throws `ResourceNotWrittenError` (code `RESOURCE_NOT_WRITTEN`, with the operation and the resource) instead of a plain `Error` when a create, update or delete affects no row. The HTTP error body now carries that code.
+
+- Updated dependencies [[`689346a`](https://github.com/mxvincent/bun-playground/commit/689346a75743a2e3a52fad974bec57f5d254d7e8), [`607bb09`](https://github.com/mxvincent/bun-playground/commit/607bb09cbff3f25d557b839f08050ba716c958e9), [`71aee2d`](https://github.com/mxvincent/bun-playground/commit/71aee2d1fd2b98671ce0a979bc8b134fc0dc8671), [`b6e19c0`](https://github.com/mxvincent/bun-playground/commit/b6e19c0837d884fabc513712451df4c5a13a941e)]:
+  - @domain/account@0.1.1
+  - @package/core@0.3.0
+  - @package/database@0.4.0
+  - @package/json-schema@0.2.1
+  - @package/query-params@0.1.3
+  - @package/query-params-serializer@1.1.1
+  - @package/telemetry@0.2.1
+  - @package/drizzle@0.3.0
+  - @package/fastify-plugins@2.0.1
+
 ## 0.1.2
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @package/fastify-plugins
 
+## 2.0.1
+
+### Patch Changes
+
+- Updated dependencies [[`689346a`](https://github.com/mxvincent/bun-playground/commit/689346a75743a2e3a52fad974bec57f5d254d7e8)]:
+  - @package/json-schema@0.2.1
+  - @package/telemetry@0.2.1
+
 ## 2.0.0
 
 ### Patch Changes

@@ -1,5 +1,20 @@
 # @package/drizzle
 
+## 0.3.0
+
+### Minor Changes
+
+- [#358](https://github.com/mxvincent/bun-playground/pull/358) [`b6e19c0`](https://github.com/mxvincent/bun-playground/commit/b6e19c0837d884fabc513712451df4c5a13a941e) Thanks [@mxvincent](https://github.com/mxvincent)! - Throw typed errors that extend `BaseError` instead of a plain `Error`: `DrizzleTransactionRolledBackError` when PostgreSQL answers COMMIT with ROLLBACK, `DrizzleInvalidCursorError` (status code 400, with the decoding error as `cause`) for a cursor that cannot be decoded, and `DrizzleUnsupportedFilterError` (with the filter `operator` and `path`) for a comparison operator without SQL translation. Messages do not change.
+
+### Patch Changes
+
+- Updated dependencies [[`689346a`](https://github.com/mxvincent/bun-playground/commit/689346a75743a2e3a52fad974bec57f5d254d7e8), [`607bb09`](https://github.com/mxvincent/bun-playground/commit/607bb09cbff3f25d557b839f08050ba716c958e9), [`71aee2d`](https://github.com/mxvincent/bun-playground/commit/71aee2d1fd2b98671ce0a979bc8b134fc0dc8671)]:
+  - @package/core@0.3.0
+  - @package/database@0.4.0
+  - @package/query-params@0.1.3
+  - @package/query-params-serializer@1.1.1
+  - @package/telemetry@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
