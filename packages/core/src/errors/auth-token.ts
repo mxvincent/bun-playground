@@ -1,7 +1,22 @@
 import { AuthError } from './auth'
 
+/**
+ * Stable reason of an invalid token. It never carries an expected claim value, since it reaches the client.
+ */
+export type AuthTokenErrorReason =
+	| 'malformed'
+	| 'invalid-signature'
+	| 'invalid-algorithm'
+	| 'invalid-audience'
+	| 'invalid-issuer'
+	| 'invalid-subject'
+	| 'invalid-jwt-id'
+	| 'invalid-nonce'
+	| 'invalid-claims'
+	| 'invalid'
+
 export type AuthTokenErrorDetails = {
-	reason?: string
+	reason?: AuthTokenErrorReason
 	notBefore?: string
 	expiredAt?: string
 }

@@ -34,7 +34,7 @@ describe('getKeyAndVerify()', () => {
 				code: 'INVALID_TOKEN',
 				statusCode: 401,
 				message: 'Token invalid',
-				details: { reason: expect.any(String) }
+				details: { reason: 'invalid-signature' }
 			})
 		)
 	})

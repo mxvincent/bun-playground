@@ -60,7 +60,7 @@ describe.each(
 				code: 'INVALID_TOKEN',
 				statusCode: 401,
 				message: 'Token invalid',
-				details: { reason: expect.any(String) }
+				details: { reason: 'invalid-audience' }
 			})
 		)
 	})
@@ -72,7 +72,7 @@ describe.each(
 				code: 'INVALID_TOKEN',
 				statusCode: 401,
 				message: 'Token invalid',
-				details: { reason: expect.any(String) }
+				details: { reason: 'invalid-issuer' }
 			})
 		)
 	})
@@ -97,6 +97,40 @@ describe.each(
 				statusCode: 401,
 				message: 'This token cannot yet be used',
 				details: { notBefore: expect.any(String) }
+			})
+		)
+	})
+})
+
+describe('verifyToken() reason', () => {
+	const verify = (token: string, key = SECRET) => verifyToken(token, key, { algorithms: [JWTAlgorithm.HS256] })
+
+	test('is malformed for a value that is not a token', async () => {
+		await expect(verify('not-a-token')).rejects.toThrow(
+			expect.objectContaining({
+				constructor: AuthTokenError,
+				message: 'Token invalid',
+				details: { reason: 'malformed' }
+			})
+		)
+	})
+
+	test('is invalid-signature for a token signed with another key', async () => {
+		await expect(verify(sign({}, SECRET), 'another-secret')).rejects.toThrow(
+			expect.objectContaining({
+				constructor: AuthTokenError,
+				message: 'Token invalid',
+				details: { reason: 'invalid-signature' }
+			})
+		)
+	})
+
+	test('is invalid-algorithm for a token signed with an algorithm that is not allowed', async () => {
+		await expect(verify(sign({}, SECRET, { algorithm: JWTAlgorithm.HS512 }))).rejects.toThrow(
+			expect.objectContaining({
+				constructor: AuthTokenError,
+				message: 'Token invalid',
+				details: { reason: 'invalid-algorithm' }
 			})
 		)
 	})
