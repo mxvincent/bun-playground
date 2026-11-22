@@ -200,7 +200,15 @@ const readEnvironment = (name: string): string => {
 
 if (import.meta.main) {
 	const root = process.cwd()
-	const range = `${readEnvironment('BASE_SHA')}...${readEnvironment('HEAD_SHA')}`
+	const headSha = readEnvironment('HEAD_SHA')
+	// The event's `base.sha` can predate a stack push, so diff from the current tip of the base branch.
+	const baseBranch = `origin/${readEnvironment('BASE_REF')}`
+	const [mergeBase] = git('merge-base', baseBranch, headSha)
+	if (mergeBase === undefined) {
+		console.log(`::error::No merge base between ${baseBranch} and ${headSha}.`)
+		process.exit(1)
+	}
+	const range = `${mergeBase}...${headSha}`
 	const changesetFiles = git('diff', '--name-only', '--diff-filter=AM', range, '--', '.changeset/*.md').filter(
 		(file) => file !== '.changeset/README.md'
 	)
