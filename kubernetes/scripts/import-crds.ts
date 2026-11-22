@@ -22,7 +22,7 @@ await importCrds({
 		'cert-manager.io': [
 			'https://github.com/cert-manager/cert-manager/releases/download/v1.21.3/cert-manager.crds.yaml'
 		],
-		'metallb.io': ['https://raw.githubusercontent.com/metallb/metallb/v0.16.1/config/manifests/metallb-native.yaml'],
+		'metallb.io': ['https://raw.githubusercontent.com/metallb/metallb/v0.16.2/config/manifests/metallb-native.yaml'],
 		'postgresql.cnpg.io': [
 			'https://github.com/cloudnative-pg/cloudnative-pg/releases/download/v1.30.1/cnpg-1.30.1.yaml'
 		],
