@@ -1,13 +1,14 @@
 import { existsSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { memoize } from 'es-toolkit'
+import { KubernetesRepositoryRootNotFoundError } from '../errors/repository-root-not-found'
 
 /**
  * Get applications directory path
  */
 export const getRepositoryRootDirectory = memoize((path: string): string => {
 	if (path === '/') {
-		throw new Error('Failed to find repository root dir')
+		throw new KubernetesRepositoryRootNotFoundError()
 	}
 	if (existsSync(`${path}/bun.lock`)) {
 		return path

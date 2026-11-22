@@ -30,6 +30,7 @@
 		"tsc:check:watch": "tsc --noEmit --watch --skipLibCheck"
 	},
 	"dependencies": {
+		"@package/errors": "workspace:*",
 		"cdk8s": "^2.70.126",
 		"cdk8s-cli": "^2.207.87",
 		"cdk8s-plus-37": "^2.0.13",

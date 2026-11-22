@@ -5,6 +5,7 @@ import {
 	ExternalSecretSpecTargetCreationPolicy,
 	ExternalSecretSpecTargetTemplateEngineVersion
 } from '../../crds/external-secrets.io'
+import { KubernetesConfigAlreadyGeneratedError } from '../../errors/config-already-generated'
 import type { Context } from '../../helpers/context'
 import { EXTERNAL_SECRET_REFRESH_INTERVAL, ExternalSecretRef } from '../../plugins/external-secret'
 
@@ -84,7 +85,7 @@ export class WorkloadConfig {
 
 	generate(): ISecret {
 		if (this.#secret) {
-			throw new Error('ConfigFile.createManifests() should be called exactly once.')
+			throw new KubernetesConfigAlreadyGeneratedError()
 		}
 
 		const metadata = {

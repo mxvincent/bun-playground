@@ -5,6 +5,7 @@ import { Daemon } from '../components/workload/daemon'
 import { WebService } from '../components/workload/web-service'
 import type { WorkloadComponent } from '../components/workload-component'
 import { ExternalSecretSpecSecretStoreRefKind } from '../crds/external-secrets.io'
+import { KubernetesDuplicateComponentNameError } from '../errors/duplicate-component-name'
 import { DEFAULT_SECRET_STORE, ExternalSecret } from '../plugins/external-secret'
 import { pinRevision } from '../testing'
 import { defineNamespace, type WorkloadNamespaceOptions } from './namespace'
@@ -131,7 +132,7 @@ describe('defineNamespace', () => {
 	})
 
 	test('rejects duplicate component names', () => {
-		expect(() =>
+		const call = () =>
 			defineNamespace({
 				name: 'fixture',
 				application: 'fixture',
@@ -141,7 +142,14 @@ describe('defineNamespace', () => {
 					new Daemon({ name: 'server', command: ['daemon'] })
 				]
 			})
-		).toThrow('Duplicate component name in namespace fixture: server')
+		expect(call).toThrow(
+			expect.objectContaining({
+				constructor: KubernetesDuplicateComponentNameError,
+				message: 'Duplicate component name in namespace fixture: server',
+				namespace: 'fixture',
+				component: 'server'
+			})
+		)
 	})
 })
 
