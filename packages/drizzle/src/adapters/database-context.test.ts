@@ -103,9 +103,12 @@ describe('DrizzleDatabaseContext', () => {
 		await context.startTransaction()
 		await insert('lost')
 		await client.query(`insert into ${TABLE} (value) values (null)`).catch(() => undefined)
-		const commit = context.commitTransaction()
-		await expect(commit).rejects.toThrow(DrizzleTransactionRolledBackError)
-		await expect(commit).rejects.toThrow('Transaction rolled back: a statement of the transaction failed.')
+		await expect(context.commitTransaction()).rejects.toThrow(
+			expect.objectContaining({
+				constructor: DrizzleTransactionRolledBackError,
+				message: 'Transaction rolled back: a statement of the transaction failed.'
+			})
+		)
 		expect([await values(), context.isTransactionActive]).toEqual([[], false])
 	})
 

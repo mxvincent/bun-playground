@@ -224,8 +224,13 @@ it('rejects a cursor that cannot be decoded', async () => {
 		query: asQuery(database.database.select().from(authors)),
 		parameters: { sorts: [], pagination: Pagination.take(1, 'not-a-cursor') }
 	})
-	await expect(page).rejects.toThrow(DrizzleInvalidCursorError)
-	await expect(page).rejects.toThrow('Invalid cursor format')
+	await expect(page).rejects.toThrow(
+		expect.objectContaining({
+			constructor: DrizzleInvalidCursorError,
+			message: 'Invalid cursor format',
+			statusCode: 400
+		})
+	)
 })
 
 describe('regular expression filters', () => {
