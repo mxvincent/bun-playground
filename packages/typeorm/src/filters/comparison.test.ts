@@ -1,7 +1,7 @@
 import { describe, expect, it, spyOn } from 'bun:test'
 import { ComparisonFilter } from '@package/query-params'
 import { generateComparisonString } from './comparison'
-import { QueryUtils } from './generateParameterName'
+import { QueryUtils } from './generate-parameter-name'
 
 spyOn(QueryUtils, 'generateParameterName').mockImplementation(() => 'parameter')
 

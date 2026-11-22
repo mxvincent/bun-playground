@@ -6,7 +6,7 @@ export * from 'typeorm'
 export * from './adapters/database-context'
 export * from './adapters/logger'
 
-export { applyFilters } from './filters/applyFilters'
+export { applyFilters } from './filters/apply-filters'
 
 /**
  * Filter
@@ -25,7 +25,7 @@ export {
 	getPrimaryKeyColumns,
 	setPrimaryKeyColumns
 } from './helpers/primary-key'
-export { getDefaultSort, setDefaultSort } from './helpers/sortPath'
+export { getDefaultSort, setDefaultSort } from './helpers/sort-path'
 export { transformers } from './helpers/transformers'
 
 /**
@@ -37,6 +37,6 @@ export * from './pagination'
  * Sort
  */
 export * from './sort'
-export * from './types/FindResourceOptions'
-export * from './types/PostgresConfig'
-export * from './types/PostgresErrorCode'
+export * from './types/find-resource-options'
+export * from './types/postgres-config'
+export * from './types/postgres-error-code'

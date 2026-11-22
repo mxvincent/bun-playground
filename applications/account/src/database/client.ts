@@ -13,6 +13,7 @@ const pool = new Pool({
 	database: config.database.database,
 	user: config.database.username,
 	password: config.database.password,
+	// biome-ignore lint/style/useNamingConvention: option name defined by node-postgres
 	statement_timeout: 60000
 })
 

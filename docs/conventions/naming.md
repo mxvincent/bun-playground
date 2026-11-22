@@ -37,6 +37,26 @@ paths:
 | Module-level constant with a fixed value | `SCREAMING_SNAKE_CASE` | `TEST_DATABASE`, `SECRET` |
 | Type parameter | `PascalCase`, descriptive | `Schema`, `Resource`, `T` for a single trivial parameter |
 
+Biome checks the case of this table (`useNamingConvention`) and the case of file names
+(`useFilenamingConvention`). It cannot tell a module-level literal constant from a computed one,
+a predicate from another boolean, or a spelled-out word from an abbreviation: those rules stay with
+the reviewer.
+
+- An object property MAY be `SCREAMING_SNAKE_CASE` when its key is an environment variable or a
+  value of a closed set: `{ TELEMETRY_LOG_LEVEL: 'info' }`, `{ HS256: HMAC }`, `{ ASC: 'asc' }`.
+- A name defined by an external format keeps that format's case: JSON Schema keywords (`$id`),
+  HTTP headers (`Authorization`), fields and parameters of a third-party API (`routing_key`,
+  `workflow_id`, `statement_timeout`), the route generics of Fastify (`Body`, `Querystring`). The
+  exception MUST be declared where it applies, and nowhere wider:
+  - for a module that mirrors an external format, as an `overrides` entry of `biome.json` limited to
+    that module (`packages/rabbitmq/src/management/**`);
+  - for a single property, as an inline suppression with its reason:
+    ```ts
+    // biome-ignore lint/style/useNamingConvention: option name defined by node-postgres
+    statement_timeout: 60000
+    ```
+- The `Schema` builder of `@package/json-schema` exposes `PascalCase` members (`Schema.UUID`,
+  `Schema.Resource`), like TypeBox's `Type` it wraps: it is a namespace of schema constructors.
 - A module-level `const` holding a *computed* or *configured* value stays `camelCase`
   (`logger`, `config`, `organizationRepository`). `SCREAMING_SNAKE_CASE` is for literal constants
   only.
