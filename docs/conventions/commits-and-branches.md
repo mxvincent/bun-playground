@@ -1,9 +1,9 @@
 # Commits and branches
 
 The unit of work is a **GitHub issue**. One issue produces one branch, one pull request and, once
-squash-merged, one commit on `main`. When a subject is too large for that, a parent issue documents
-it, and it is split into **sub-issues** whose branches form a **stack** when they depend on each
-other.
+squash-merged, one commit on `main`. When a subject is too large for that, a **milestone** documents
+it, the problem and the design, and groups its issues, whose branches form a **stack** when they
+depend on each other.
 
 The tooling is `git`, the GitHub CLI and its `gh stack` extension. Nothing else, no custom wrapper.
 
@@ -42,18 +42,28 @@ to the change took place in another language.
   ✅ `` `isSort` returns false for `Sort` instances ``, `` Rename `removeUndefined` to `stripUndefinedValues` ``
   ❌ `isSort returns false for Sort instances`, `query-params: isSort returns false`, `fix sort guard`
 - The issue MUST carry its labels. See [Labels](#labels).
-- A subject that cannot fit in one pull request MUST be split with sub-issues, before any code is
-  written:
-  - The **parent issue** documents the subject as a whole: the problem, the goal, the decisions. It
-    stays the reference for the topic and carries no branch of its own.
-  - Each **sub-issue** is one step that fits in one pull request, with its own branch and pull
-    request, and follows every rule above. Steps that depend on each other form a stack, in the
-    order of the sub-issues. See [Stacks](#stacks).
-  - The parent issue MUST be closed by hand once its last sub-issue is done: no commit references it.
+- An issue SHOULD be solved completely by one pull request: a problem handled in one place keeps
+  the review, fix and merge cycle short.
+- A subject that cannot fit in one pull request MUST be grouped in a **milestone**, before any code
+  is written:
+  - The milestone description documents the subject as a whole: the problem, the design, the
+    decisions, and the order of its issues, with the ones that form a stack. It stays the reference
+    for the topic.
+  - Each issue of the milestone is one step that fits in one pull request, and follows every rule
+    above. Steps that depend on each other form a stack, in the order the milestone gives. See
+    [Stacks](#stacks).
+  - The milestone MUST be closed by hand once its last issue is closed.
   ```bash
-  gh issue create --assignee @me --label pkg/core --title "..." --body "..."           # parent: #42
-  gh issue create --assignee @me --label pkg/core --parent 42 --title "..." --body "..." # step
-  gh issue edit 42 --add-sub-issue 43,44     # attach existing issues as steps
+  gh api repos/{owner}/{repo}/milestones -f title="..." -f description="..."
+  gh issue create --assignee @me --label pkg/core --milestone "<title>" --title "..." --body "..."
+  gh issue edit 43 --milestone "<title>"     # add an existing issue
+  gh api -X PATCH repos/{owner}/{repo}/milestones/<n> -f state=closed
+  ```
+- Sub-issues MAY split an issue that turns out to need more than one pull request, but SHOULD be
+  avoided: prefer sibling issues in the milestone. The split issue then carries no branch of its
+  own, and MUST be closed by hand once its last sub-issue is done.
+  ```bash
+  gh issue create --assignee @me --label pkg/core --parent 42 --title "..." --body "..."
   ```
 
 ## Labels
@@ -277,8 +287,8 @@ Left is the bottom and merges first; right is the top.
 
 - Use a stack when a feature is too large for one reviewable pull request. Splitting is the norm for
   anything crossing more than one workspace.
-- Do NOT build everything on one branch and split it afterwards. Decompose into sub-issues of a
-  parent issue first, then create the layers as you go: one layer per sub-issue.
+- Do NOT build everything on one branch and split it afterwards. Decompose the subject into the
+  issues of a milestone first, then create the layers as you go: one layer per issue.
 - A layer MUST be one dependent concern, and each layer MUST leave the repository green — type-check
   and tests pass at every level. Foundational work goes at the bottom: domain types, then
   persistence, then the endpoint that exposes it.
