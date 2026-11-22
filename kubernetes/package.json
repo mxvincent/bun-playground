@@ -9,7 +9,7 @@
 		"tsc:check": "tsc --noEmit --skipLibCheck",
 		"tsc:check:watch": "tsc --noEmit --watch --skipLibCheck",
 		"lint:check": "biome lint .",
-		"import-api-resources": "kubectl get crds -o yaml > crd.yaml;bunx cdk8s import --output imports;rm crd.yaml",
+		"import-api-resources": "bun scripts/import-crds.ts",
 		"generate-manifests": "cdk8s synth --output manifests --check-upgrade=false"
 	},
 	"devDependencies": {
