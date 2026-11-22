@@ -5,7 +5,7 @@ readability, then conventions. Each pass looks for what CI cannot see. Formattin
 order, types and the title and labels of the pull request are checked by tools (see
 [README.md](./README.md)) and MUST NOT be raised in a review.
 
-## Process
+## Passes
 
 ### 1. Structure and organization
 
@@ -65,6 +65,54 @@ Check the rules of [`docs/conventions/`](./README.md) that no tool enforces, in 
 govern the changed files. A violation of a MUST rule is a blocker; a deviation from a SHOULD rule
 MUST be justified in the pull request.
 
+## Rounds
+
+A pull request, or each pull request of a stack, goes through the same rounds. Agents run them; the
+author of the pull request drives them and merges.
+
+1. **Review.** Two reviewers read the pull request in parallel, each through every pass. They work
+   independently: neither sees the findings of the other.
+2. **Verification.** The findings of both reviewers are merged, and a finding raised twice is kept
+   once. Each finding then goes to three skeptic agents, who try to refute it against the code: they
+   look for the input or state that triggers it and check that the stated result is the actual one.
+   A finding is kept when at least two of the three skeptics confirm it. A skeptic MUST NOT add a
+   finding of their own.
+3. **Publication.** The kept findings are posted on GitHub as one review per pull request, one
+   inline comment per finding, in the [format below](#comments). GitHub does not let the author of a
+   pull request approve it or request changes on it, so the review is posted as a comment
+   (`event: COMMENT`); the `blocker:` prefix carries the severity.
+4. **Fix.** The author answers every comment: a fix, or the reason to decline it. All the fixes of
+   the round go in one commit on the branch (see
+   [commits-and-branches.md](./commits-and-branches.md#commits-on-a-branch)), and each reply names
+   the commit that fixes it. In a stack, a fix is committed on the layer it belongs to, and the
+   layers above are rebased.
+5. **Re-review.** A reviewer reads only the changes since the review — `git diff <reviewed>..HEAD`
+   on each branch — and checks that each fix resolves its finding and introduces no new one through
+   the passes. Resolved threads are closed. A new blocker starts another round from step 2.
+6. **Merge.** Once no thread is open, the stack is rebased, pushed, its checks are green, and it is
+   merged (see [commits-and-branches.md](./commits-and-branches.md#merging)).
+
+### Run by the local agent
+
+When a pull request or a stack is ready, the local Claude Code agent MAY run every round, from the
+review to the merge, without handing back between steps. It runs the steps in parallel wherever they
+do not depend on each other:
+
+- **Review**: the two reviewers of every pull request of the stack start at once.
+- **Verification** of a pull request starts as soon as its two reviews end, without waiting for the
+  other pull requests. The three skeptics of every finding run at once.
+- **Publication** of a pull request follows its verification.
+- **Fix**: one agent per pull request, each in its own worktree, prepares the fixes of its layer at
+  the same time. Their commits are then applied bottom to top, and the layers above are rebased
+  after each one.
+- **Re-review**: every layer at once.
+- **Merge**: the whole stack at once, with `gh stack merge`.
+
+The agent stops and hands back to the author when a finding needs a product decision, when a
+conflict or a red check resists a fix, or when a third round still raises a blocker. The release
+pull request is out of this flow: the repository admin merges it (see
+[versioning.md](./versioning.md#release-pipeline)).
+
 ## Comments
 
 - Comments MUST be in English (see [commits-and-branches.md](./commits-and-branches.md#language)).
@@ -76,4 +124,4 @@ MUST be justified in the pull request.
   - `suggestion:` an improvement or a SHOULD rule. The author decides.
   - `question:` the reviewer needs an answer before judging.
 - The author answers every comment, with a fix or a reason. The reviewer resolves the thread once
-  satisfied.
+  satisfied (see [Rounds](#rounds)).

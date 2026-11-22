@@ -14,7 +14,7 @@ document wins and the code is aligned when it is next touched.
 | [testing.md](./testing.md) | Test placement, structure, helpers, database-backed tests |
 | [commits-and-branches.md](./commits-and-branches.md) | Language on GitHub, issues, branches, commits on a branch, squash merge, commit messages, pull requests, stacked pull requests |
 | [versioning.md](./versioning.md) | Public surface, semver policy, changesets, release pipeline, Docker image versions |
-| [code-review.md](./code-review.md) | Review passes (structure, bugs, performance, readability, conventions), review comments and their severity |
+| [code-review.md](./code-review.md) | Review passes (structure, bugs, performance, readability, conventions), review rounds (two reviewers, three skeptics, fix, re-review, merge) and how the local agent runs them in parallel, review comments and their severity |
 
 ## Reading the rules
 
