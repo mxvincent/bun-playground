@@ -100,7 +100,9 @@ author of the pull request drives them and merges.
 ### Run by the local agent
 
 When a pull request or a stack is ready, the local Claude Code agent MAY run every round, from the
-review to the merge, without handing back between steps. It runs the steps in parallel wherever they
+review to the merge, without handing back between steps. The `review-stack` workflow
+(`.claude/workflows/review-stack.js`) implements this flow; it takes the pull requests bottom to top
+(`prs`), or the checked out stack, and stops before the merge with `merge: false`. It runs the steps in parallel wherever they
 do not depend on each other:
 
 - **Review**: the two reviewers of every pull request of the stack start at once.
