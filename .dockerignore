@@ -1,13 +1,34 @@
-.changeset
+# Version control and tooling
+.git
 .github
-git
-.gitignore
-*.md
-docs
-kubernetes
-scripts
-node_modules
-dist
-dockerfile
-out
+.changeset
+.claude
+.idea
+.turbo
+**/.DS_Store
 
+# Installed and generated files: dependencies are installed in the image
+**/node_modules
+**/dist
+**/out
+**/manifests
+worktrees
+.worktrees
+tmp
+
+# Local environment and config files: they may hold credentials, the config is mounted at runtime
+**/.env
+**/*.env
+applications/*/config.json
+applications/*/config.*.json
+
+# Not needed at runtime
+**/*.md
+docs
+scripts
+dockerfile
+.dockerignore
+
+# Only the manifest of the kubernetes workspace is needed, to install dependencies with the lockfile
+kubernetes/*
+!kubernetes/package.json
