@@ -4,6 +4,7 @@ import { ComparisonFilter, Pagination, Sort } from '@package/query-params'
 import { useDatabaseContext, useDatabaseTransaction } from '#test-helpers/database'
 import { type AuthorRecord, type DateContainerRecord, factories } from '#test-helpers/factories'
 import { authors, dateContainers } from '#test-helpers/schema'
+import { DrizzleInvalidCursorError } from './errors/invalid-cursor'
 import { DrizzleCursorPager } from './pagination'
 
 // Drizzle's PgSelectBase removes `.where()` from the return type after it's called,
@@ -216,6 +217,14 @@ it('does not modify the given sorts', async () => {
 		parameters: { sorts, pagination: Pagination.take(1) }
 	})
 	expect(sorts).toStrictEqual([Sort.desc('createdAt')])
+})
+
+it('rejects a cursor that cannot be decoded', async () => {
+	const page = createAuthorPager().getPage({
+		query: asQuery(database.database.select().from(authors)),
+		parameters: { sorts: [], pagination: Pagination.take(1, 'not-a-cursor') }
+	})
+	await expect(page).rejects.toThrow(DrizzleInvalidCursorError)
 })
 
 describe('regular expression filters', () => {

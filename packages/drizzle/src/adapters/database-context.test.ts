@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, mock, spyOn } fro
 import { logger } from '@package/telemetry'
 import pg from 'pg'
 import { getConnectionConfig, TEST_DATABASE } from '#test-helpers/database'
+import { DrizzleTransactionRolledBackError } from '../errors/transaction-rolled-back'
 import { DrizzleDatabaseContext } from './database-context'
 
 // Own client and table: the transactions below commit for real
@@ -102,7 +103,7 @@ describe('DrizzleDatabaseContext', () => {
 		await context.startTransaction()
 		await insert('lost')
 		await client.query(`insert into ${TABLE} (value) values (null)`).catch(() => undefined)
-		await expect(context.commitTransaction()).rejects.toThrow('Transaction rolled back')
+		await expect(context.commitTransaction()).rejects.toThrow(DrizzleTransactionRolledBackError)
 		expect([await values(), context.isTransactionActive]).toEqual([[], false])
 	})
 

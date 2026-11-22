@@ -10,6 +10,7 @@ import { logger } from '@package/telemetry'
 import { and, or, type SQL, sql } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core'
+import { DrizzleInvalidCursorError } from './errors/invalid-cursor'
 import { transformFilters } from './query-params'
 
 type CursorValues = Record<string, string | null>
@@ -175,7 +176,7 @@ export class DrizzleCursorPager<
 			return values
 		} catch (error) {
 			logger.error({ error }, 'Failed to decode cursor')
-			throw new Error('Invalid cursor format')
+			throw new DrizzleInvalidCursorError({ cause: error })
 		}
 	}
 }

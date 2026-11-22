@@ -1,4 +1,7 @@
 export * from './adapters/database-context'
+export * from './errors/invalid-cursor'
+export * from './errors/transaction-rolled-back'
+export * from './errors/unsupported-filter'
 export * from './pagination'
 export * from './query-params'
 export * from './schema'

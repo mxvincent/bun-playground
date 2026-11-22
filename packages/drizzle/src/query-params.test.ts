@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import { ComparisonFilter, type Filter, LogicalFilter, Pagination, Sort } from '@package/query-params'
 import { integer, PgDialect, pgTable, text, uuid } from 'drizzle-orm/pg-core'
+import { DrizzleUnsupportedFilterError } from './errors/unsupported-filter'
 import type { ColumnMapping } from './query-params'
 import {
 	isMappedColumn,
@@ -62,6 +63,13 @@ describe('validateSorts()', () => {
 const toSql = (filter: Filter<TestKey>) => new PgDialect().sqlToQuery(transformFilter(filter, columnMapping))
 
 describe('transformFilter()', () => {
+	it('rejects a comparison operator without SQL translation', () => {
+		const filter = Object.assign(ComparisonFilter.equal<TestKey>('name', 'v'), { operator: 'unsupported' })
+		expect(() => transformFilter(filter as ComparisonFilter<TestKey>, columnMapping)).toThrow(
+			DrizzleUnsupportedFilterError
+		)
+	})
+
 	it.each<[ComparisonFilter<TestKey>, string]>([
 		[ComparisonFilter.equal('name', 'v'), '"test"."name" = $1'],
 		[ComparisonFilter.notEqual('name', 'v'), '"test"."name" <> $1'],

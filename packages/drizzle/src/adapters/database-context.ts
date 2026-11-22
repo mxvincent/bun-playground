@@ -2,6 +2,7 @@ import type { DatabaseContext } from '@package/database'
 import { logger } from '@package/telemetry'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import type pg from 'pg'
+import { DrizzleTransactionRolledBackError } from '../errors/transaction-rolled-back'
 
 export class DrizzleDatabaseContext implements DatabaseContext {
 	readonly client: pg.Client
@@ -63,7 +64,7 @@ export class DrizzleDatabaseContext implements DatabaseContext {
 			const result = await this.client.query('COMMIT')
 			// PostgreSQL answers COMMIT with ROLLBACK, and no error, when a statement of the transaction failed
 			if (result.command === 'ROLLBACK') {
-				throw new Error('Transaction rolled back: a statement of the transaction failed.')
+				throw new DrizzleTransactionRolledBackError()
 			}
 			return
 		}
