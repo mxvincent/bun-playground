@@ -65,9 +65,9 @@ const toSql = (filter: Filter<TestKey>) => new PgDialect().sqlToQuery(transformF
 describe('transformFilter()', () => {
 	it('rejects a comparison operator without SQL translation', () => {
 		const filter = Object.assign(ComparisonFilter.equal<TestKey>('name', 'v'), { operator: 'unsupported' })
-		expect(() => transformFilter(filter as ComparisonFilter<TestKey>, columnMapping)).toThrow(
-			DrizzleUnsupportedFilterError
-		)
+		const call = () => transformFilter(filter as ComparisonFilter<TestKey>, columnMapping)
+		expect(call).toThrow(DrizzleUnsupportedFilterError)
+		expect(call).toThrow('Filter is not configured')
 	})
 
 	it.each<[ComparisonFilter<TestKey>, string]>([

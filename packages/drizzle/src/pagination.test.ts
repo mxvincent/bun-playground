@@ -225,6 +225,7 @@ it('rejects a cursor that cannot be decoded', async () => {
 		parameters: { sorts: [], pagination: Pagination.take(1, 'not-a-cursor') }
 	})
 	await expect(page).rejects.toThrow(DrizzleInvalidCursorError)
+	await expect(page).rejects.toThrow('Invalid cursor format')
 })
 
 describe('regular expression filters', () => {
