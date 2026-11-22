@@ -4,7 +4,7 @@ export const meta = {
 	whenToUse:
 		'Two runs. Plan: { need: string } creates the issues and returns the plan for the author to validate. Deliver: { stacks: number[][] (issue numbers, bottom to top, one array per stack or independent pull request), merge?: boolean (default true) }',
 	phases: [
-		{ title: 'Plan', detail: 'search the issues, create the issue or the parent issue and its sub-issues, group them into stacks' },
+		{ title: 'Plan', detail: 'search the issues, create the issue, or a milestone and its issues, group them into stacks' },
 		{ title: 'Implement', detail: 'one agent per layer, bottom to top; independent stacks in parallel' },
 		{ title: 'Submit', detail: 'open the pull requests of each stack, with assignee and labels' },
 		{ title: 'Review', detail: 'review-stack on each stack, up to the merge' },
@@ -14,7 +14,12 @@ export const meta = {
 const PLAN = {
 	type: 'object',
 	properties: {
-		parentIssue: { type: ['integer', 'null'], description: 'The parent issue when the need takes several pull requests' },
+		milestone: {
+			type: ['object', 'null'],
+			description: 'The milestone when the need takes several pull requests',
+			properties: { number: { type: 'integer' }, title: { type: 'string' }, url: { type: 'string' } },
+			required: ['number', 'title', 'url'],
+		},
 		stacks: {
 			type: 'array',
 			description:
@@ -44,7 +49,7 @@ const PLAN = {
 			description: 'Product decisions the author must take before the implementation',
 		},
 	},
-	required: ['parentIssue', 'stacks', 'questions'],
+	required: ['milestone', 'stacks', 'questions'],
 }
 const IMPLEMENTED = {
 	type: 'object',
@@ -73,10 +78,12 @@ if (!args?.stacks) {
 		`Turn this need into GitHub issues, following the "Issues" and "Labels" sections of \
 docs/conventions/commits-and-branches.md:\n\n${args.need}\n
 Search the existing issues first (\`gh issue list --state all --search ...\`) and reuse an open issue that documents the need. \
-When the need fits one pull request, use one issue. Otherwise create a parent issue that documents the whole need, and one \
-sub-issue per pull request (\`gh issue create --parent <n>\`), each sized for one pull request. Every issue is in English, assigned \
-to \`@me\`, with its kind and \`pkg/\` labels. Then group the sub-issues into stacks: layers that depend on each other or touch the \
-same files form one stack, foundational work at the bottom; an independent pull request is a stack of its own. Do not write code \
+When the need fits one pull request, use one issue. Otherwise create a milestone whose description documents the whole need: \
+the problem, the design and the decisions. Then create its issues (\`gh issue create --milestone <title>\`), sibling issues, each \
+solved completely by one pull request; avoid sub-issues. Every issue is in English, assigned to \`@me\`, with its kind and \
+\`pkg/\` labels. Then group the issues into stacks: layers that depend on each other or touch the same \
+files form one stack, foundational work at the bottom; an independent pull request is a stack of its own. Write this order at the \
+end of the milestone description. Do not write code \
 and do not create branches. List in questions the product decisions the author must take; do not take them yourself.`,
 		{ phase: 'Plan', label: 'plan', schema: PLAN },
 	)
