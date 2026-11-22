@@ -24,7 +24,7 @@ export class TimeoutError extends BaseError {
  * @param taskName Optional task name used error thrown when timeout
  * @returns
  */
-export function withTimeout<T>(callback: () => Promise<T> | T, timeoutInMs: number, taskName?: string): Promise<T> {
+export const withTimeout = <T>(callback: () => Promise<T> | T, timeoutInMs: number, taskName?: string): Promise<T> => {
 	return new Promise((resolve, reject) => {
 		// Run callback
 		const promiseOrValue = callback()

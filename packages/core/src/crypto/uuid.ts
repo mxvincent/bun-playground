@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 import { v7 } from 'uuid'
 
 export const generateUUID = (version: 7 | 4 = 7) => {

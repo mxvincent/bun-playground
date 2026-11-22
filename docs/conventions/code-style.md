@@ -61,6 +61,11 @@ Further rules:
 - `any` MUST NOT be used. Use `unknown` and narrow. The only exception is a documented workaround
   for a third-party type, suppressed inline with a reason.
 - A non-null assertion (`!`) MUST NOT be used. Narrow, provide a default, or throw a typed error.
+  For an indexed access the loop guarantees, iterate instead (`for (const [index, item] of
+  items.entries())`, `buffer.readUInt8(index)`, `text.charAt(index)`).
+- Biome reports both as errors (`noExplicitAny`, `noNonNullAssertion`), along with a type-only import
+  or export written without `type` (`useImportType`, `useExportType`) and a Node.js builtin imported
+  without the `node:` prefix (`useNodejsImportProtocol`).
 - A type assertion (`as`) SHOULD be avoided. Prefer `satisfies` to check a literal against a type
   while keeping its narrow inferred shape:
   ```ts
@@ -98,6 +103,18 @@ Further rules:
   ```ts
   export const isString = (value: unknown): value is string => typeof value === 'string'
   ```
+  The Biome plugin `biome-plugins/no-exported-function-declaration.grit` reports an exported
+  `function` declaration. An overloaded function is the only exception, as an arrow function cannot
+  declare overloads: suppress the diagnostic on its implementation.
+  ```ts
+  export function stringToDate(value: string): Date
+  export function stringToDate(value?: string | null): Date | null | undefined
+  // biome-ignore lint/plugin: overloads need a function declaration
+  export function stringToDate(value?: string | null): Date | null | undefined {
+  ```
+- A `const` is not hoisted. Two modules that import each other and call each other while loading —
+  a static class member built by a factory of the other module — fail with `Cannot access before
+  initialization`. Break the cycle: declare the factory in the same module, before the class.
 - An exported function MUST declare its return type explicitly. Inference is fine for local
   functions.
 - A `class` is justified in three cases and SHOULD NOT be used otherwise:

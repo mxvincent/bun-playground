@@ -13,7 +13,7 @@ export type PostgresConnectionUriOptions = {
 	database?: string
 }
 
-export function getPostgresConnectionUri(options: PostgresConnectionUriOptions) {
+export const getPostgresConnectionUri = (options: PostgresConnectionUriOptions) => {
 	const credentials = `${encodeURIComponent(options.username)}:${encodeURIComponent(options.password)}`
 	const host = `${options.host ?? 'localhost'}:${options.port ?? 5432}`
 	const database = options.database ?? options.username

@@ -1,5 +1,5 @@
+import { randomUUID } from 'node:crypto'
 import { hydrate } from '@package/core'
-import { randomUUID } from 'crypto'
 import { range } from 'es-toolkit'
 import { Author, DateContainer, type Gender } from './entities'
 

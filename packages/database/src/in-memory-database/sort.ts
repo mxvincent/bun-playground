@@ -6,7 +6,7 @@ import { type Sort, SortDirection } from '@package/query-params'
  * ASC  → NULLS LAST  (null treated as largest)
  * DESC → NULLS FIRST (null treated as largest)
  */
-export function sortArrayWith<T extends ObjectLiteral>(array: T[], sorts: Sort<KeyOf<T>>[]) {
+export const sortArrayWith = <T extends ObjectLiteral>(array: T[], sorts: Sort<KeyOf<T>>[]) => {
 	return [...array].sort((a, b) => {
 		for (const { direction, path } of sorts) {
 			const aVal = a[path]

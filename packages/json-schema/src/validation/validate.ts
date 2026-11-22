@@ -12,10 +12,10 @@ const applyDefaultOptions = (options?: Partial<ValidationOptions>): ValidationOp
 	coerce: options?.coerce ?? false
 })
 
-export function createValidationFunction<T extends TSchema>(
+export const createValidationFunction = <T extends TSchema>(
 	schema: T,
 	options: ValidationOptions
-): (payload: unknown) => Static<T> {
+): ((payload: unknown) => Static<T>) => {
 	const validate = schemaCompiler.compile<Static<T>>(schema)
 	return (payload: unknown): Static<T> => {
 		const result = options.coerce ? Value.Convert(schema, payload) : payload

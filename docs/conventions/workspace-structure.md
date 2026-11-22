@@ -58,6 +58,10 @@ applications/*  →  domains/*  →  packages/*
   (`@package/drizzle` → `@package/query-params` is fine).
 - An application MUST NOT import from another application. Extract the shared part into a package or
   a domain.
+- Biome enforces these rules with `noRestrictedImports`, set in the `overrides` of `biome.json` for
+  each category: `packages/**` cannot import `@domain/*` or `@application/*`, `domains/**` cannot
+  import `@domain/*` or `@application/*`, and `applications/**` cannot import `@application/*`. The
+  absence of cycles between packages is not checked.
 
 ## Layout of a package
 

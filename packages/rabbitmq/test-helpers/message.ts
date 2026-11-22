@@ -17,7 +17,7 @@ export const createMeasureMessageContent = (): MeasureMessage => {
 	return structuredClone(fakeMeasureEmittedMessage)
 }
 
-export function createFakeMessage(content: Buffer): ConsumeMessage {
+export const createFakeMessage = (content: Buffer): ConsumeMessage => {
 	return {
 		fields: {
 			consumerTag: '030053c37f8a5650bbcfeed09b442aa4',

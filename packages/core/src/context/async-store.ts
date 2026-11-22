@@ -1,4 +1,4 @@
-import { AsyncLocalStorage } from 'async_hooks'
+import { AsyncLocalStorage } from 'node:async_hooks'
 
 export abstract class AsyncStore<TValues> {
 	#store = new AsyncLocalStorage<TValues>()

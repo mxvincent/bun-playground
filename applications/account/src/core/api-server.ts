@@ -15,9 +15,9 @@ import type { RawServerDefault } from 'fastify/types/utils'
 import { api } from '#/api/api'
 import { config } from '#/core/config'
 
-export async function initializeAppServer(): Promise<
+export const initializeAppServer = async (): Promise<
 	FastifyInstance<RawServerDefault, IncomingMessage, ServerResponse, Logger, TypeBoxTypeProvider>
-> {
+> => {
 	const app = fastify({
 		loggerInstance: logger,
 		disableRequestLogging: true,

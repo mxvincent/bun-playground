@@ -1,5 +1,4 @@
 import type { JsonObject } from '@package/core'
-import { arrayComparisonFilter, logicalFilter, nullComparisonFilter, valueComparisonFilter } from './factories'
 import {
 	type ArrayComparisonOperator,
 	ComparisonOperator,
@@ -11,6 +10,37 @@ import {
 export enum FilterType {
 	COMPARISON = 'comparison',
 	LOGICAL = 'logical'
+}
+
+// The factories are declared before the classes: the static members of the classes call them while
+// the classes are being defined. They only reference the classes inside the closures they return.
+
+/**
+ * Create an ArrayComparisonFilter factory
+ */
+export const arrayComparisonFilter = (operator: ArrayComparisonFilter['operator']) => {
+	return <T extends string>(path: T, values: string[]) => new ArrayComparisonFilter<T>(operator, path, values)
+}
+
+/**
+ * Create a NullComparisonFilter factory
+ */
+export const nullComparisonFilter = (operator: NullComparisonFilter['operator']) => {
+	return <T extends string>(path: T) => new NullComparisonFilter<T>(operator, path)
+}
+
+/**
+ * Create a ValueComparisonFilter factory
+ */
+export const valueComparisonFilter = (operator: ValueComparisonFilter['operator']) => {
+	return <T extends string>(path: T, value: string) => new ValueComparisonFilter<T>(operator, path, value)
+}
+
+/**
+ * Create a LogicalFilter factory
+ */
+export const logicalFilter = (operator: LogicalFilter['operator']) => {
+	return <T extends string>(filters: LogicalFilter<T>['filters']) => new LogicalFilter<T>(operator, filters)
 }
 
 export abstract class ComparisonFilter<T extends string = string> {

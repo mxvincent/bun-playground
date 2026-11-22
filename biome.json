@@ -58,7 +58,14 @@
 							}
 						]
 					}
-				}
+				},
+				"noNonNullAssertion": "error",
+				"useImportType": "error",
+				"useExportType": "error",
+				"useNodejsImportProtocol": "error"
+			},
+			"suspicious": {
+				"noExplicitAny": "error"
 			}
 		}
 	},
@@ -198,6 +205,67 @@
 					}
 				}
 			}
+		},
+		{
+			"includes": ["packages/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["@domain/*", "@application/*"],
+										"message": "A package MUST NOT depend on a domain or an application. See docs/conventions/workspace-structure.md."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["domains/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["@domain/*", "@application/*"],
+										"message": "A domain MUST NOT depend on another domain or on an application. See docs/conventions/workspace-structure.md."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["applications/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["@application/*"],
+										"message": "An application MUST NOT import from another application: extract the shared part into a package or a domain. See docs/conventions/workspace-structure.md."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
 		}
-	]
+	],
+	"plugins": ["./biome-plugins/no-exported-function-declaration.grit"]
 }
