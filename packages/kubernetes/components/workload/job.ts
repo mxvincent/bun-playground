@@ -1,0 +1,39 @@
+import type { Duration } from 'cdk8s'
+import { Job as CDKJob, RestartPolicy } from 'cdk8s-plus-33'
+import type { ComponentContext } from '../../helpers/context'
+import { ArgoCDAnnotation, ArgocdHook, ArgocdHookDeletePolicy } from '../../plugins/argocd'
+import { WorkloadComponent, type WorkloadComponentOptions, type WorkloadSettings } from '../workload-component'
+
+export interface JobOptions extends WorkloadComponentOptions {
+	hook?: ArgocdHook
+	deletePolicy?: ArgocdHookDeletePolicy
+	activeDeadline?: Duration
+}
+
+export class Job extends WorkloadComponent<JobOptions> {
+	generate(context: ComponentContext, settings: WorkloadSettings) {
+		const { options } = this
+
+		// Configure job
+		const job = new CDKJob(context.chart, context.name, {
+			metadata: context.metadata,
+			dockerRegistryAuth: settings.imagePullSecret,
+			restartPolicy: RestartPolicy.ON_FAILURE,
+			activeDeadline: options.activeDeadline,
+			podMetadata: context.metadata,
+			securityContext: this.securityContext
+		})
+		job.metadata.addAnnotation(ArgoCDAnnotation.SYNC_OPTIONS, 'Replace=true')
+		job.metadata.addAnnotation(ArgoCDAnnotation.HOOK, options.hook ?? ArgocdHook.SYNC)
+		job.metadata.addAnnotation(
+			ArgoCDAnnotation.HOOK_DELETE_POLICY,
+			options.deletePolicy ?? ArgocdHookDeletePolicy.BEFORE_CREATION
+		)
+
+		// Configure job container
+		const container = job.addContainer(this.containerProps(context, settings))
+
+		// Inject configuration
+		this.mountConfiguration(job, container, settings)
+	}
+}

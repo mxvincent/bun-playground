@@ -1,0 +1,15 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"extends": ["//"],
+	"tasks": {
+		"lint:check": {
+			"inputs": ["$TURBO_DEFAULT$", "!crds/**", "../../biome.json"]
+		},
+		"tsc:check": {
+			"inputs": ["$TURBO_DEFAULT$"]
+		},
+		"test": {
+			"inputs": ["$TURBO_DEFAULT$"]
+		}
+	}
+}

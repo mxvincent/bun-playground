@@ -1,16 +1,11 @@
-import { CONFIG_FILE_NAME } from '#/components/shared'
-import { WebService } from '#/components/workload/web-service'
-import { bun } from '#/helpers/command'
-import { PostgresConfig } from '#/helpers/config'
-import { defineNamespace } from '#/helpers/namespace'
-import { IMAGE_REGISTRY } from '#/helpers/registry'
+import { bun, CONFIG_FILE_NAME, defineNamespace, ExternalSecret, packageVersion, WebService } from '@package/kubernetes'
 import { Application } from '#/interfaces/application'
-import { ExternalSecret } from '#/plugins/external-secret'
+import { PostgresConfig } from '#/interfaces/config'
 
 export const accountService = defineNamespace({
 	name: 'account-service',
 	application: Application.ACCOUNT,
-	imageRegistry: IMAGE_REGISTRY,
+	revision: () => packageVersion('applications/account'),
 	config: (context) => {
 		const secrets = new ExternalSecret(`${context.environment}-${context.application}`)
 		return {

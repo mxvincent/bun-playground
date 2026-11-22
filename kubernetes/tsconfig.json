@@ -4,7 +4,7 @@
 		"verbatimModuleSyntax": false,
 		"baseUrl": ".",
 		"paths": {
-			"#/imports/*": ["./imports/*"],
+			"#/crds/*": ["./crds/*"],
 			"#/*": ["./src/*"]
 		}
 	}

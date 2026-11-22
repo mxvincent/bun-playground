@@ -1,0 +1,489 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`WebService exposes the service with the default ingress annotations 1`] = `
+"apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: app-server
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: app-server
+  namespace: development-fixture
+spec:
+  minReadySeconds: 0
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: app-server
+        app.kubernetes.io/instance: development
+        app.kubernetes.io/name: fixture
+        app.kubernetes.io/version: 0.0.0-snapshot
+        cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
+      name: app-server
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - command:
+            - node
+            - app-server.js
+          image: ghcr.io/mxvincent/fixture:0.0.0-snapshot
+          imagePullPolicy: Always
+          name: app-server
+          ports:
+            - containerPort: 4000
+              name: http
+          resources:
+            limits:
+              memory: 250Mi
+            requests:
+              cpu: 50m
+              memory: 100Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      restartPolicy: Always
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: Always
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      setHostnameAsFQDN: false
+      shareProcessNamespace: false
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: app-server
+  namespace: development-fixture
+spec:
+  externalIPs: []
+  ports:
+    - name: http
+      port: 4000
+      targetPort: 4000
+  selector:
+    cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-http
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  labels:
+    app.kubernetes.io/component: app-server
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: app-server
+  namespace: development-fixture
+spec:
+  rules:
+    - host: fixture.example.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: app-server
+                port:
+                  number: 4000
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - fixture.example.com
+      secretName: app-server-cert
+"
+`;
+
+exports[`WebService accepts a subset of the ingress annotations 1`] = `
+"apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: app-server
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: app-server
+  namespace: development-fixture
+spec:
+  minReadySeconds: 0
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: app-server
+        app.kubernetes.io/instance: development
+        app.kubernetes.io/name: fixture
+        app.kubernetes.io/version: 0.0.0-snapshot
+        cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
+      name: app-server
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - command:
+            - node
+            - app-server.js
+          image: ghcr.io/mxvincent/fixture:0.0.0-snapshot
+          imagePullPolicy: Always
+          name: app-server
+          ports:
+            - containerPort: 4000
+              name: http
+          resources:
+            limits:
+              memory: 250Mi
+            requests:
+              cpu: 50m
+              memory: 100Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      restartPolicy: Always
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: Always
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      setHostnameAsFQDN: false
+      shareProcessNamespace: false
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: app-server
+  namespace: development-fixture
+spec:
+  externalIPs: []
+  ports:
+    - name: http
+      port: 4000
+      targetPort: 4000
+  selector:
+    cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-http
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  labels:
+    app.kubernetes.io/component: app-server
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: app-server
+  namespace: development-fixture
+spec:
+  rules:
+    - host: fixture.example.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: app-server
+                port:
+                  number: 4000
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - fixture.example.com
+      secretName: app-server-cert
+"
+`;
+
+exports[`WebService reloads the workload when the environment secret changes without a config file 1`] = `
+"apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  labels:
+    app.kubernetes.io/component: app-server
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: app-server-env
+  namespace: development-fixture
+spec:
+  data:
+    - remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: name:fixture-secrets
+        metadataPolicy: None
+        property: API_KEY
+        version: latest
+      secretKey: API_KEY
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: scaleway
+  target:
+    creationPolicy: Owner
+    name: app-server-env
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    secret.reloader.stakater.com/reload: app-server-env
+  labels:
+    app.kubernetes.io/component: app-server
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: app-server
+  namespace: development-fixture
+spec:
+  minReadySeconds: 0
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: app-server
+        app.kubernetes.io/instance: development
+        app.kubernetes.io/name: fixture
+        app.kubernetes.io/version: 0.0.0-snapshot
+        cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
+      name: app-server
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - command:
+            - node
+            - app-server.js
+          env:
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: API_KEY
+                  name: app-server-env
+          image: ghcr.io/mxvincent/fixture:0.0.0-snapshot
+          imagePullPolicy: Always
+          name: app-server
+          ports:
+            - containerPort: 4000
+              name: http
+          resources:
+            limits:
+              memory: 250Mi
+            requests:
+              cpu: 50m
+              memory: 100Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      restartPolicy: Always
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: Always
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      setHostnameAsFQDN: false
+      shareProcessNamespace: false
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: app-server
+  namespace: development-fixture
+spec:
+  externalIPs: []
+  ports:
+    - name: http
+      port: 4000
+      targetPort: 4000
+  selector:
+    cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
+  type: ClusterIP
+"
+`;
+
+exports[`WebService pulls the image with the registry pull secret 1`] = `
+"apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  labels:
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: docker-auth
+  namespace: development-fixture
+spec:
+  data:
+    - remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: name:image-registry-auth
+        version: latest
+      secretKey: secret
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: scaleway
+  target:
+    creationPolicy: Owner
+    name: docker-auth
+    template:
+      data:
+        .dockerconfigjson: "{{ .secret | toString }}"
+      type: kubernetes.io/dockerconfigjson
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: app-server
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: app-server
+  namespace: development-fixture
+spec:
+  minReadySeconds: 0
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: app-server
+        app.kubernetes.io/instance: development
+        app.kubernetes.io/name: fixture
+        app.kubernetes.io/version: 0.0.0-snapshot
+        cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
+      name: app-server
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - command:
+            - node
+            - app-server.js
+          image: ghcr.io/mxvincent/fixture:0.0.0-snapshot
+          imagePullPolicy: Always
+          name: app-server
+          ports:
+            - containerPort: 4000
+              name: http
+          resources:
+            limits:
+              memory: 250Mi
+            requests:
+              cpu: 50m
+              memory: 100Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      imagePullSecrets:
+        - name: docker-auth
+      restartPolicy: Always
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: Always
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      setHostnameAsFQDN: false
+      shareProcessNamespace: false
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/name: fixture
+    app.kubernetes.io/version: 0.0.0-snapshot
+  name: app-server
+  namespace: development-fixture
+spec:
+  externalIPs: []
+  ports:
+    - name: http
+      port: 4000
+      targetPort: 4000
+  selector:
+    cdk8s.io/metadata.addr: development-app-server-deployment-c8119c3e
+  type: ClusterIP
+"
+`;
