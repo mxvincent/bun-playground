@@ -30,7 +30,7 @@
 		"tsc:check:watch": "tsc --noEmit --watch --skipLibCheck"
 	},
 	"dependencies": {
-		"cdk8s": "^2.70.33",
+		"cdk8s": "^2.70.126",
 		"cdk8s-cli": "^2.200.150",
 		"cdk8s-plus-33": "^2.4.10",
 		"constructs": "^10.8.1",
