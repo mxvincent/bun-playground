@@ -8,7 +8,7 @@ await importCrds({
 	output: join(import.meta.dir, '..', 'crds'),
 	sources: {
 		'external-secrets.io': [
-			'https://raw.githubusercontent.com/external-secrets/external-secrets/v2.14.0/deploy/crds/bundle.yaml'
+			'https://raw.githubusercontent.com/external-secrets/external-secrets/v2.15.0/deploy/crds/bundle.yaml'
 		]
 	}
 })
