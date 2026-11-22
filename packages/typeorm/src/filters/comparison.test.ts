@@ -67,8 +67,13 @@ describe('get comparison string', () => {
 
 	it('rejects an operator without SQL translation', () => {
 		const filter = Object.assign(ComparisonFilter.equal('key', 'value'), { operator: 'unsupported' })
-		const call = () => generateComparisonString(filter as ComparisonFilter, 'parameter')
-		expect(call).toThrow(TypeormUnsupportedFilterError)
-		expect(call).toThrow('Operator not supported unsupported')
+		expect(() => generateComparisonString(filter as ComparisonFilter, 'parameter')).toThrow(
+			expect.objectContaining({
+				constructor: TypeormUnsupportedFilterError,
+				message: 'Operator not supported unsupported',
+				operator: 'unsupported',
+				path: 'key'
+			})
+		)
 	})
 })
