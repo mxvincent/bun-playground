@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
+import { FileNotReadableError } from '../errors/file-not-readable'
 import { readJsonFileSync } from './read-json-file'
 
 test('parses the file content', () => {
@@ -8,5 +9,5 @@ test('parses the file content', () => {
 })
 
 test('throws when the file does not exist', () => {
-	expect(() => readJsonFileSync('/does-not-exist.json')).toThrow('File does not exists or is not readable')
+	expect(() => readJsonFileSync('/does-not-exist.json')).toThrow(FileNotReadableError)
 })

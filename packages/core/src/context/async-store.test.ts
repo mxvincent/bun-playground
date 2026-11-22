@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test'
+import { ContextNotInitializedError } from '../errors/context-not-initialized'
 import { AsyncStore } from './async-store'
 
 type Values = { requestId: string; userId?: string }
@@ -10,7 +11,7 @@ class TestStore extends AsyncStore<Values> {
 }
 
 test('throws when values are read outside of a context', () => {
-	expect(() => new TestStore().values).toThrow('Context is not initialized.')
+	expect(() => new TestStore().values).toThrow(ContextNotInitializedError)
 })
 
 test('run() exposes the values merged with the defaults', () => {
