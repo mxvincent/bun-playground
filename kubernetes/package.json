@@ -18,6 +18,6 @@
 	"devDependencies": {
 		"cdk8s": "^2.70.33",
 		"cdk8s-cli": "^2.200.150",
-		"constructs": "^10.4.4"
+		"constructs": "^10.8.1"
 	}
 }
