@@ -1,6 +1,7 @@
 import { isString, type TeardownFunction, withTimeout } from '@package/core'
 import { logger } from '@package/telemetry'
 import { PinoLoggerAdapter } from '../adapters/logger'
+import { TypeormDataSourceNotInitializedError } from '../errors/data-source-not-initialized'
 import { type CreatePostgresDataSourceOptions, PostgresDataSource } from '../types/postgres-data-source'
 import { runMigrations } from './migrations'
 import { setPrimaryKeyColumns } from './primary-key'
@@ -126,6 +127,6 @@ export const teardownDataSource = async (dataSource: PostgresDataSource, timeout
  */
 export const dataSourceShouldBeInitialized = (dataSource: PostgresDataSource): void => {
 	if (!dataSource.isInitialized) {
-		throw new Error(`DataSource should be initialized`)
+		throw new TypeormDataSourceNotInitializedError()
 	}
 }

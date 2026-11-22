@@ -1,5 +1,7 @@
 import type { KeyOf, NonEmptyArray } from '@package/core'
 import type { ObjectLiteral, ObjectType } from 'typeorm'
+import { TypeormInvalidPrimaryKeyError } from '../errors/invalid-primary-key'
+import { TypeormPrimaryKeyNotConfiguredError } from '../errors/primary-key-not-configured'
 
 export const primaryKeys = new Map<ObjectType<unknown> | string, string[]>()
 
@@ -11,7 +13,7 @@ export const setPrimaryKeyColumns = <T extends ObjectLiteral>(
 	columns: Array<KeyOf<T>>
 ): void => {
 	if (columns.length === 0) {
-		throw new Error(`Keys should be a non empty array of string.`)
+		throw new TypeormInvalidPrimaryKeyError(entity.name, 'Keys should be a non empty array of string.')
 	}
 	primaryKeys.set(entity, [...columns])
 }
@@ -22,10 +24,10 @@ export const setPrimaryKeyColumns = <T extends ObjectLiteral>(
 export const getPrimaryKeyColumns = <T extends ObjectLiteral>(entity: ObjectType<T>): NonEmptyArray<KeyOf<T>> => {
 	const columns = primaryKeys.get(entity)
 	if (!columns) {
-		throw new Error(`Primary key is not configured for ${entity.name}`)
+		throw new TypeormPrimaryKeyNotConfiguredError(entity.name)
 	}
 	if (!columns.length) {
-		throw new Error(`Primary key should contain one to many columns.`)
+		throw new TypeormInvalidPrimaryKeyError(entity.name, 'Primary key should contain one to many columns.')
 	}
 	return columns as NonEmptyArray<KeyOf<T>>
 }

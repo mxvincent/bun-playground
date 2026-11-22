@@ -1,10 +1,13 @@
 export * from 'typeorm'
-
 /**
  * Adapters
  */
 export * from './adapters/database-context'
 export * from './adapters/logger'
+export * from './errors/data-source-not-initialized'
+export * from './errors/invalid-primary-key'
+export * from './errors/primary-key-not-configured'
+export * from './errors/unsupported-filter'
 
 export { applyFilters } from './filters/apply-filters'
 

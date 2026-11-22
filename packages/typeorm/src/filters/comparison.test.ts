@@ -1,5 +1,6 @@
 import { describe, expect, it, spyOn } from 'bun:test'
 import { ComparisonFilter } from '@package/query-params'
+import { TypeormUnsupportedFilterError } from '../errors/unsupported-filter'
 import { generateComparisonString } from './comparison'
 import { QueryUtils } from './generate-parameter-name'
 
@@ -62,5 +63,12 @@ describe('get comparison string', () => {
 		{ filter: ComparisonFilter.notNull('key'), output: 'key IS NOT NULL' }
 	])('operator: $filter.operator', ({ filter, output }) => {
 		expect(generateComparisonString(filter, 'parameter')).toBe(output)
+	})
+
+	it('rejects an operator without SQL translation', () => {
+		const filter = Object.assign(ComparisonFilter.equal('key', 'value'), { operator: 'unsupported' })
+		expect(() => generateComparisonString(filter as ComparisonFilter, 'parameter')).toThrow(
+			TypeormUnsupportedFilterError
+		)
 	})
 })
