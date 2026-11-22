@@ -203,6 +203,10 @@ No other type is allowed: `build` MUST NOT be used.
 - The pull request MUST carry the labels of its issue. See [Labels](#labels).
 - `.github/workflows/pull-request.yml` runs type-checking, linting and the full test suite against
   Postgres and RabbitMQ. All three MUST be green before merge.
+- `.github/workflows/pull-request-conventions.yml` checks the title, the body, the labels and the
+  changesets against these conventions, with `scripts/check-pull-request.ts`. It runs again when
+  the title, the body or a label changes, and MUST be green before merge. It does not check what a
+  tool cannot judge: the imperative mood, or whether a subsystem scope fits.
 - A pull request that changes a versioned workspace MUST include a changeset. See
   [versioning.md](./versioning.md).
 
