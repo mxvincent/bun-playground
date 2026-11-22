@@ -1,4 +1,5 @@
 import { type ComparisonFilter, ComparisonOperator } from '@package/query-params'
+import { TypeormUnsupportedFilterError } from '../errors/unsupported-filter'
 
 type ComparisonStringFactoryOptions = { path: string; parameterName: string }
 const factories = new Map<ComparisonOperator, (options: ComparisonStringFactoryOptions) => string>()
@@ -71,5 +72,5 @@ export const generateComparisonString = (filter: ComparisonFilter, parameterName
 	if (typeof generateWhereString === 'function') {
 		return generateWhereString({ path: filter.path, parameterName })
 	}
-	throw new Error(`Operator not supported ${filter.operator}`)
+	throw new TypeormUnsupportedFilterError(filter)
 }
