@@ -34,9 +34,12 @@ describe('EnvValue.string()', () => {
 		expect(EnvValue.string('TEST_STRING', { required: true })).toBe('a-value')
 	})
 	test('throws when a required variable is missing', () => {
-		expect(() => EnvValue.string('TEST_UNDEFINED', { required: true })).toThrow(MissingEnvironmentVariableError)
 		expect(() => EnvValue.string('TEST_UNDEFINED', { required: true })).toThrow(
-			'Environment variable is missing: TEST_UNDEFINED'
+			expect.objectContaining({
+				constructor: MissingEnvironmentVariableError,
+				variableName: 'TEST_UNDEFINED',
+				message: 'Environment variable is missing: TEST_UNDEFINED'
+			})
 		)
 	})
 })
@@ -60,9 +63,12 @@ describe('EnvValue.boolean()', () => {
 		expect(EnvValue.boolean('TEST_UNDEFINED', { default: true })).toBe(true)
 	})
 	test('throws when a required variable is missing', () => {
-		expect(() => EnvValue.boolean('TEST_UNDEFINED', { required: true })).toThrow(MissingEnvironmentVariableError)
 		expect(() => EnvValue.boolean('TEST_UNDEFINED', { required: true })).toThrow(
-			'Environment variable is missing: TEST_UNDEFINED'
+			expect.objectContaining({
+				constructor: MissingEnvironmentVariableError,
+				variableName: 'TEST_UNDEFINED',
+				message: 'Environment variable is missing: TEST_UNDEFINED'
+			})
 		)
 	})
 })
@@ -81,9 +87,12 @@ describe('EnvValue.number()', () => {
 		expect(EnvValue.number('TEST_UNDEFINED', { default: 1 })).toBe(1)
 	})
 	test('throws when a required variable is missing', () => {
-		expect(() => EnvValue.number('TEST_UNDEFINED', { required: true })).toThrow(MissingEnvironmentVariableError)
 		expect(() => EnvValue.number('TEST_UNDEFINED', { required: true })).toThrow(
-			'Environment variable is missing: TEST_UNDEFINED'
+			expect.objectContaining({
+				constructor: MissingEnvironmentVariableError,
+				variableName: 'TEST_UNDEFINED',
+				message: 'Environment variable is missing: TEST_UNDEFINED'
+			})
 		)
 	})
 })

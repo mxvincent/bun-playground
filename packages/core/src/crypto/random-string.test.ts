@@ -36,8 +36,7 @@ test.each<{ alphabet?: string; length: number; parameter: string; message: strin
 	},
 	{ length: 0, parameter: 'length', message: 'Length must be positive', description: 'a length that is not positive' }
 ])('rejects $description', ({ alphabet, length, parameter, message }) => {
-	const generate = () => new RandomStringGenerator(alphabet).generate(length)
-	expect(generate).toThrow(InvalidRandomStringParameterError)
-	expect(generate).toThrow(expect.objectContaining({ parameter }))
-	expect(generate).toThrow(message)
+	expect(() => new RandomStringGenerator(alphabet).generate(length)).toThrow(
+		expect.objectContaining({ constructor: InvalidRandomStringParameterError, parameter, message })
+	)
 })
