@@ -75,8 +75,13 @@ author of the pull request drives them and merges.
 2. **Verification.** The findings of both reviewers are merged, and a finding raised twice is kept
    once. Each finding then goes to three skeptic agents, who try to refute it against the code: they
    look for the input or state that triggers it and check that the stated result is the actual one.
-   A finding is kept when at least two of the three skeptics confirm it. A skeptic MUST NOT add a
-   finding of their own.
+   The vote decides:
+   - three confirmations out of three: the finding is kept;
+   - two out of three: two more skeptics review it, and the finding is kept only with at least four
+     confirmations out of five;
+   - one or none out of three: the finding is dropped.
+
+   A skeptic MUST NOT add a finding of their own.
 3. **Publication.** The kept findings are posted on GitHub as one review per pull request, one
    inline comment per finding, in the [format below](#comments). GitHub does not let the author of a
    pull request approve it or request changes on it, so the review is posted as a comment
@@ -100,7 +105,8 @@ do not depend on each other:
 
 - **Review**: the two reviewers of every pull request of the stack start at once.
 - **Verification** of a pull request starts as soon as its two reviews end, without waiting for the
-  other pull requests. The three skeptics of every finding run at once.
+  other pull requests. The three skeptics of every finding run at once, and the two extra skeptics
+  of a split finding start as soon as its first vote ends.
 - **Publication** of a pull request follows its verification.
 - **Fix**: one agent per pull request, each in its own worktree, prepares the fixes of its layer at
   the same time. Their commits are then applied bottom to top, and the layers above are rebased
