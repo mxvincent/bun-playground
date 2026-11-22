@@ -1,0 +1,11 @@
+// code-style.md: production code throws classes that extend BaseError, never a plain Error.
+// biome.json applies it outside tests, test helpers and the GitHub actions, which cannot depend on @package/errors.
+language js
+
+`throw new Error($arguments)` as $throw where {
+	register_diagnostic(
+		span = $throw,
+		message = "Throw a class that extends BaseError from @package/errors, not a plain Error. See docs/conventions/code-style.md#errors.",
+		severity = "error"
+	)
+}

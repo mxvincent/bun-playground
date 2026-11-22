@@ -132,7 +132,13 @@ Further rules:
 ## Errors
 
 - A thrown error MUST be an instance of a class extending `BaseError` from `@package/errors`.
-  `throw new Error('…')` MUST NOT appear in production code.
+  `throw new Error('…')` MUST NOT appear in production code. The Biome plugin
+  `biome-plugins/no-throw-error.grit` reports it everywhere except in tests (`*.test.ts`), test
+  helpers (`test-helpers/`) and `.github/actions/`: the actions are bundled on their own and cannot
+  depend on `@package/errors`. It does not see an error thrown by a library, such as
+  `tiny-invariant`.
+- A code MUST be unique across the monorepo. When two packages report the same condition, prefix
+  the code with the package (`DRIZZLE_INVALID_CURSOR`, `TYPEORM_UNSUPPORTED_FILTER`, `AMQP_…`).
 - An error class MUST declare a `code` (`SCREAMING_SNAKE_CASE`) and, when it maps to HTTP, a
   `statusCode`.
   ```ts
