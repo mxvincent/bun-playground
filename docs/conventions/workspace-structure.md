@@ -232,8 +232,8 @@ where the grouping is not obvious from the paths — a JSDoc section comment.
 export * from './array/as-array'
 export * from './array/sort'
 
-export * from './auth/errors'
 export * from './auth/jwt'
+export * from './auth/schemas'
 ```
 
 ```ts
